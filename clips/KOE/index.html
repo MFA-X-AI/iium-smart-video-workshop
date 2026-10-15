@@ -1,0 +1,682 @@
+﻿<!doctype html>
+<!--
+PAPER: Wahid & Badarussamin (2026), Design and Experimental Study of Shape
+Memory Alloy (SMA) Spring as Actuators in Wrist Exoskeleton, pp.455–463.
+Evidence: a strapped glove/splint, FOUR SMA springs (two dorsal, two palmar),
+electrical heating of the dorsal pair for extension and the palmar pair for
+flexion; opposing actuation aids reversal. The measured first extension peak
+was about 35 degrees. Real heating/cooling takes tens of seconds; the reported
+complete-cycle frequency is 0.018 Hz. This animation is TIME-COMPRESSED.
+Artistic licence: an anatomical mannequin wearing a simplified fingerless glove
+and partial splint, enlarged coil detail, textile/metal finishes, traced CAD
+construction, blueprint-to-solid sweep, camera push-in, pose outlines, illustrative
+35-degree extension and 22-degree flexion. Amber denotes heating, NOT visible
+incandescence. No clinical recovery, real-time speed, sideward performance,
+additional cooling, or torque values are asserted by the animation.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Heated springs help the wrist move</title>
+<style>
+  * { box-sizing:border-box }
+  html,body { margin:0; width:100%; height:100%; overflow:hidden; background:#061c34 }
+  body { color:#f3f2df; font-family:Bahnschrift,"Arial Narrow",Arial,sans-serif }
+  #stage { position:absolute; width:100%; height:100%; inset:0; isolation:isolate }
+  canvas { position:absolute; inset:0; display:block; width:100%; height:100% }
+  .scrim { position:absolute; inset:0; pointer-events:none; background:linear-gradient(90deg,transparent 47%,rgba(3,17,33,.15) 64%,rgba(3,17,33,.65) 100%); z-index:2 }
+  .title { position:absolute; left:65.5%; top:20.2%; width:31%; z-index:3 }
+  h1 { margin:0; font-size:clamp(28px,4.17vw,100px); line-height:1.075; font-weight:600; letter-spacing:-.045em; text-wrap:balance }
+  h1 span { display:block }
+  h1 .warm { color:#f3bb70 }
+  .timing { position:absolute; left:4.4%; bottom:6.2%; margin:0; z-index:3; font-family:Consolas,"Courier New",monospace; font-size:clamp(9px,.98vw,21px); letter-spacing:.09em; color:#a2bbc9; text-transform:uppercase }
+  .timing::before { content:""; display:inline-block; width:1.9vw; height:1px; background:#7295a9; vertical-align:middle; margin-right:.85vw }
+  #thermal-label { position:absolute; z-index:3; left:27%; top:28%; white-space:nowrap; color:#f2bc74; font-family:Consolas,"Courier New",monospace; font-size:clamp(10px,1.13vw,24px); letter-spacing:.09em; transform:translate(-50%,-100%); pointer-events:none }
+  .frame { position:absolute; inset:4.1%; z-index:2; pointer-events:none; opacity:.4; background:linear-gradient(#678aa5,#678aa5) left top/2.6vw 1px no-repeat,linear-gradient(#678aa5,#678aa5) left top/1px 2.6vw no-repeat,linear-gradient(#678aa5,#678aa5) right top/2.6vw 1px no-repeat,linear-gradient(#678aa5,#678aa5) right top/1px 2.6vw no-repeat,linear-gradient(#678aa5,#678aa5) left bottom/2.6vw 1px no-repeat,linear-gradient(#678aa5,#678aa5) left bottom/1px 2.6vw no-repeat }
+  #failure { display:none; position:absolute; left:5%; top:44%; max-width:46%; color:#d4e0e8; font-size:24px; z-index:5 }
+  @media(max-aspect-ratio:1/1) { .title { left:58%; width:37% } h1 { font-size:5vw } }
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<main id="stage" aria-label="Time-compressed CAD illustration: heated shape-memory alloy springs contract to move a wrist-assist glove.">
+  <div class="scrim"></div>
+  <header class="title">
+    <h1><span>Heated springs</span><span>help the</span><span class="warm">wrist move</span></h1>
+  </header>
+  <div id="thermal-label" aria-hidden="true">HEAT → CONTRACTION</div>
+  <p class="timing">Motion time-compressed</p>
+  <div class="frame"></div>
+  <p id="failure">This 3D clip needs WebGL and access to jsDelivr.</p>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const TAU = Math.PI * 2;
+const DURATION = 4.0;
+const clamp = THREE.MathUtils.clamp;
+const mix = THREE.MathUtils.lerp;
+const smooth = (a,b,x) => { const v=clamp((x-a)/(b-a),0,1); return v*v*(3-2*v); };
+const V = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
+const stage = document.getElementById('stage');
+const label = document.getElementById('thermal-label');
+const uniforms = { reveal:{value:-10}, drawing:{value:1}, trace:{value:0}, phase:{value:0}, aspect:{value:16/9} };
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+} catch(error) {
+  document.getElementById('failure').style.display='block';
+  throw error;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.5));
+renderer.setSize(innerWidth,innerHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.0;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.autoClear=false;
+stage.prepend(renderer.domElement);
+renderer.domElement.setAttribute('aria-hidden','true');
+
+const scene = new THREE.Scene();
+const camera = new THREE.OrthographicCamera(-8.62,8.62,4.85,-4.85,.1,100);
+camera.position.set(4.0,13.0,18.0);
+camera.lookAt(.30,.25,0);
+camera.updateMatrixWorld();
+const environment = new RoomEnvironment();
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envTarget = pmrem.fromScene(environment,.06);
+scene.environment=envTarget.texture;
+scene.environmentIntensity=.48;
+environment.dispose();
+pmrem.dispose();
+const hemisphere=new THREE.HemisphereLight(0xe2f4ff,0x233348,1.05);
+scene.add(hemisphere);
+const key = new THREE.DirectionalLight(0xffefd8,2.7);
+key.position.set(-4,8,7); scene.add(key);
+key.castShadow=true;
+key.shadow.mapSize.set(2048,2048);
+Object.assign(key.shadow.camera,{left:-9,right:9,top:7,bottom:-7,near:.5,far:35});
+key.shadow.bias=-.00015;
+key.shadow.normalBias=.025;
+key.shadow.radius=2;
+const rim = new THREE.DirectionalLight(0x8bd3ed,1.8);
+rim.position.set(1,3,-6); scene.add(rim);
+const fill = new THREE.DirectionalLight(0xe8faff,.5);
+fill.position.set(3,-4,8); scene.add(fill);
+
+// A screen-space drawing sheet: no UI, no controls, no random frame-to-frame noise.
+const backdropScene = new THREE.Scene();
+const backdropCamera = new THREE.Camera();
+const backdropMaterial = new THREE.ShaderMaterial({
+  depthTest:false, depthWrite:false,
+  uniforms:{uAspect:uniforms.aspect},
+  vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.999,1.0); }`,
+  fragmentShader:`
+    varying vec2 vUv;
+    uniform float uAspect;
+    float lattice(vec2 p,float scale) {
+      vec2 q=p*scale;
+      vec2 w=max(fwidth(q),vec2(0.0001));
+      vec2 d=abs(fract(q-0.5)-0.5)/w;
+      return 1.0-min(min(d.x,d.y),1.0);
+    }
+    void main(){
+      vec2 p=vec2(vUv.x*uAspect,vUv.y);
+      float halo=exp(-length((vUv-vec2(0.37,0.55))*vec2(1.55,1.0))*2.9);
+      vec3 base=mix(vec3(0.012,0.043,0.085),vec3(0.027,0.135,0.235),halo);
+      float fade=1.0-smoothstep(0.56,0.96,vUv.x);
+      base+=vec3(0.040,0.120,0.172)*lattice(p,25.0)*0.28*fade;
+      base+=vec3(0.048,0.151,0.210)*lattice(p,5.0)*0.26*fade;
+      float grain=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453);
+      base+=(grain-0.5)*0.006;
+      gl_FragColor=vec4(base,1.0);
+      #include <colorspace_fragment>
+    }`
+});
+backdropScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),backdropMaterial));
+
+// Every solid shares a world-space section reveal. The actual geometry stays put.
+function solidMaterial(color,roughness=.5,metalness=0,fabric=false) {
+  const mat=new THREE.MeshStandardMaterial({color,roughness,metalness});
+  mat.onBeforeCompile=shader=>{
+    shader.uniforms.uReveal=uniforms.reveal;
+    shader.vertexShader='varying vec3 vDraftWorld;\nvarying vec3 vWeave;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\nvWeave=position;\nvDraftWorld=(modelMatrix*vec4(transformed,1.0)).xyz;');
+    shader.fragmentShader='uniform float uReveal;\nvarying vec3 vDraftWorld;\nvarying vec3 vWeave;\n'+shader.fragmentShader;
+    shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>',
+      '#include <clipping_planes_fragment>\nif(vDraftWorld.x>uReveal) discard;');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',
+      '#include <color_fragment>\n'+(fabric ?
+      'float warp=sin(vWeave.x*175.0)*sin((vWeave.y+vWeave.z)*190.0);\ndiffuseColor.rgb*=0.96+0.04*warp;\n' : '')+
+      'float cutLight=exp(-abs(vDraftWorld.x-uReveal)*24.0);\ndiffuseColor.rgb+=vec3(0.1,0.52,0.65)*cutLight;');
+  };
+  mat.customProgramCacheKey=()=>fabric?'sma-fabric-section-v1':'sma-solid-section-v1';
+  return mat;
+}
+const skinMat=solidMaterial(0xb8a18a,.61,0);
+const nailMat=solidMaterial(0xcbbbA8,.42,0);
+const creaseMat=solidMaterial(0x8e7666,.85,0);
+const gloveMat=solidMaterial(0x3b5363,.85,0,true);
+const cuffMat=solidMaterial(0x294759,.88,.03,true);
+const strapMat=solidMaterial(0x152b40,.88,0,true);
+const bindingMat=solidMaterial(0x6f8a9a,.77,.06,true);
+const metalMat=solidMaterial(0xb4ced8,.26,.83);
+const darkMetalMat=solidMaterial(0x203b52,.34,.66);
+const contactMat=solidMaterial(0xb8874a,.3,.72);
+const slotMat=solidMaterial(0x081523,.7,.15);
+const seamMat=solidMaterial(0x8aa2aa,.74,0);
+// The same section clips shadow casters, so unrevealed surfaces cast no shadows.
+const sectionDepthMat=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking});
+sectionDepthMat.onBeforeCompile=shader=>{
+  shader.uniforms.uReveal=uniforms.reveal;
+  shader.vertexShader='varying float vSectionX;\n'+shader.vertexShader;
+  shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',
+    '#include <begin_vertex>\nvSectionX=(modelMatrix*vec4(transformed,1.0)).x;');
+  shader.fragmentShader='uniform float uReveal;\nvarying float vSectionX;\n'+shader.fragmentShader;
+  shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>',
+    '#include <clipping_planes_fragment>\nif(vSectionX>uReveal) discard;');
+};
+
+function draftingMaterial(color,base,hidden=false) {
+  const mat=new THREE.LineBasicMaterial({color,transparent:true,opacity:base,depthWrite:false,depthTest:!hidden});
+  mat.onBeforeCompile=shader=>{
+    shader.uniforms.uReveal=uniforms.reveal;
+    shader.uniforms.uDrawing=uniforms.drawing;
+    shader.uniforms.uTrace=uniforms.trace;
+    shader.vertexShader='attribute float aTrace;\nvarying float vTrace;\nvarying float vDraftX;\n'+shader.vertexShader;
+    shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\nvTrace=aTrace;\nvDraftX=(modelMatrix*vec4(transformed,1.0)).x;');
+    shader.fragmentShader='uniform float uTrace;\nvarying float vTrace;\nuniform float uReveal;\nuniform float uDrawing;\nvarying float vDraftX;\n'+shader.fragmentShader;
+    shader.fragmentShader=shader.fragmentShader.replace('#include <clipping_planes_fragment>',
+      '#include <clipping_planes_fragment>\nif(vTrace>uTrace) discard;');
+    shader.fragmentShader=shader.fragmentShader.replace('#include <opaque_fragment>',
+      'diffuseColor.a*=mix(0.07,1.0,smoothstep(uReveal-0.12,uReveal+0.08,vDraftX))*uDrawing;\noutgoingLight+=vec3(0.18,0.5,0.6)*exp(-abs(uTrace-vTrace)*90.0);\n#include <opaque_fragment>');
+  };
+  mat.customProgramCacheKey=()=> 'sma-drafting-trace-v2';
+  return mat;
+}
+const outlineMat=draftingMaterial(0xc7eced,.88);
+const contourMat=draftingMaterial(0x9cd5e4,.66);
+const hiddenMat=draftingMaterial(0x568fa7,.20,true);
+const root=new THREE.Group();
+root.position.set(-1.30,-.02,0);
+root.rotation.z=.32;
+scene.add(root);
+const forearm=new THREE.Group(); root.add(forearm);
+const hand=new THREE.Group(); root.add(hand);
+const solids=[];
+const draftObjects=[];
+
+// Arc-length attributes reveal an actual moving pen tip along each stroke batch.
+function traceGeometry(geometry,start=.04,duration=.65,segments=true) {
+  const p=geometry.attributes.position,times=new Float32Array(p.count);
+  const lengths=new Float32Array(p.count);let total=0;
+  for(let i=1;i<p.count;i++) {
+    if(!segments || i%2===1) total+=Math.hypot(p.getX(i)-p.getX(i-1),p.getY(i)-p.getY(i-1),p.getZ(i)-p.getZ(i-1));
+    lengths[i]=total;
+  }
+  for(let i=0;i<p.count;i++) times[i]=start+duration*(total>0?lengths[i]/total:i/Math.max(1,p.count-1));
+  geometry.setAttribute('aTrace',new THREE.BufferAttribute(times,1));
+  return geometry;
+}
+
+function lineSegments(points,mat,parent=root) {
+  const g=new THREE.BufferGeometry().setFromPoints(points);
+  traceGeometry(g);
+  const o=new THREE.LineSegments(g,mat); parent.add(o); return o;
+}
+function line(points,mat,parent=root) {
+  const g=traceGeometry(new THREE.BufferGeometry().setFromPoints(points),.04,.65,false);
+  const o=new THREE.Line(g,mat); parent.add(o); return o;
+}
+function mesh(geometry,mat,parent,position=V(),draft=true) {
+  const obj=new THREE.Mesh(geometry,mat); obj.position.copy(position); parent.add(obj); solids.push(obj);
+  obj.castShadow=true; obj.receiveShadow=true; obj.customDepthMaterial=sectionDepthMat;
+  if(draft) {
+    const edges=new THREE.LineSegments(traceGeometry(new THREE.EdgesGeometry(geometry,28),.24,.48),outlineMat);
+    obj.add(edges); draftObjects.push(edges);
+  }
+  return obj;
+}
+function box(x,y,z,w,h,d,mat,parent=forearm,draft=true) {
+  return mesh(new THREE.BoxGeometry(w,h,d),mat,parent,V(x,y,z),draft);
+}
+function tube(points,radius,mat,parent=root,segments=48) {
+  return mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),segments,radius,6,false),mat,parent,V(),false);
+}
+
+// Smooth elliptical sections form a glove, not a collection of disconnected blocks.
+function loft(sections,mat,parent,{radial=32,meridians=8,rings=2,deform=null}={}) {
+  const positions=[],indices=[],wire=[];
+  const count=sections.length;
+  const point=(i,j)=>{
+    const s=sections[i], a=TAU*j/radial;
+    const p=V(s[0],s[3]+s[1]*Math.cos(a),s[4]+s[2]*Math.sin(a));
+    return deform?deform(p,a,s):p;
+  };
+  for(let i=0;i<count;i++) for(let j=0;j<=radial;j++) {
+    const p=point(i,j); positions.push(p.x,p.y,p.z);
+    if(i<count-1 && j<radial) {
+      const a=i*(radial+1)+j,b=a+radial+1;
+      indices.push(a,a+1,b,b,a+1,b+1);
+    }
+  }
+  // Close ends with two true centres, with outward-facing normals.
+  for(const i of [0,count-1]) {
+    const c=positions.length/3,s=sections[i]; positions.push(s[0],s[3],s[4]);
+    for(let j=0;j<radial;j++) {
+      const a=i*(radial+1)+j;
+      if(i===0) indices.push(c,a+1,a); else indices.push(c,a,a+1);
+    }
+  }
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+  g.setIndex(indices); g.computeVertexNormals();
+  const obj=mesh(g,mat,parent,V(),false);
+  for(let j=0;j<radial;j+=radial/meridians) for(let i=0;i<count-1;i++) wire.push(point(i,j),point(i+1,j));
+  for(let i=0;i<count;i+=rings) for(let j=0;j<radial;j++) wire.push(point(i,j),point(i,j+1));
+  const contours=lineSegments(wire,contourMat,parent); draftObjects.push(contours);
+  return obj;
+}
+
+// Interpolated profiles avoid the straight cylinder and angular mitten of revision 1.
+function profileAt(profile,x) {
+  let k=0;while(k<profile.length-2 && x>profile[k+1][0])k++;
+  const a=profile[k],b=profile[k+1],u=clamp((x-a[0])/(b[0]-a[0]),0,1);
+  const out=[x];
+  for(let c=1;c<5;c++) {
+    const p=profile[Math.max(0,k-1)][c],q=a[c],r=b[c],s=profile[Math.min(profile.length-1,k+2)][c];
+    out.push(.5*((2*q)+(-p+r)*u+(2*p-5*q+4*r-s)*u*u+(-p+3*q-3*r+s)*u*u*u));
+  }
+  return out;
+}
+function sampleProfile(profile,n) {
+  return Array.from({length:n},(_,i)=>profileAt(profile,mix(profile[0][0],profile.at(-1)[0],i/(n-1))));
+}
+const armProfile=[
+  [-6.10,.59,.78,-.065,-.08],[-5.75,.70,.91,-.04,-.07],
+  [-5.15,.79,1.00,-.01,-.055],[-4.50,.80,1.025,.02,-.025],
+  [-3.70,.72,.93,.028,.018],[-2.90,.63,.81,.008,.025],
+  [-2.20,.53,.69,-.014,.025],[-1.50,.445,.585,-.025,.015],
+  [-.80,.375,.51,-.02,0],[-.15,.345,.50,0,0],[.25,.345,.54,0,0]
+];
+const armSections=sampleProfile(armProfile,65);
+const anatomicalArm=loft(armSections,skinMat,forearm,{rings:8,meridians:8,deform:(p,a,s)=>{
+  const muscle=Math.exp(-(((s[0]+3.5)/1.5)**2));
+  p.y+=.055*muscle*Math.cos(2*a+.4);
+  p.z+=.038*muscle*Math.sin(3*a);
+  return p;
+}});
+anatomicalArm.name='tapered-anatomical-forearm';
+const palmProfile=[
+  [-.23,.335,.49,0,0],[0,.345,.51,0,0],[.32,.345,.61,-.012,0],
+  [.70,.365,.76,-.025,0],[1.12,.34,.86,-.027,-.01],
+  [1.48,.285,.88,-.015,-.025],[1.78,.235,.84,0,-.025],
+  [1.98,.17,.72,.005,0],[2.10,.055,.59,-.025,0]
+];
+const palmSections=sampleProfile(palmProfile,49);
+const palm=loft(palmSections,skinMat,hand,{rings:8,meridians:8,deform:(p,a,s)=>{
+  // Thenar pad on the thumb side; a shallow dorsal metacarpal arch.
+  const thenar=Math.exp(-(((s[0]-.80)/.50)**2))*Math.max(0,Math.sin(a));
+  p.y-=.11*thenar*Math.max(0,-Math.cos(a));
+  p.z+=.08*thenar;
+  p.y+=.018*Math.exp(-(((s[0]-1.45)/.45)**2))*Math.max(0,Math.cos(a))*Math.cos(p.z*10);
+  return p;
+}});
+palm.name='palm-with-thenar-and-metacarpal-arch';
+
+function radiusAt(t,keys) {
+  let i=0;while(i<keys.length-2&&t>keys[i+1][0])i++;
+  return mix(keys[i][1],keys[i+1][1],smooth(keys[i][0],keys[i+1][0],t));
+}
+const fingers=[];
+const digitPaths=[];
+function digit(name,points,radius,thumb=false) {
+  const path=new THREE.CatmullRomCurve3(points,false,'centripetal');
+  const joints=thumb?[.51]:[.45,.74];
+  const widths=thumb?[[0,1.30],[.19,1.10],[.36,.88],[.51,.95],[.65,.80],[.84,.76],[.93,.61],[1,.035]]:
+    [[0,1.14],[.13,1.02],[.31,.85],[.45,.98],[.60,.78],[.74,.86],[.86,.75],[.94,.61],[1,.025]];
+  const sections=[];
+  for(let i=0;i<=56;i++) {
+    const t=i/56,p=path.getPointAt(t),r=radius*radiusAt(t,widths);
+    sections.push([p.x,r*.84,r,p.y,p.z]);
+  }
+  const obj=loft(sections,skinMat,hand,{radial:32,meridians:4,rings:14});
+  obj.name=name;fingers.push(obj);digitPaths.push(path);
+  // Localised double flexure creases at PIP and DIP, not rings around toy fingers.
+  for(const jt of joints) for(const offset of [-.018,.018]) {
+    const t=jt+offset,p=path.getPointAt(t),r=radius*radiusAt(t,widths),pts=[];
+    for(let j=0;j<=14;j++) {
+      const a=-.90+j/14*1.80;
+      pts.push(V(p.x+.017*Math.cos(a*2),p.y+r*.847*Math.cos(a),p.z+r*Math.sin(a)));
+    }
+    tube(pts,.0045,creaseMat,hand,18);
+  }
+  // Rounded nail bed follows the distal phalanx instead of a painted fingertip.
+  const tip=path.getPointAt(.88),tipTangent=path.getTangentAt(.86),r=radius*radiusAt(.88,widths);
+  const nail=mesh(new THREE.SphereGeometry(1,24,12),nailMat,hand,tip.clone().add(V(0,r*.83,0)),false);
+  nail.scale.set(thumb?.145:.165,.016,r*.70);
+  nail.quaternion.setFromUnitVectors(V(1,0,0),tipTangent);
+  nail.name=name+'-nail';
+  // One short contour is enough to establish the nail in the opening drawing.
+  const nailLine=[];
+  for(let j=0;j<=32;j++) {
+    const a=TAU*j/32;
+    nailLine.push(V(Math.cos(a)*(thumb?.145:.165),.014,Math.sin(a)*r*.70).applyQuaternion(nail.quaternion).add(nail.position));
+  }
+  const nl=line(nailLine,contourMat,hand);draftObjects.push(nl);
+  return path;
+}
+// Staggered MCP positions, three phalanges, relaxed flexion and visible interdigital spaces.
+digit('little-finger',[V(1.56,.075,-.73),V(2.10,.02,-.96),V(2.48,-.08,-1.13),V(2.76,-.22,-1.20)],.175);
+digit('ring-finger',[V(1.79,.095,-.26),V(2.53,.07,-.39),V(3.04,-.025,-.49),V(3.42,-.16,-.53)],.189);
+digit('middle-finger',[V(1.91,.105,.25),V(2.74,.10,.30),V(3.28,.025,.34),V(3.69,-.10,.37)],.195);
+digit('index-finger',[V(1.79,.075,.73),V(2.50,.065,.93),V(2.98,.01,1.08),V(3.32,-.065,1.17)],.192);
+digit('opposed-thumb',[V(.49,-.13,.69),V(.89,-.21,1.00),V(1.31,-.28,1.37),V(1.75,-.30,1.59),V(1.94,-.275,1.60)],.225,true);
+
+// A U-shaped fabric cradle leaves the anatomical dorsal forearm exposed.
+function partialWrap(profile,parent,mat,from,to,firstAngle,lastAngle) {
+  const n=36,m=36,pos=[],ids=[],wire=[];
+  const p=(i,j)=>{
+    const s=profileAt(profile,mix(from,to,i/n)),a=mix(firstAngle,lastAngle,j/m);
+    return V(s[0],s[3]+(s[1]+.055)*Math.cos(a),s[4]+(s[2]+.055)*Math.sin(a));
+  };
+  for(let i=0;i<=n;i++)for(let j=0;j<=m;j++) {
+    const q=p(i,j);pos.push(q.x,q.y,q.z);
+    if(i<n&&j<m){const a=i*(m+1)+j,b=a+m+1;ids.push(a,a+1,b,b,a+1,b+1);}
+  }
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(ids);g.computeVertexNormals();
+  mat.side=THREE.DoubleSide;
+  const obj=mesh(g,mat,parent,V(),false);
+  for(const j of [0,m]) {
+    const pts=[];for(let i=0;i<=n;i++)pts.push(p(i,j));
+    tube(pts,.024,bindingMat,parent,48);
+    for(let i=0;i<n;i++)wire.push(p(i,j),p(i+1,j));
+  }
+  for(const i of [0,9,18,27,n])for(let j=0;j<m;j++)wire.push(p(i,j),p(i,j+1));
+  const outline=lineSegments(wire,outlineMat,parent);draftObjects.push(outline);
+  return obj;
+}
+partialWrap(armProfile,forearm,cuffMat,-5.55,-.92,.34*Math.PI,1.66*Math.PI).name='open-dorsal-forearm-splint';
+// The fingerless glove supports the palm; the knuckles, fingers and thumb remain readable.
+partialWrap(palmProfile,hand,gloveMat,.32,1.60,-.45*Math.PI,.45*Math.PI).name='fingerless-dorsal-glove';
+partialWrap(palmProfile,hand,gloveMat,.27,1.57,.56*Math.PI,1.44*Math.PI).name='fingerless-palmar-glove';
+
+// Bands follow the actual taper instead of imposing three equal cylindrical sleeves.
+function strap(x,length) {
+  const profile=[];
+  for(let i=0;i<=8;i++) {
+    const s=profileAt(armProfile,x-length/2+length*i/8);
+    profile.push([s[0],s[1]+.09,s[2]+.085,s[3],s[4]]);
+  }
+  loft(profile,strapMat,forearm,{rings:8,meridians:4});
+  for(const k of [0,8]) {
+    const s=profile[k],pts=[];
+    for(let j=0;j<=64;j++){const a=TAU*j/64;pts.push(V(s[0],s[3]+(s[1]+.009)*Math.cos(a),s[4]+(s[2]+.009)*Math.sin(a)));}
+    tube(pts,.008,bindingMat,forearm,64);
+  }
+  const s=profileAt(armProfile,x),y=s[1]+s[3]+.12;
+  box(x,y,.17,length*.84,.07,.53,darkMetalMat);
+  box(x,y+.045,.17,length*.53,.025,.36,strapMat);
+  box(x-length*.28,y+.048,.17,.038,.03,.41,metalMat);
+}
+strap(-5.03,.47);strap(-3.52,.49);strap(-1.39,.36);
+// An actual fabric anchor band carries the proximal terminal blocks.
+strap(-2.40,.32);
+
+function terminals(parent,x,sign,height) {
+  box(x,sign*(height-.06),0,.30,.16,1.55,strapMat,parent);
+  box(x,sign*(height+.025),0,.235,.10,1.48,darkMetalMat,parent);
+  for(const z of [-.52,.52]) {
+    const screw=mesh(new THREE.CylinderGeometry(.093,.093,.055,16),metalMat,parent,V(x,sign*(height+.098),z));
+    const slot=box(x,sign*(height+.130),z,.105,.008,.021,slotMat,parent,false);
+    const saddle=box(x+.095,sign*(height+.02),z,.12,.07,.16,contactMat,parent);
+  }
+}
+for(const sign of [-1,1]) {
+  terminals(forearm,-2.40,sign,.69);
+  terminals(hand,1.42,sign,.51);
+}
+// Two subtle insulated supply leads approach the proximal terminals.
+for(const sign of [-1,1]) for(const z of [-.64,.64]) {
+  tube([V(-5.7,sign*.61,z),V(-4.7,sign*.64,z),V(-3.6,sign*.57,z),V(-2.65,sign*.59,z),V(-2.45,sign*.7,z*.81)],.019,slotMat,forearm,48);
+}
+
+// Four individually resolved helices. The tube buffers are reused on every frame.
+const springSegments=256, springSides=7, turns=19;
+const springObjects=[];
+const tempA=V(),tempB=V(),tempC=V(),tangent=V(),normal=V(),binormal=V();
+const rotated=(x,y,z,a)=>V(x*Math.cos(a)-y*Math.sin(a),x*Math.sin(a)+y*Math.cos(a),z);
+function springPath(sign,z,angle) {
+  return new THREE.CatmullRomCurve3([
+    V(-2.31,sign*.71,z),V(-1.60,sign*.76,z),V(-.70,sign*.74,z),
+    rotated(0,sign*.76,z,angle*.50),rotated(.70,sign*.64,z,angle),rotated(1.33,sign*.53,z,angle)
+  ],false,'centripetal',.5);
+}
+function createSpring(sign,z) {
+  const geometry=new THREE.BufferGeometry();
+  const positions=new Float32Array((springSegments+1)*(springSides+1)*3);
+  const normals=new Float32Array(positions.length),indices=[];
+  geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));
+  geometry.setAttribute('normal',new THREE.BufferAttribute(normals,3).setUsage(THREE.DynamicDrawUsage));
+  for(let i=0;i<springSegments;i++) for(let j=0;j<springSides;j++) {
+    const a=i*(springSides+1)+j,b=a+springSides+1;
+    indices.push(a,a+1,b,b,a+1,b+1);
+  }
+  geometry.setIndex(indices);
+  const mat=solidMaterial(0xbed9e4,.25,.85);
+  const object=mesh(geometry,mat,root,V(),false); object.frustumCulled=false;
+  const traceGeometry=new THREE.BufferGeometry();
+  traceGeometry.setAttribute('position',new THREE.BufferAttribute(new Float32Array((springSegments+1)*3),3).setUsage(THREE.DynamicDrawUsage));
+  const traceTimes=Float32Array.from({length:springSegments+1},(_,i)=>.20+.57*i/springSegments);
+  traceGeometry.setAttribute('aTrace',new THREE.BufferAttribute(traceTimes,1));
+  const trace=new THREE.Line(traceGeometry,outlineMat); trace.frustumCulled=false; root.add(trace);
+  const centres=Array.from({length:springSegments+1},()=>V());
+  return {sign,z,object,geometry,mat,trace,centres,length:0};
+}
+for(const sign of [1,-1]) for(const z of [-.52,.52]) springObjects.push(createSpring(sign,z));
+function updateSpring(s,angle,heat) {
+  const path=springPath(s.sign,s.z,angle);
+  path.arcLengthDivisions=100; path.updateArcLengths(); s.length=path.getLength();
+  const centres=s.centres,trace=s.trace.geometry.attributes.position.array;
+  for(let i=0;i<=springSegments;i++) {
+    const u=i/springSegments;
+    const p=path.getPointAt(u,tempA),tan=path.getTangentAt(u,tempB);
+    const envelope=smooth(0,.035,u)*(1-smooth(.965,1,u));
+    const a=TAU*turns*u;
+    const radius=.116*envelope;
+    // Frame normal lies in the flexion plane; second normal is across the wrist.
+    centres[i].set(p.x-tan.y*radius*Math.cos(a),p.y+tan.x*radius*Math.cos(a),p.z+radius*Math.sin(a));
+    centres[i].toArray(trace,i*3);
+  }
+  const pos=s.geometry.attributes.position.array,nor=s.geometry.attributes.normal.array;
+  for(let i=0;i<=springSegments;i++) {
+    tangent.subVectors(centres[Math.min(i+1,springSegments)],centres[Math.max(i-1,0)]).normalize();
+    normal.crossVectors(tangent,V(0,0,1)).normalize();
+    binormal.crossVectors(tangent,normal).normalize();
+    for(let j=0;j<=springSides;j++) {
+      const a=TAU*j/springSides;
+      tempC.copy(normal).multiplyScalar(Math.cos(a)).addScaledVector(binormal,Math.sin(a));
+      const index=(i*(springSides+1)+j)*3;
+      tempC.toArray(nor,index);
+      tempC.multiplyScalar(.027).add(centres[i]).toArray(pos,index);
+    }
+  }
+  s.geometry.attributes.position.needsUpdate=true;
+  s.geometry.attributes.normal.needsUpdate=true;
+  s.trace.geometry.attributes.position.needsUpdate=true;
+  s.mat.color.set(0xb9d2dd).lerp(new THREE.Color(0xffb04d),heat);
+  s.mat.emissive.set(0xff7b22); s.mat.emissiveIntensity=heat*.60;
+  s.mat.roughness=mix(.25,.37,heat);
+}
+
+// Reference outlines survive the reveal as ghosted drafting positions.
+root.updateMatrixWorld(true);
+const neutralGroup=new THREE.Group(); root.add(neutralGroup);
+const neutralMat=new THREE.LineBasicMaterial({color:0x8db7cb,transparent:true,opacity:0,depthTest:false,depthWrite:false});
+for(const source of draftObjects) {
+  if(source.parent===hand || source.parent.parent===hand) {
+    const copy=source.isLineSegments?new THREE.LineSegments(source.geometry,neutralMat):new THREE.Line(source.geometry,neutralMat);
+    source.updateWorldMatrix(true,false);
+    copy.matrix.copy(root.matrixWorld.clone().invert().multiply(source.matrixWorld));
+    copy.matrixAutoUpdate=false; neutralGroup.add(copy);
+  }
+}
+// An airy, dashed construction arc gives the wrist rotation a clear fixed centre.
+const construction=new THREE.Group(); root.add(construction);
+const constructionMat=draftingMaterial(0x83b7cc,.50);
+const constructionPoints=[];
+for(let i=0;i<80;i++) {
+  const a=-.67+i*.022;
+  constructionPoints.push(V(3.95*Math.cos(a),3.95*Math.sin(a),-.80),V(3.95*Math.cos(a+.010),3.95*Math.sin(a+.010),-.80));
+}
+lineSegments(constructionPoints,constructionMat,construction);
+const centreMarks=[];
+for(const side of [-1,1]) {
+  centreMarks.push(V(side*.17,0,1.04),V(side*.34,0,1.04));
+  centreMarks.push(V(0,side*.17,1.04),V(0,side*.34,1.04));
+}
+lineSegments(centreMarks,constructionMat,construction);
+// Dimension witness lines and diagonal ticks: geometric guides, no invented measurements.
+const dimensions=[];
+for(const x of [-5.55,-.92]) {
+  dimensions.push(V(x,-1.01,-.15),V(x,-1.77,-.15));
+  dimensions.push(V(x-.10,-1.66,-.15),V(x+.10,-1.46,-.15));
+}
+dimensions.push(V(-5.72,-1.56,-.15),V(-.73,-1.56,-.15));
+for(const z of [-.84,.84]) {
+  dimensions.push(V(1.67,.35,z),V(1.67,1.17,z));
+  dimensions.push(V(1.67,1.00,z-.085),V(1.67,1.14,z+.085));
+}
+dimensions.push(V(1.67,1.07,-1.0),V(1.67,1.07,1.0));
+const dimensionLines=lineSegments(dimensions,constructionMat,root);
+traceGeometry(dimensionLines.geometry,.41,.38,true);
+const arcMaterial=new THREE.LineBasicMaterial({color:0xffc17c,transparent:true,opacity:0,depthWrite:false});
+const arcBuffer=new THREE.BufferGeometry();
+arcBuffer.setAttribute('position',new THREE.BufferAttribute(new Float32Array(65*3),3));
+const motionArc=new THREE.Line(arcBuffer,arcMaterial); root.add(motionArc);
+const arrow=mesh(new THREE.ConeGeometry(.072,.19,12),solidMaterial(0xf5bc71,.5,.1),root,V(),false);
+
+// The sweep plane makes the transition a physical section through the drawing.
+const scan=new THREE.Group(); scene.add(scan);
+const scanMat=new THREE.LineBasicMaterial({color:0xb4edfa,transparent:true,opacity:.7,depthWrite:false});
+line([V(0,-2.1,-1.5),V(0,2.1,-1.5),V(0,2.1,1.7),V(0,-2.1,1.7),V(0,-2.1,-1.5)],scanMat,scan);
+const scanFace=new THREE.Mesh(new THREE.PlaneGeometry(3.2,4.2),new THREE.MeshBasicMaterial({color:0x72cfe9,transparent:true,opacity:.04,side:THREE.DoubleSide,depthWrite:false}));
+scanFace.rotation.y=Math.PI/2; scanFace.position.z=.1; scan.add(scanFace);
+
+// A single callout attaches directly to the active springs, never to a UI panel.
+const leaderMat=new THREE.LineBasicMaterial({color:0xf3ba70,transparent:true,opacity:0,depthWrite:false});
+const leaderGeo=new THREE.BufferGeometry().setFromPoints([V(),V(),V()]);
+const leader=new THREE.Line(leaderGeo,leaderMat); scene.add(leader);
+const labelAnchor=V();
+const projected=V();
+
+function timeline(seconds) {
+  const t=((seconds%DURATION)+DURATION)%DURATION;
+  const extension=smooth(.98,1.55,t);
+  const reversal=smooth(1.74,2.76,t);
+  let angle=THREE.MathUtils.degToRad(35)*extension-THREE.MathUtils.degToRad(57)*reversal;
+  const reset=smooth(3.43,3.98,t);
+  angle*=1-reset;
+  const revealIn=smooth(.81,1.23,t), revealOut=smooth(3.40,3.93,t);
+  return {t,angle,reveal:mix(-8.5,4.8,revealIn*(1-revealOut)),
+    upperHeat:smooth(.94,1.25,t)*(1-smooth(1.78,2.31,t))*(1-reset),
+    lowerHeat:smooth(1.65,2.03,t)*(1-smooth(3.20,3.70,t)),
+    trace:t<3.4?t:mix(1.0,0,smooth(3.62,4.0,t)),
+    push:smooth(.72,1.27,t)*(1-reset),solid:revealIn*(1-revealOut),reset};
+}
+function update(seconds) {
+  const state=timeline(seconds);
+  hand.rotation.z=state.angle;
+  uniforms.reveal.value=state.reveal;
+  uniforms.trace.value=state.trace;
+  uniforms.phase.value=state.t;
+  uniforms.drawing.value=1;
+  camera.zoom=mix(.93,1.02,state.push);
+  camera.updateProjectionMatrix();
+  const illuminate=mix(.40,1,smooth(.86,1.30,state.t))*(1-state.reset*.6);
+  key.intensity=2.7*illuminate;
+  hemisphere.intensity=1.05*illuminate;
+  rim.intensity=1.8*illuminate;
+  fill.intensity=.5*illuminate;
+  for(const s of springObjects) updateSpring(s,state.angle,s.sign>0?state.upperHeat:state.lowerHeat);
+  neutralMat.opacity=.085*smooth(.10,.42,Math.abs(state.angle))*(1-state.reset);
+  scan.position.x=state.reveal;
+  scan.visible=(state.t>.81 && state.t<1.25) || (state.t>3.40 && state.t<3.94);
+  scanMat.opacity=.65*(1-smooth(1.17,1.25,state.t));
+  if(state.t>3.4) scanMat.opacity=.30;
+  constructionMat.opacity=mix(.55,.28,state.solid);
+  const arcPos=arcBuffer.attributes.position.array;
+  for(let i=0;i<=64;i++) {
+    const a=state.angle*i/64;
+    V(4.00*Math.cos(a),4.00*Math.sin(a),-.80).toArray(arcPos,i*3);
+  }
+  arcBuffer.attributes.position.needsUpdate=true;
+  arcMaterial.opacity=.8*smooth(.08,.32,Math.abs(state.angle))*(1-state.reset);
+  arrow.position.set(4*Math.cos(state.angle),4*Math.sin(state.angle),-.80);
+  arrow.rotation.z=state.angle+(state.angle<0?Math.PI:0);
+  arrow.visible=Math.abs(state.angle)>.10 && state.t<3.42;
+  root.updateMatrixWorld(true);
+  const active=state.t<1.86?1:-1;
+  const springPoint=root.localToWorld(V(-.62,active*.94,.72));
+  const leaderEnd=root.localToWorld(V(-1.1,2.06,1.12));
+  const elbow=leaderEnd.clone().add(V(-.29,-.28,0));
+  leaderGeo.attributes.position.setXYZ(0,springPoint.x,springPoint.y,springPoint.z);
+  leaderGeo.attributes.position.setXYZ(1,elbow.x,elbow.y,elbow.z);
+  leaderGeo.attributes.position.setXYZ(2,leaderEnd.x,leaderEnd.y,leaderEnd.z);
+  leaderGeo.attributes.position.needsUpdate=true;
+  const labelOpacity=smooth(.48,.76,state.t)*(1-smooth(3.20,3.45,state.t));
+  leaderMat.opacity=labelOpacity*.68;
+  labelAnchor.copy(leaderEnd).add(V(0,.16,0));
+  projected.copy(labelAnchor).project(camera);
+  label.style.left=((projected.x*.5+.5)*100)+'%';
+  label.style.top=((-projected.y*.5+.5)*100)+'%';
+  label.style.opacity=String(labelOpacity);
+  // The sparse seam marks are surface detail, not independent floating geometry.
+  forearm.children.forEach(o=>{ if(o.userData.seam) o.visible=state.solid>.94; });
+  return state;
+}
+function render(seconds) {
+  update(seconds);
+  renderer.clear();
+  renderer.render(backdropScene,backdropCamera);
+  renderer.clearDepth();
+  renderer.render(scene,camera);
+}
+function resize() {
+  const aspect=innerWidth/innerHeight;
+  camera.left=-4.85*aspect; camera.right=4.85*aspect;
+  camera.top=4.85; camera.bottom=-4.85;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+  uniforms.aspect.value=aspect;
+}
+resize();
+const params=new URLSearchParams(location.search);
+const requested=Number(params.get('t'));
+const frozen=params.has('t') && Number.isFinite(requested);
+const frozenTime=Math.max(0,requested);
+const start=performance.now();
+let currentTime=frozen?frozenTime:0;
+function frame(now) {
+  currentTime=frozen?frozenTime:(now-start)/1000;
+  render(currentTime);
+  if(!frozen) requestAnimationFrame(frame);
+}
+window.addEventListener('resize',()=>{resize();if(frozen) render(currentTime);});
+render(currentTime);
+if(!frozen) requestAnimationFrame(frame);
+// Read-only debug data for deterministic, browser-free geometry QA.
+window.__SMA_CLIP__={timeline,update,scene,camera,root,hand,forearm,springObjects,solids,draftObjects,uniforms,digitPaths,sectionDepthMat,DURATION};
+</script>
+</body>
+</html>

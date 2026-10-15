@@ -1,0 +1,323 @@
+<!--
+Paper evidence: Zamani et al., Borneo J Med Sci 20(3), 380–390 (2026).
+Fig. 3A–B and p. 386: after 24 h CLEO, HFF1 TP53 expression has no significant
+change; A431 TP53 is significantly downregulated at 125 and 500 µg/mL (p<0.001).
+This shot selects 500 µg/mL, measured in both cell lines. Fig. 1, pp. 384–385:
+mild HFF1 rounding versus A431 shrinkage, membrane blebbing and detachment.
+Discussion, p. 387: TP53 downregulation was contrary to the upregulation expected
+from earlier studies; the subline reads “Opposite of the expected rise”.
+Artistic licence: the study used qPCR and brightfield microscopy, NOT fluorescent
+imaging. DAPI/actin/TP53 channels, puncta counts, fade amount, cell counts, optical
+depth, background cells, Gaussian bloom, oil haze and animation timing are
+illustrative, not measured quantities. The half-faded intermediate signal is a
+storytelling choice, not a measured intermediate time point.
+Concurrent morphology and signal changes do not establish a causal mechanism.
+No fold values or preliminary secreted p53 protein results are depicted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lemon oil lowers TP53 in skin cancer cells only</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+  body { display: grid; place-items: center; }
+  canvas { display: block; width: min(100vw,177.777778vh); height: min(100vh,56.25vw); }
+</style>
+</head>
+<body>
+<canvas id="scene" width="1920" height="1080" role="img" aria-label="Illustrative fluorescence comparison: lemon essential oil at 500 micrograms per millilitre for 24 hours. Normal HFF1 fibroblasts retain TP53 signal; A431 skin cancer cells show significantly lower TP53 expression, p less than 0.001, with shrinkage and detachment."></canvas>
+<script>
+'use strict';
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d', { alpha: false });
+const TAU = Math.PI * 2;
+const clamp = v => Math.max(0, Math.min(1, v));
+const smooth = (a, b, t) => { const q = clamp((t-a)/(b-a)); return q*q*(3-2*q); };
+const mix = (a, b, t) => a+(b-a)*t;
+function rng(seed) {
+  return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let n = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    n = n + Math.imul(n ^ n >>> 7, 61 | n) ^ n;
+    return ((n ^ n >>> 14) >>> 0)/4294967296;
+  };
+}
+function surface(w,h) { const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+function glowSprite(rgb) {
+  const c=surface(64,64), g=c.getContext('2d');
+  const r=g.createRadialGradient(32,32,0,32,32,32);
+  r.addColorStop(0,`rgba(${rgb},1)`); r.addColorStop(.12,`rgba(${rgb},.95)`);
+  r.addColorStop(.28,`rgba(${rgb},.4)`); r.addColorStop(.58,`rgba(${rgb},.09)`);
+  r.addColorStop(1,`rgba(${rgb},0)`); g.fillStyle=r; g.fillRect(0,0,64,64); return c;
+}
+const redGlow=glowSprite('255,45,69');
+const blueGlow=glowSprite('31,94,255');
+const random=rng(43153);
+const noise=surface(600,500), ng=noise.getContext('2d');
+const noiseData=ng.createImageData(600,500);
+for(let i=0;i<noiseData.data.length;i+=4) {
+  const v=random()*110; noiseData.data[i]=v*.76; noiseData.data[i+1]=v;
+  noiseData.data[i+2]=v*.88; noiseData.data[i+3]=random()*56;
+}
+ng.putImageData(noiseData,0,0);
+
+function makeCell(x,y,cancer,id) {
+  const r=rng(90210+id*619+(cancer?431:0));
+  const c={x,y,cancer,id,angle:cancer?(r()-.5)*.3:-.48+(r()-.5)*.65,
+    size:(cancer?1.2:1.08)+r()*.22,phase:r()*TAU,detach:cancer&&[1,3,4,7,9,10,12].includes(id),
+    fibers:[],grains:[],puncta:[],nucleus:[]};
+  for(let i=0;i<125;i++) c.fibers.push({y:(r()-.5)*125,bend:(r()-.5)*90,alpha:.05+r()*.25,length:20+r()*75});
+  for(let i=0;i<1800;i++) c.grains.push({x:(r()-.5)*224,y:(r()-.5)*146,s:.3+r()*1.3,a:.06+r()*.32});
+  for(let i=0;i<9;i++) {
+    // Perinuclear and cytoplasmic puncta; positions and extinction order are seeded.
+    const a=TAU*(i/9)+r()*.65, radius=.42+r()*.4;
+    // Spatially interleave the extinction order: four disappear before 1.5 s;
+    // the other five remain dim at 1.5 s and fade away before 2.2 s.
+    const rank=(i*5+id*2)%9;
+    const end=rank<4?1.12+rank*.065+r()*.08:1.72+(rank-4)*.085+r()*.04;
+    c.puncta.push({x:Math.cos(a)*radius*(cancer?54:85),y:Math.sin(a)*radius*(cancer?49:29),
+      phase:r()*TAU,off:end-.22,end,residual:rank===8?.025:0});
+  }
+  for(let i=0;i<320;i++) { const a=r()*TAU, rr=Math.sqrt(r());
+    c.nucleus.push({x:Math.cos(a)*rr*26,y:Math.sin(a)*rr*19,r:.3+r()*1.5,a:.1+r()*.42}); }
+  c.texture=surface(240,160);
+  const g=c.texture.getContext('2d');g.translate(120,80);
+  // Fixed cytoskeleton and sensor-scale texture are rasterised once per cell.
+  for(const f of c.fibers) {
+    g.beginPath();
+    if(c.cancer) {
+      const a=f.y*.1, radius=27+Math.abs(f.bend)*.7;
+      g.ellipse(f.bend*.22,0,radius,radius*.85,a,a,a+f.length*.014);
+    } else {
+      const start=-110+Math.abs(f.bend);
+      g.moveTo(start,f.y*.66);g.bezierCurveTo(start+f.length*.4,f.y*.58+f.bend*.16,start+f.length,f.y*.5-f.bend*.15,start+f.length*1.65,f.y*.32);
+    }
+    g.strokeStyle=`rgba(66,245,119,${f.alpha})`;g.lineWidth=.4+r()*.8;g.stroke();
+  }
+  for(const d of c.grains) {
+    g.fillStyle=`rgba(75,237,117,${d.a})`;g.fillRect(d.x,d.y,d.s,d.s);
+  }
+  c.nuclearTexture=surface(100,90);
+  const n=c.nuclearTexture.getContext('2d');n.translate(50,45);
+  n.globalCompositeOperation='screen';n.drawImage(blueGlow,-46,-37,92,74);
+  n.beginPath();
+  for(let i=0;i<=64;i++) {
+    const a=i/64*TAU, k=1+.065*Math.sin(a*3+c.phase)+.045*Math.cos(a*5+c.phase);
+    const x=-2+Math.cos(a)*25*k,y=Math.sin(a)*19*k;
+    if(i===0)n.moveTo(x,y);else n.lineTo(x,y);
+  }
+  n.closePath();
+  const nuc=n.createRadialGradient(-7,-4,1,0,0,27);
+  nuc.addColorStop(0,'rgba(55,101,245,.65)');nuc.addColorStop(.7,'rgba(24,63,205,.6)');
+  nuc.addColorStop(1,'rgba(15,38,141,.2)');n.fillStyle=nuc;n.fill();n.clip();
+  for(const d of c.nucleus) {
+    n.fillStyle=`rgba(102,151,255,${d.a})`;n.beginPath();n.arc(d.x,d.y,d.r,0,TAU);n.fill();
+  }
+  for(let i=0;i<9;i++) {
+    n.globalAlpha=.15+r()*.25;const s=5+r()*12;
+    n.drawImage(blueGlow,(r()-.5)*35-s/2,(r()-.5)*25-s/2,s,s);
+  }
+  return c;
+}
+const fibro=[];
+for(let row=0;row<4;row++) for(let col=0;col<3;col++) {
+  const i=row*3+col;
+  fibro.push(makeCell(84+col*192+(row%2?14:-12),44+row*131+Math.sin(i*4)*18,false,i));
+}
+const cancer=[];
+// Staggered epithelial islands: close polygonal neighbours separate on contraction.
+for(let row=0;row<4;row++) for(let col=0;col<(row%2?3:4);col++) {
+  const i=cancer.length;
+  cancer.push(makeCell(68+col*141+(row%2?65:0)+Math.sin(i*7)*11,49+row*132+Math.cos(i*4)*12,true,i));
+}
+const cellSurface=surface(300,280), cg=cellSurface.getContext('2d');
+
+function outline(g,c,p,t=0) {
+  g.beginPath();
+  for(let i=0;i<=96;i++) {
+    const a=i/96*TAU;
+    let x,y;
+    if(!c.cancer) {
+      const mild=([3,8].includes(c.id)?p*.72:0);
+      x=Math.cos(a)*mix(104,84,mild);
+      y=Math.sin(a)*Math.pow(Math.abs(Math.sin(a)),.48)*mix(38,49,mild);
+      y+=(Math.sin(a*2+c.phase)*4+Math.sin(a*7+c.phase)*1.3)*Math.sin(a);
+      // Small travelling membrane ruffles, with no translation or defocus.
+      x+=Math.cos(a)*Math.sin(a*9-t*2.1+c.phase)*1.1;
+      y+=Math.sin(a)*Math.sin(a*8-t*2.3+c.phase)*1.65;
+    } else {
+      const sector=((a+Math.PI/6)%(Math.PI/3))-Math.PI/6;
+      const poly=57/Math.cos(sector);
+      let rr=mix(poly,35,p);
+      rr+=Math.sin(a*3+c.phase)*3.5*(1-p)+Math.sin(a*17+c.phase)*.5;
+      x=Math.cos(a)*rr; y=Math.sin(a)*rr*.93;
+    }
+    if(i===0) g.moveTo(x,y); else g.lineTo(x,y);
+  }
+  g.closePath();
+}
+function tp53Intensity(c,d,t) {
+  const twinkle=.92+.08*Math.sin(t*2+d.phase);
+  if(!c.cancer)return twinkle;
+  const extinction=smooth(d.off,d.end,t);
+  return mix(1,d.residual,extinction)*mix(1,.4,smooth(.75,1.5,t))*twinkle;
+}
+function drawCell(c,t,ox,oy) {
+  const p=c.cancer?smooth(.6+(c.id%3)*.035,1.77,t):smooth(.8,2,t);
+  const lift=c.detach?smooth(.98+(c.id%3)*.055,2.45,t):0;
+  const g=cg;
+  g.clearRect(0,0,300,280); g.save(); g.translate(150,140);
+  g.rotate(c.angle+(c.cancer?lift*.14:Math.sin(t*1.1+c.phase)*.007));
+  g.scale(c.size,c.size);
+  outline(g,c,p,t);
+  const fill=g.createRadialGradient(0,0,12,0,0,c.cancer?68:108);
+  fill.addColorStop(0,'rgba(8,83,36,.4)'); fill.addColorStop(.65,'rgba(19,155,58,.29)');
+  fill.addColorStop(1,'rgba(18,191,78,.06)');
+  g.fillStyle=fill; g.fill();
+  g.strokeStyle='rgba(48,244,114,.34)'; g.lineWidth=3.2;
+  g.filter='blur(1.8px)'; g.stroke(); g.filter='none';
+  g.save(); g.clip();
+  g.drawImage(c.texture,-120,-80);
+  g.restore();
+  if(c.cancer&&p>.02) {
+    // Distinct circular membrane buds, rather than star-shaped radial spikes.
+    const buds=smooth(.75,1.65,t);
+    for(let j=0;j<4;j++) {
+      const a=c.phase+j*1.64, radius=(6.5+2.8*Math.sin(j*7+c.phase))*buds;
+      const rim=mix(59,35,p), bx=Math.cos(a)*(rim+radius*.38),by=Math.sin(a)*(rim*.93+radius*.38);
+      g.beginPath();g.arc(bx,by,Math.max(.1,radius),0,TAU);
+      const b=g.createRadialGradient(bx-2,by-2,0,bx,by,radius+1);
+      b.addColorStop(0,'rgba(14,104,48,.16)');b.addColorStop(.72,'rgba(47,209,94,.2)');b.addColorStop(1,'rgba(74,238,117,.45)');
+      g.fillStyle=b;g.fill();g.strokeStyle='rgba(93,249,135,.5)';g.lineWidth=1.2;
+      g.filter='blur(.8px)';g.stroke();g.filter='none';
+    }
+  }
+  // Chromatin texture prevents DAPI nuclei reading as smooth diagram circles.
+  g.save(); g.scale(c.cancer?mix(1,.84,p):1,c.cancer?mix(1,.9,p):1);
+  g.globalCompositeOperation='screen';
+  g.drawImage(c.nuclearTexture,-50,-45);
+  g.restore();
+  g.globalCompositeOperation='screen';
+  for(const d of c.puncta) {
+    const brightness=tp53Intensity(c,d,t);
+    const shrink=c.cancer?mix(1,.63,p):1;
+    g.globalAlpha=brightness;
+    g.drawImage(redGlow,d.x*shrink-14,d.y*shrink-14,28,28);
+  }
+  g.restore();
+  const drift=lift*(14+Math.max(0,t-2)*15);
+  const s=1+lift*.2;
+  const dx=ox+c.x-150*s+drift*Math.sin(c.phase),dy=oy+c.y-140*s-lift*24;
+  ctx.save(); ctx.globalAlpha=1-lift*.29;
+  ctx.filter=`blur(${.65+lift*4.6}px)`;
+  ctx.drawImage(cellSurface,dx,dy,300*s,280*s);
+  ctx.globalCompositeOperation='screen';ctx.globalAlpha=.48-lift*.12;
+  ctx.filter=`blur(${3.6+lift*4}px)`;ctx.drawImage(cellSurface,dx-1,dy,300*s,280*s);
+  ctx.restore();
+}
+function backgroundField(cells,seed) {
+  const c=surface(574,506),g=c.getContext('2d'),r=rng(seed);
+  g.fillStyle='#030806';g.fillRect(0,0,574,506);
+  // Neighbouring cells above/below the optical section continue to crop edges.
+  for(let i=0;i<24;i++) {
+    const cell=cells[i%cells.length];g.save();
+    g.translate(r()*650-38,r()*580-37);g.rotate(cell.angle+(r()-.5)*.65);
+    const s=.9+r()*.8;g.scale(s,s);g.globalAlpha=.16+r()*.2;
+    outline(g,cell,0);g.fillStyle='#0f5025';g.fill();g.save();g.clip();
+    g.drawImage(cell.texture,-120,-80);g.restore();
+    g.globalAlpha*=.7;g.drawImage(cell.nuclearTexture,-50,-45);g.restore();
+  }
+  return c;
+}
+const fibroBackground=backgroundField(fibro,1534);
+const cancerBackground=backgroundField(cancer,4341);
+function drawField(x,cells,t) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x,160,574,506); ctx.clip();
+  ctx.save();ctx.filter='blur(5px)';
+  ctx.drawImage(cells===fibro?fibroBackground:cancerBackground,x-6,154,586,518);ctx.restore();
+  for(const cell of cells) drawCell(cell,t,x,171);
+  ctx.save(); ctx.globalCompositeOperation='screen';
+  // A warm treatment front visibly descends through BOTH fields, then settles.
+  const arrival=smooth(.08,.25,t), settle=smooth(.85,1.4,t);
+  const front=145+smooth(.1,1.0,t)*660;
+  ctx.fillStyle=`rgba(176,113,29,${.028*arrival})`;ctx.fillRect(x,160,574,506);
+  const haze=ctx.createLinearGradient(0,front-310,0,front+135);
+  haze.addColorStop(0,'rgba(167,116,31,0)');
+  haze.addColorStop(.38,`rgba(224,133,38,${.2*arrival*(1-settle)})`);
+  haze.addColorStop(.7,`rgba(255,157,57,${.36*arrival*(1-settle)})`);
+  haze.addColorStop(1,'rgba(167,116,31,0)');
+  ctx.fillStyle=haze;ctx.fillRect(x,160,574,506);
+  // Soft, uneven droplets make the moving front identifiable over the cells,
+  // not just as a change of background colour. Screen blending retains detail.
+  const pulse=arrival*(1-smooth(.8,1.15,t));
+  for(let i=0;i<8;i++) {
+    const bx=x+20+i*78+Math.sin(i*3.7+t*1.7)*20;
+    const by=front-48+Math.sin(i*2.3)*58;
+    const radius=43+14*(1+Math.sin(i*4.1));
+    ctx.save();ctx.translate(bx,by);ctx.scale(1,.64+(.12*Math.sin(i)));
+    const droplet=ctx.createRadialGradient(-radius*.13,-radius*.12,0,0,0,radius);
+    droplet.addColorStop(0,`rgba(255,214,95,${.36*pulse})`);
+    droplet.addColorStop(.42,`rgba(255,193,59,${.25*pulse})`);
+    droplet.addColorStop(1,'rgba(255,176,45,0)');
+    ctx.fillStyle=droplet;ctx.fillRect(-radius,-radius,radius*2,radius*2);ctx.restore();
+  }
+  ctx.globalAlpha=.44;ctx.drawImage(noise,x,160,574,506);ctx.restore();
+  const vignette=ctx.createRadialGradient(x+287,413,145,x+287,413,385);
+  vignette.addColorStop(0,'rgba(0,0,0,0)');vignette.addColorStop(1,'rgba(0,0,0,.43)');
+  ctx.fillStyle=vignette;ctx.fillRect(x,160,574,506);
+  // Soft falloff at the edges, as in a shallow optical section.
+  const edge=ctx.createLinearGradient(0,160,0,666);
+  edge.addColorStop(0,'rgba(0,0,0,.2)');edge.addColorStop(.12,'rgba(0,0,0,0)');
+  edge.addColorStop(.88,'rgba(0,0,0,0)');edge.addColorStop(1,'rgba(0,0,0,.4)');
+  ctx.fillStyle=edge;ctx.fillRect(x,160,574,506);ctx.restore();
+}
+function textLine(text,x,y,size,color,weight=400,font='Arial, Helvetica, sans-serif') {
+  ctx.fillStyle=color;ctx.font=`${weight} ${size}px ${font}`;ctx.fillText(text,x,y);
+}
+function result(text,x,t,color) {
+  const progress=smooth(1.1,1.5,t);
+  ctx.save();ctx.globalAlpha=progress;
+  textLine(text,x,704+(1-progress)*9,29,color,500);ctx.restore();
+}
+function render(t) {
+  ctx.setTransform(1,0,0,1,0,0);ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+  ctx.filter='none';ctx.fillStyle='#000';ctx.fillRect(0,0,1920,1080);
+  drawField(676,fibro,t);drawField(1296,cancer,t);
+  // Fine acquisition marks, without enclosing cards or interface chrome.
+  ctx.strokeStyle='#23302a';ctx.lineWidth=1;ctx.beginPath();
+  ctx.moveTo(676,143.5);ctx.lineTo(1250,143.5);
+  ctx.moveTo(1296,143.5);ctx.lineTo(1870,143.5);ctx.stroke();
+  textLine('Lemon essential oil · 500 µg/mL · 24 h',676,77,29,'#e3d3a8',400);
+  textLine('Normal skin fibroblasts (HFF1)',676,124,24,'#d2dcd7',400,'Consolas, monospace');
+  textLine('Skin cancer cells (A431)',1296,124,24,'#d2dcd7',400,'Consolas, monospace');
+  result('TP53: no significant change',676,t,'#c4efcf');
+  result('TP53 significantly lower · p<0.001',1296,t,'#ff8b92');
+  // Honest legend: the paper measured TP53 by qPCR and imaged cells in brightfield only, so this is
+  // labelled as an illustration, not a staining (no DAPI/actin legend, no scale bar).
+  textLine('Illustration · red = TP53 level (measured by qPCR)',676,752,20,'#ff7b86',400,'Consolas, monospace');
+  const scrim=ctx.createLinearGradient(58,0,650,0);
+  scrim.addColorStop(0,'rgba(0,0,0,.65)');scrim.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=scrim;ctx.fillRect(58,310,592,365);
+  const title=['Lemon oil','lowers TP53','in skin cancer','cells only'];
+  title.forEach((line,i)=>textLine(line,80,386+i*65,59,'#f5f6f5',600));
+  textLine('Opposite of the expected rise',82,630,27,'#b6c2bb');
+}
+
+// Frozen frames use no clock and schedule no animation frame. All texture and
+// temporal variation is a pure function of fixed seeds and the requested time.
+const params=new URLSearchParams(window.location.search);
+const frozen=params.has('t');
+const requested=Number(params.get('t'));
+if(frozen) render(Number.isFinite(requested)?Math.max(0,requested):0);
+else {
+  const start=performance.now();
+  function animate(now) { render(Math.min((now-start)/1000,3));
+    if(now-start<3000) requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+}
+</script>
+</body>
+</html>

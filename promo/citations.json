@@ -1,0 +1,364 @@
+[
+ {
+  "index": 22,
+  "kulliyyah": "KOS",
+  "kulliyyah_name": "Science",
+  "title": "Fabrication of Whispering Gallery Mode (WGM) microresonator using core-to-core alignment fusion splicer for high sensitive temperature sensor trough optimum coupling gap with high q-factor",
+  "authors": [
+   "Nur Aida Syahmina Noorbahrin",
+   "Nadrahtul Aqilah Mohd Yahaya",
+   "Siti Nurul Fatihah Azahan",
+   "Muhammad Khudhori Mohd Yusof",
+   "Sabrina Mohd Farid",
+   "Siti Nurfatinah Mohd Asseri",
+   "Retna Apsari",
+   "Mohd Zamani Zulkifli"
+  ],
+  "journal": "Results in Optics",
+  "volume": "21",
+  "issue": "",
+  "pages": "100928",
+  "year": 2025,
+  "doi": "10.1016/j.rio.2025.100928",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 8,
+   "irep_authors": 8,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  }
+ },
+ {
+  "index": 40,
+  "kulliyyah": "KOP",
+  "kulliyyah_name": "Pharmacy",
+  "title": "Fabrication and Evaluation of Coaxial Core-Shell Electrospun Curcuma xanthorrhiza Nanofibres with Antibacterial Activity",
+  "authors": [
+   "Rafiqa Maisara Mohamad Rosly",
+   "Muhammad Taher",
+   "Junaidi Khotib"
+  ],
+  "journal": "Journal of Pharmacy",
+  "volume": "6",
+  "issue": "2",
+  "pages": "341-356",
+  "year": 2026,
+  "doi": "10.31436/jop.v6i2.515",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 3,
+   "irep_authors": 3,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  },
+  "override": "Crossref has Muhammad Taher first; the PDF lists Mohamad Rosly first"
+ },
+ {
+  "index": 7,
+  "kulliyyah": "KOE",
+  "kulliyyah_name": "Engineering",
+  "title": "Design and Experimental Study of Shape Memory Alloy (SMA) Spring as Actuators in Wrist Exoskeleton",
+  "authors": [
+   "Azni Nabela Wahid",
+   "Muhammad Hadif Badarussamin"
+  ],
+  "journal": "Jurnal Kejuruteraan",
+  "volume": "38",
+  "issue": "1",
+  "pages": "455-463",
+  "year": 2026,
+  "doi": "10.17576/jkukm-2026-38(1)-39",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 2,
+   "irep_authors": 2,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  }
+ },
+ {
+  "index": 81,
+  "kulliyyah": "KAHS",
+  "kulliyyah_name": "Allied Health Sciences",
+  "title": "Obesity results in lower integrin expression in women with polycystic ovarian syndrome during the window of implantation",
+  "authors": [
+   "Fazilah Abdul Hamid",
+   "Mohd Helmy Mokhtar",
+   "Abdul Kadir Abdul Karim",
+   "Mohd Faizal Ahmad",
+   "Nor Haslinda Abd Aziz",
+   "Azantee Yazmie Abdul Wahab",
+   "Muhammad Azrai Abu"
+  ],
+  "journal": "Frontiers in Endocrinology",
+  "volume": "16",
+  "issue": "",
+  "pages": "1590716",
+  "year": 2025,
+  "doi": "10.3389/fendo.2025.1590716",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 7,
+   "irep_authors": 7,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  },
+  "override": "Crossref issue field is '-'"
+ },
+ {
+  "index": 10,
+  "kulliyyah": "KICT",
+  "kulliyyah_name": "Information & Communication Technology",
+  "title": "Canthus-Scaled 468-Landmark FaceMesh Framework for Pupillary Distance Estimation Using Nested AutoML Calibration",
+  "authors": [
+   "Mohd Izzuddin Mohd Tamrin",
+   "Sherzod Turaev",
+   "Takumi Sase",
+   "Mohd Zulfaezal Che Azemin",
+   "Tengku Mohd Tengku Sembok"
+  ],
+  "journal": "International Journal of Advanced Computer Science and Applications",
+  "volume": "17",
+  "issue": "6",
+  "pages": "438-445",
+  "year": 2026,
+  "doi": "10.14569/ijacsa.2026.0170643",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 5,
+   "irep_authors": 5,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  }
+ },
+ {
+  "index": 30,
+  "kulliyyah": "KAED",
+  "kulliyyah_name": "Architecture & Environmental Design",
+  "title": "Human-Centric Planning of Traditional Islamic Settlements: A Space Syntax Study of Itchan Kala, Khiva",
+  "authors": [
+   "Nayeem Asif",
+   "Zeenat Begam Yusof",
+   "Aida Kesuma Azmin",
+   "Fadzidah Abdullah",
+   "Aliyah Nur Zafirah Sanusi"
+  ],
+  "journal": "Planning Malaysia",
+  "volume": "23",
+  "issue": "6",
+  "pages": "954-968",
+  "year": 2025,
+  "doi": "10.21837/pm.v23i39.1951",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 5,
+   "irep_authors": 5,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  },
+  "override": "Crossref stores the title and journal in all caps; issue is 6 per the PDF header (IRep had 39, the number inside the DOI)"
+ },
+ {
+  "index": 54,
+  "kulliyyah": "KOM",
+  "kulliyyah_name": "Medicine",
+  "title": "TP53 downregulation in non-melanoma skin cancer cells treated with citrus limon (Cl) essential oil",
+  "authors": [
+   "Muhammad Razin Zamani",
+   "Wan Fatein Nabeila Wan Omar",
+   "Hazulin Mohd. Radzuan",
+   "Muhammad Ashraf Fithri Anuar",
+   "Muslihah Muzamil"
+  ],
+  "journal": "Borneo Journal of Medical Sciences",
+  "volume": 20,
+  "issue": 3,
+  "pages": "380-390",
+  "year": "2026",
+  "doi": "10.51200/bjms.v20i3.6604",
+  "source": "irep",
+  "check": {
+   "crossref_authors": 0,
+   "irep_authors": 5,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  },
+  "override": "Not in Crossref/IRep lookup; printed on the PDF's first page and resolves"
+ },
+ {
+  "index": 63,
+  "kulliyyah": "KOD",
+  "kulliyyah_name": "Dentistry",
+  "title": "Comparison of the Fracture Resistance and Fracture Patterns of Root-Filled Maxillary Premolars Restored with Different Post Systems and Composite-Based Post Space Restorations: An in Vitro Study",
+  "authors": [
+   "Sulhi Abidin",
+   "Hanna Nadhirah Mohd Radzi",
+   "Muhamad Sharifuddin Mat Daud",
+   "Norfaezah Ahmad",
+   "Izzuddin Ahmad Nadzirin",
+   "Galvin Sim Siang Lin"
+  ],
+  "journal": "Journal of Dental Research, Dental Clinics, Dental Prospects",
+  "volume": "20",
+  "issue": "2",
+  "pages": "126-132",
+  "year": 2026,
+  "doi": "10.34172/joddd.44391",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 6,
+   "irep_authors": 6,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  }
+ },
+ {
+  "index": 72,
+  "kulliyyah": "KON",
+  "kulliyyah_name": "Nursing",
+  "title": "The Effectiveness of Asthma Exercise in Improving Peak Expiratory Flow in Patients with Asthma",
+  "authors": [
+   "Dian Kartikasari",
+   "Risqi Dewi Aisyah",
+   "Selmy Arnis Febgita Sugiyono",
+   "Muhammad Kamil Che Hasan"
+  ],
+  "journal": "Jurnal Respirasi",
+  "volume": "12",
+  "issue": "2",
+  "pages": "97-103",
+  "year": 2026,
+  "doi": "10.20473/jr.v12-i.2.2026.97-103",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 4,
+   "irep_authors": 4,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  }
+ },
+ {
+  "index": 91,
+  "kulliyyah": "KENMS",
+  "kulliyyah_name": "Economics & Management Sciences",
+  "title": "Measuring human capital in Indonesia using an adapted World Bank HCI framework",
+  "authors": [
+   "Nayaka Artha Wicesa",
+   "Sharifah Nabilah Syed Salleh",
+   "Mohd. Nahar Mohd. Arshad",
+   "Salman Ahmed Shaikh"
+  ],
+  "journal": "Malaysian Journal of Social Sciences and Humanities",
+  "volume": 11,
+  "issue": 6,
+  "pages": "1-25",
+  "year": "2026",
+  "doi": "10.47405/mjssh.v11i6.4064",
+  "source": "irep",
+  "check": {
+   "crossref_authors": 0,
+   "irep_authors": 4,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  }
+ },
+ {
+  "index": 122,
+  "kulliyyah": "KOED",
+  "kulliyyah_name": "Education",
+  "title": "The Contemporary Relevance of Al-Farabi’s Musical Theory in Interdisciplinary Studies and the Malaysian Educational Context",
+  "authors": [
+   "Muhammad Akmal Azri Omar",
+   "Arifin Mamat",
+   "Nur Syaza Afrina Muhamad Sani"
+  ],
+  "journal": "IIUM Journal of Educational Studies",
+  "volume": "14",
+  "issue": "1",
+  "pages": "144-159",
+  "year": 2026,
+  "doi": "10.31436/ijes.v14i1.652",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 3,
+   "irep_authors": 2,
+   "author_count_matches": false,
+   "papers_json_title_matches": false
+  },
+  "override": "PDF and IRep list 2 authors; Crossref (publisher) lists 3. User's rule: when sources disagree on authors, use the fuller list. Pages 144-159 and title as printed on the paper"
+ },
+ {
+  "index": 130,
+  "kulliyyah": "KSTCL",
+  "kulliyyah_name": "Sustainable Tourism & Contemporary Languages",
+  "title": "Identiti Masyarakat Thai di Langkawi dan Satun dari Perspektif Geolinguistik",
+  "authors": [
+   "Siti Noraini Hamzah",
+   "Nor Hashimah Jalaluddin",
+   "Adriana Santa Tinggom"
+  ],
+  "journal": "KEMANUSIAAN The Asian Journal of Humanities",
+  "volume": "32",
+  "issue": "1",
+  "pages": "167-191",
+  "year": 2025,
+  "doi": "10.21315/kajh2025.32.1.9",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 3,
+   "irep_authors": 3,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  }
+ },
+ {
+  "index": 105,
+  "kulliyyah": "AIKOL",
+  "kulliyyah_name": "Laws (Ahmad Ibrahim)",
+  "title": "Transnational Organised Crime: A Significant Challenge to Malaysia’s National Security",
+  "authors": [
+   "Zuraini Ab Hamid",
+   "Shukriah Mohd Sheriff",
+   "Khariyah Mat Yaman",
+   "Syaza Farzana Shahrul Ridhwan Shankeran"
+  ],
+  "journal": "Asian Journal of Law and Policy",
+  "volume": "6",
+  "issue": "2",
+  "pages": "219",
+  "year": 2026,
+  "doi": "10.33093/ajlp.2026.11",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 4,
+   "irep_authors": 4,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  },
+  "override": "The PDF spells the last author 'Shankeran'; Crossref has 'Shakeran'"
+ },
+ {
+  "index": 112,
+  "kulliyyah": "KIRKHS",
+  "kulliyyah_name": "Islamic Revealed Knowledge & Human Sciences",
+  "title": "Detecting AI-Generated Essays with Lexical Stylometric Features using Machine Learning",
+  "authors": [
+   "Tahmida Haque Sumbula",
+   "Suriani Sulaiman",
+   "Adlina Ariffin"
+  ],
+  "journal": "International Journal on Perceptive and Cognitive Computing",
+  "volume": "12",
+  "issue": "2",
+  "pages": "11-18",
+  "year": 2026,
+  "doi": "10.31436/ijpcc.v12i2.699",
+  "source": "crossref",
+  "check": {
+   "crossref_authors": 3,
+   "irep_authors": 3,
+   "author_count_matches": true,
+   "papers_json_title_matches": true
+  }
+ }
+]

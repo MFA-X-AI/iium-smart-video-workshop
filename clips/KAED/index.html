@@ -1,0 +1,379 @@
+<!--
+Research: Asif et al. (2025), pp. 960-967, especially Fig. 5 (visual integration)
+and Fig. 6 (axial/global integration). The market spine is most integrated, the
+perpendicular route is also strongly integrated, museum/transitional routes are
+intermediate, and peripheral accommodation lanes generally have lower integration.
+Fig. 7 is controllability, a different metric, and is NOT used as an integration map.
+Artistic licence: schematic model footprints and a qualitative, warm-to-cool overlay;
+not digitized GIS, a recalculated space-syntax analysis, or a numerical result scale.
+Light propagating from the market/Juma core is an editorial reveal of a static analysis,
+not a claim that integration diffuses with time or equals distance from the mosque.
+Courtyard enclosures are present throughout. Their unlit interiors signify residential
+privacy; this does not imply all courtyards are poorly integrated (Fig. 5 explicitly
+identifies two highly integrated public/transitional courtyards).
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Streets connect. Courtyards protect. - Itchan Kala</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#cabb9e}
+#frame{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--fit,1));overflow:hidden;background:#cabb9e}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(250,241,216,.66) 0%,rgba(249,240,216,.40) 23%,rgba(249,240,216,0) 40%)}
+.title{position:absolute;left:100px;top:76px;color:#383326;pointer-events:none}
+h1{margin:0;font-family:Georgia,'Times New Roman',serif;font-size:86px;line-height:1.04;font-weight:400;letter-spacing:-3.7px}
+h1 em{font-style:italic;color:#78613c}
+.grain{position:absolute;inset:0;opacity:.035;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23000' filter='url(%23n)' opacity='.75' d='M0 0h160v160H0z'/%3E%3C/svg%3E")}
+#fallback{display:none;position:absolute;left:100px;top:360px;max-width:600px;font:24px/1.5 Georgia,serif;color:#493c29}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="frame">
+<canvas id="scene" aria-label="A golden-hour architectural model of Itchan Kala. A warm-to-cool space-syntax overlay reveals the integrated market and mosque core, connected secondary streets, and quieter peripheral lanes. Residential courtyards stay shaded."></canvas>
+<div class="scrim"></div>
+<div class="title"><h1>Streets connect.<br><em>Courtyards protect.</em></h1></div>
+<div class="grain"></div><p id="fallback">This architectural scene requires WebGL and access to jsDelivr.</p>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const frame=document.getElementById('frame');
+function fit(){frame.style.setProperty('--fit',Math.min(innerWidth/1920,innerHeight/1080));}
+fit();addEventListener('resize',fit);
+const canvas=document.getElementById('scene');
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});}
+catch(error){document.getElementById('fallback').style.display='block';throw error;}
+renderer.setSize(1920,1080,false);
+renderer.setPixelRatio(1);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
+const scene=new THREE.Scene();scene.background=new THREE.Color('#d6c5a4');
+scene.fog=new THREE.Fog('#d6c5a4',95,180);
+const camera=new THREE.PerspectiveCamera(35,1920/1080,.1,220);
+const target=new THREE.Vector3(0,0,-1);
+const sun=new THREE.DirectionalLight('#ffce8d',4.1);sun.position.set(-38,14,-20);
+sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
+Object.assign(sun.shadow.camera,{left:-40,right:40,top:36,bottom:-36,near:1,far:120});
+sun.shadow.normalBias=.045;sun.shadow.bias=-.00012;sun.shadow.radius=3;
+scene.add(sun);scene.add(new THREE.HemisphereLight('#c5d9f0','#7a5c40',.78));
+// HDR road radiance blooms over the shaded physical model. The scene itself is rendered once.
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(960,540),.68,.48,1.05);
+composer.addPass(bloom);bloom.setSize(960,540);
+composer.addPass(new OutputPass());
+const fill=new THREE.DirectionalLight('#dbe7ff',.16);fill.position.set(16,10,30);scene.add(fill);
+let seed=39030;
+function rand(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;}
+function texture(kind){
+ const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
+ g.fillStyle=kind==='tile'?'#328b87':'#cabb9c';g.fillRect(0,0,256,256);
+ for(let i=0;i<8500;i++){const v=rand();g.fillStyle=kind==='tile'?`rgba(214,244,215,${v*.12})`:`rgba(${v>.5?'255,251,224':'72,50,25'},${.03+v*.1})`;g.fillRect(rand()*256,rand()*256,1+rand()*3,1+rand()*2);}
+ if(kind==='tile'){
+  g.strokeStyle='#c9d9ac';g.lineWidth=1.7;
+  for(let y=0;y<=256;y+=32)for(let x=0;x<=256;x+=32){g.strokeRect(x,y,32,32);g.beginPath();g.moveTo(x+16,y+3);g.lineTo(x+29,y+16);g.lineTo(x+16,y+29);g.lineTo(x+3,y+16);g.closePath();g.stroke();g.fillStyle='#245f69';g.fillRect(x+13,y+13,6,6);}
+ }else{
+  g.strokeStyle='rgba(105,79,49,.16)';g.lineWidth=.6;
+  for(let y=0;y<256;y+=16){g.beginPath();g.moveTo(0,y);g.lineTo(256,y);g.stroke();for(let x=(y%32===0?0:16);x<256;x+=32){g.beginPath();g.moveTo(x,y);g.lineTo(x,y+16);g.stroke();}}
+ }
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(kind==='tile'?2:2,kind==='tile'?3:2);t.anisotropy=4;return t;
+}
+const plaster=texture('plaster'),tile=texture('tile');
+const mats={
+ sand:new THREE.MeshStandardMaterial({color:'#e0c497',map:plaster,roughness:.94,bumpMap:plaster,bumpScale:.045}),
+ pale:new THREE.MeshStandardMaterial({color:'#f2dfb5',map:plaster,roughness:.95}),
+ dark:new THREE.MeshStandardMaterial({color:'#b6986e',map:plaster,roughness:1}),
+ roof:new THREE.MeshStandardMaterial({color:'#d5bb8d',roughness:1}),
+ trim:new THREE.MeshStandardMaterial({color:'#efdcb5',roughness:.82}),
+ tile:new THREE.MeshStandardMaterial({color:'#70bcb0',map:tile,roughness:.38,metalness:.12}),
+ blue:new THREE.MeshStandardMaterial({color:'#175b63',roughness:.52}),
+ door:new THREE.MeshStandardMaterial({color:'#4f3929',roughness:1}),
+ shade:new THREE.MeshStandardMaterial({color:'#726044',roughness:1}),
+ rust:new THREE.MeshStandardMaterial({color:'#ae704b',roughness:.94}),
+ green:new THREE.MeshStandardMaterial({color:'#79815a',roughness:1}),
+ trunk:new THREE.MeshStandardMaterial({color:'#67503a',roughness:1}),
+ brass:new THREE.MeshStandardMaterial({color:'#c3a16a',metalness:.7,roughness:.45})
+};
+const batches=new Map();const dummy=new THREE.Object3D();
+function addGeo(geo,mat,x,y,z,sx=1,sy=1,sz=1,rot=0){
+ dummy.position.set(x,y,z);dummy.rotation.set(0,rot,0);dummy.scale.set(sx,sy,sz);dummy.updateMatrix();geo.applyMatrix4(dummy.matrix);
+ if(!batches.has(mat))batches.set(mat,[]);batches.get(mat).push(geo);
+}
+function box(x,y,z,w,h,d,mat='sand',rot=0){addGeo(new THREE.BoxGeometry(1,1,1),mat,x,y,z,w,h,d,rot);}
+function cylinder(x,y,z,rt,rb,h,mat='sand',segments=32){addGeo(new THREE.CylinderGeometry(rt,rb,h,segments),mat,x,y,z);}
+function sphere(x,y,z,r,mat='green',sx=1,sy=1,sz=1){addGeo(new THREE.SphereGeometry(r,9,6),mat,x,y,z,sx,sy,sz);}
+function roofTrim(x,z,w,d,h,mat='trim'){
+ box(x,h+.14,z-d/2,w,.28,.16,mat);box(x,h+.14,z+d/2,w,.28,.16,mat);
+ box(x-w/2,h+.14,z,.16,.28,d,mat);box(x+w/2,h+.14,z,.16,.28,d,mat);
+}
+function house(x,z,w,d,h,variant){
+ const m=variant%3===0?'pale':variant%3===1?'sand':'dark';
+ box(x,h/2,z,w,h,d,m);box(x,h+.04,z,w-.14,.09,d-.14,'roof');roofTrim(x,z,w,d,h);
+ // Shallow inset doors and small openings retain the model's quiet, solid massing.
+ box(x-w*.2,.48,z+d/2+.011,.34,.96,.045,'door');
+ if(w>2.2){box(x+w*.2,h*.68,z+d/2+.025,.26,.37,.045,'shade');}
+ if(rand()>.42)box(x+w*.22,h+.24,z-d*.2,.45,.4,.43,'sand');
+}
+function courtyard(x,z,w,d,h){
+ const wall=.62;
+ box(x,h/2,z-d/2+wall/2,w,h,wall,'pale');
+ box(x-w/2+wall/2,h/2,z,wall,h,d,'sand');box(x+w/2-wall/2,h/2,z,wall,h,d,'sand');
+ box(x-w*.29,h/2,z+d/2-wall/2,w*.42,h,wall,'sand');box(x+w*.29,h/2,z+d/2-wall/2,w*.42,h,wall,'sand');
+ roofTrim(x,z,w,d,h);box(x,.015,z,w-.5,.03,d-.5,'dark');
+ box(x-w*.23,.12,z-d*.17,1,.24,.7,'pale');
+}
+function tree(x,z,s=1){
+ cylinder(x,.48*s,z,.09*s,.13*s,.96*s,'trunk',7);
+ sphere(x,.99*s,z,.55*s,'green',1,.85,1);
+ sphere(x+.28*s,1.05*s,z+.07*s,.4*s,'green');sphere(x-.18*s,1.21*s,z-.12*s,.38*s,'green');
+}
+
+// A milled architectural-model base with a fine metallic edge, on a warm studio horizon.
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(450,450),new THREE.MeshStandardMaterial({color:'#d3c4a8',roughness:1}));
+ground.rotation.x=-Math.PI/2;ground.position.y=-1.06;ground.receiveShadow=true;scene.add(ground);
+box(0,-.55,0,55,1,37,'pale');box(0,-.91,0,55.16,.1,37.16,'brass');
+box(0,-.015,0,52,.07,34,'roof');
+
+// Organic parcel bands: variable widths and offset alleys, separated by the two public axes.
+const bands=[{z:-12.5,d:4.6},{z:-6.4,d:5},{z:5.7,d:4.5},{z:12,d:5.1}];
+let houseIndex=0;
+for(const row of bands){
+ let x=-22.3;
+ while(x<22){
+  const w=2.15+rand()*2.25,d=row.d*(.78+rand()*.16),cx=x+w/2;
+  const heroZone=row.z>3&&cx<-6;
+  const mosqueZone=row.z<0&&row.z>-9&&cx>-3.7&&cx<5.3;
+  const secondary=Math.abs(cx-5.5)<2.2;
+  const feeder=[-12,19].some(lane=>Math.abs(cx-lane)<w/2+.52);
+  const museumZone=row.z<0&&row.z>-9&&cx+w/2>9.2&&cx-w/2<17.8;
+  if(!heroZone&&!mosqueZone&&!museumZone&&!secondary&&!feeder){
+   const z=row.z+(rand()-.5)*.58,h=1.0+rand()*1.1;
+   if(w>3.6&&rand()>.53)courtyard(cx,z,w,d,h);else house(cx,z,w,d,h,houseIndex++);
+   if(rand()>.6)tree(cx-w*.42,z+d*.58,.55+rand()*.22);
+  }
+  x+=w+.45+rand()*.8;
+ }
+}
+// Low shops face the market spine: repeated fabric canopies make its function readable.
+for(let side of [-1,1])for(let i=0;i<18;i++){
+ const x=-21+i*2.4;if((x>-4&&x<7)||(x<-17&&side===-1)||Math.abs(x+12)<1.38||Math.abs(x-19)<1.38)continue;
+ const z=side*2.65,w=1.85,h=.9+rand()*.6;
+ house(x,z,w,1.65,h,i);
+ box(x,.96,side*1.61,1.76,.085,.7,i%3===0?'rust':'pale');
+ for(let dx of [-.77,.77])cylinder(x+dx,.45,side*1.35,.022,.022,.9,'trunk',5);
+ box(x,.2,side*1.8,1.45,.4,.3,'door');
+ for(let j=0;j<4;j++)sphere(x-.5+j*.33,.45,side*1.76,.12,j%2?'rust':'pale',1,.65,1);
+}
+
+// Central Juma mosque, represented by a low hypostyle roof, small light wells and a minaret.
+const mx=.1,mz=-4.35,mw=7,md=4.8,mh=1.75;
+box(mx,mh/2,mz,mw,mh,md,'pale');
+box(mx,mh+.025,mz,mw-.12,.12,md-.12,'roof');roofTrim(mx,mz,mw,md,mh,'pale');
+for(let x of [-1.5,1.6]){
+ box(x,mh+.12,mz,.95,.15,1.2,'door');
+ roofTrim(x,mz,1.04,1.28,mh+.13,'pale');
+}
+for(let i=0;i<12;i++){
+ const x=-3.06+i*.57;
+ box(x,.63,-1.93,.24,1.22,.05,'door');box(x,.73,-1.89,.085,1.46,.10,'pale');
+}
+box(.15,1.12,-1.8,1.35,2.24,.35,'pale');box(.15,.7,-1.59,.64,1.4,.04,'door');
+function minaret(x,z,h,r,tiled=false){
+ cylinder(x,.22,z,r*1.35,r*1.48,.44,'sand');
+ cylinder(x,h*.48,z,r*.61,r,h*.96,tiled?'tile':'sand',48);
+ for(let i=1;i<7;i++)cylinder(x,h*(i/8),z,r*(1-i*.048)+.025,r*(1-i*.048)+.025,.09,i%2?'tile':'trim',48);
+ cylinder(x,h*.95,z,r*.82,r*.63,.34,'trim');
+ cylinder(x,h+ .27,z,r*.62,r*.62,.6,'dark');
+ for(let i=0;i<10;i++){
+  const a=i/10*Math.PI*2;
+  cylinder(x+Math.cos(a)*r*.63,h+.3,z+Math.sin(a)*r*.63,.07,.075,.72,'pale',6);
+ }
+ cylinder(x,h+.69,z,r*.75,r*.79,.16,tiled?'tile':'pale');
+ cylinder(x,h+.87,z,0,r*.7,.27,tiled?'tile':'sand');
+}
+minaret(3.34,-1.94,6.7,.6);
+// Kalta-Minar-inspired tiled landmark near the western entrance (schematic placement).
+cylinder(-18.6,2.65,-4.1,1.10,1.46,5.3,'tile',64);
+for(let i=0;i<9;i++)cylinder(-18.6,.45+i*.56,-4.1,1.43-i*.036,1.43-i*.036,.095,i%2?'blue':'trim',64);
+cylinder(-18.6,5.32,-4.1,1.13,1.15,.16,'tile');
+// A secondary madrasa, with an enclosed court and a turquoise portal.
+courtyard(13.5,-6.9,7.2,4.0,2.0);
+box(13.5,1.5,-4.7,2.15,3,.48,'tile');box(13.5,1.02,-4.43,1.22,2.04,.045,'door');
+for(let i=0;i<8;i++){box(10.38+i*.87,1.09,-4.73,.43,1.45,.06,'shade');}
+minaret(17.05,-4.94,3.2,.33,true);
+
+// Fortifications with battered round bastions and crenellated parapets; four open gates.
+function wall(x,z,w,d){box(x,.73,z,w,1.46,d,'dark');box(x,1.5,z,w,.15,d+.1,'sand');
+ const len=Math.max(w,d),n=Math.ceil(len/.8);for(let i=0;i<n;i++){const q=(i+.5)/n-.5;box(x+(w>d?q*w:0),1.77,z+(d>w?q*d:0),w>d?.4:w+.13,.45,d>w?.4:d+.13,'sand');}}
+for(let x of [-24.6,24.6]){wall(x,-8.45,.66,14.5);wall(x,8.45,.66,14.5);}
+for(let z of [-16,16]){wall(-10.05,z,28.6,.65);wall(17.9,z,13.4,.65);}
+for(let x of [-24.6,24.6])for(let z of [-16,-11,-6,6,11,16]){
+ cylinder(x,.8,z,.69,1.01,1.6,'dark');cylinder(x,1.67,z,.75,.75,.25,'sand');
+ for(let j=0;j<8;j++){const a=j/8*Math.PI*2;box(x+Math.cos(a)*.63,1.97,z+Math.sin(a)*.63,.22,.42,.22,'sand');}
+}
+for(let x of [-24.6,24.6]){
+ for(let z of [-2,2]){cylinder(x,1.23,z,.85,1.03,2.46,'sand');cylinder(x,2.5,z,.9,.9,.22,'trim');}
+ box(x,2.04,0,.92,.68,2.55,'sand');box(x,2.51,0,1,.28,2.55,'pale');
+}
+// Northern and southern gate towers, with a walkable opening on the secondary axis.
+for(let z of [-16,16])for(let x of [4.1,6.95])cylinder(x,1.07,z,.57,.79,2.14,'sand');
+
+// Residential courtyards stay enclosed and shaded throughout the analysis reveal.
+const privacy=[];
+function privacyHouse(x,z,w,d,delay){
+ const group=new THREE.Group();group.position.set(x,0,z);scene.add(group);
+ const wallMat=mats.pale,inner=mats.roof;
+ function part(px,py,pz,pw,ph,pd,mat=wallMat){const mesh=new THREE.Mesh(new THREE.BoxGeometry(pw,ph,pd),mat);mesh.position.set(px,py,pz);mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);}
+ const h=2.1,a=.9;
+ part(0,h/2,-d/2+a/2,w,h,a);part(-w/2+a/2,h/2,0,a,h,d);
+ part(w/2-a/2,h/2,0,a,h,d);part(-w*.28,h/2,d/2-a/2,w*.44,h,a);part(w*.31,h/2,d/2-a/2,w*.38,h,a);
+ part(0,h+.08,-d/2+a/2,w+.08,.16,a+.1,inner);part(-w/2+a/2,h+.08,0,a+.1,.16,d,inner);part(w/2-a/2,h+.08,0,a+.1,.16,d,inner);
+ // Low entry lintel creates a physically connected but visually screened threshold.
+ part(.14,1.53,d/2-a/2,.95,.45,a);
+ box(x,.025,z,w,.05,d,'dark');box(x,.035,z,w-1.4,.035,d-1.4,'roof');
+ box(x+.6,.10,z+.2,1.6,.13,1.1,'pale');box(x+.6,.18,z+.2,1.25,.06,.8,'blue');
+ tree(x-w*.21,z-d*.16,1.08);privacy.push({group,delay,x,z,w,d});
+ // Winding access path stays open: privacy is not disconnection.
+ box(x+.22,.035,z+d/2+.5,.76,.04,1.1,'dark');
+}
+privacyHouse(-14.7,6.9,6.0,5.8,.65);
+privacyHouse(-8.2,10.9,5.4,5.2,.91);
+privacyHouse(-20,12.1,4.6,4.6,1.08);
+for(let p of [[-20.4,6],[-9.2,5],[-16.6,12.6],[9.2,12.7],[20,-10],[20.8,11.7]])tree(p[0],p[1],.85);
+
+// Contact stains add depth beneath the tangible miniature, without a postprocessing pass.
+const shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=64;
+const sg=shadowCanvas.getContext('2d'),grad=sg.createRadialGradient(32,32,4,32,32,32);
+grad.addColorStop(0,'rgba(55,37,17,.36)');grad.addColorStop(1,'rgba(55,37,17,0)');sg.fillStyle=grad;sg.fillRect(0,0,64,64);
+const shadowTex=new THREE.CanvasTexture(shadowCanvas);
+const contactMat=new THREE.MeshBasicMaterial({map:shadowTex,transparent:true,depthWrite:false,opacity:.6});
+for(const p of privacy){const s=new THREE.Mesh(new THREE.PlaneGeometry(p.w+2,p.d+2),contactMat);s.rotation.x=-Math.PI/2;s.position.set(p.x,.045,p.z);scene.add(s);}
+
+// Bake static masonry by material: thousands of details, only a handful of draw calls.
+for(const [name,geos] of batches){const geometry=mergeGeometries(geos,false);const mesh=new THREE.Mesh(geometry,mats[name]);mesh.castShadow=mesh.receiveShadow=true;scene.add(mesh);for(const g of geos)g.dispose();}
+
+const timeUniform={value:0};
+const analysisRoutes=[];
+// Named, qualitative color families: these are NOT numeric integration bins.
+const hierarchy={
+ spine:['#ff6a27','#ffad38',7.2],
+ axis:['#ffb52e','#cce765',4.2],
+ transition:['#d6e75a','#43d3aa',2.65],
+ local:['#50d6b2','#459bf0',1.8],
+ peripheral:['#3daed2','#6579d4',1.15]
+};
+function street(name,points,width,kind,start,duration){
+ const positions=[],uvs=[],indices=[];let length=0;
+ const distances=[0];for(let i=1;i<points.length;i++){length+=Math.hypot(points[i][0]-points[i-1][0],points[i][1]-points[i-1][1]);distances.push(length);}
+ // Subdivide straight segments too: the temporal front and palette vary continuously.
+ const sampled=[];
+ for(let i=1;i<points.length;i++){
+  const p=points[i-1],q=points[i],n=Math.ceil((distances[i]-distances[i-1])/.32);
+  for(let j=0;j<n;j++)sampled.push([p[0]+(q[0]-p[0])*j/n,p[1]+(q[1]-p[1])*j/n,(distances[i-1]+(distances[i]-distances[i-1])*j/n)/length]);
+ }
+ sampled.push([...points.at(-1),1]);
+ for(let i=0;i<sampled.length;i++){
+  const before=sampled[Math.max(0,i-1)],after=sampled[Math.min(sampled.length-1,i+1)];
+  const dx=after[0]-before[0],dz=after[1]-before[1],l=Math.hypot(dx,dz);
+  for(let side of [-1,1]){positions.push(sampled[i][0]-dz/l*width/2*side,.095,sampled[i][1]+dx/l*width/2*side);uvs.push(sampled[i][2],(side+1)/2);}
+  if(i<sampled.length-1){const k=i*2;indices.push(k,k+2,k+1,k+1,k+2,k+3);}
+ }
+ const geom=new THREE.BufferGeometry();geom.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geom.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));geom.setIndex(indices);geom.computeVertexNormals();
+ const palette=hierarchy[kind];
+ const material=new THREE.ShaderMaterial({uniforms:{uTime:timeUniform,uStart:{value:start},uDuration:{value:duration},uHot:{value:new THREE.Color(palette[0])},uCool:{value:new THREE.Color(palette[1])},uEnergy:{value:palette[2]},uLength:{value:length}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,fragmentShader:`
+ varying vec2 vUv;uniform float uTime;uniform float uStart;uniform float uDuration;
+ uniform vec3 uHot;uniform vec3 uCool;uniform float uEnergy;uniform float uLength;
+ void main(){
+  float progress=clamp((uTime-uStart)/uDuration,0.0,1.13);
+  float visible=1.0-smoothstep(progress-0.045,progress,vUv.x);
+  float across=abs(vUv.y-0.5)*2.0;
+  float edge=1.0-smoothstep(0.63,1.0,across);
+  float core=1.0-smoothstep(0.0,0.20,across);
+  float front=exp(-pow((vUv.x-progress+0.026)*36.0,2.0));
+  float glints=pow(max(0.0,sin(vUv.x*uLength*2.8-uTime*8.0)),16.0);
+  vec3 color=mix(uHot,uCool,smoothstep(0.12,1.0,vUv.x));
+  vec3 radiance=color*uEnergy*(0.75+core*0.65+front*1.1+glints*0.13);
+  gl_FragColor=vec4(radiance,edge*visible*0.97);
+  // Keep linear HDR here. OutputPass performs tone mapping and sRGB conversion after bloom.
+ }`,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false});
+ const mesh=new THREE.Mesh(geom,material);mesh.name='integration: '+name;mesh.renderOrder=2;scene.add(mesh);
+ analysisRoutes.push({name,mesh,points,width,kind,start,duration,length});return mesh;
+}
+// Fig. 6 hierarchy on schematic streets. Reveal starts at the central market/mosque,
+// then follows graph branches. Distance affects reveal timing, NOT integration color.
+street('Juma threshold',[[.15,-1.72],[.15,0]],1.12,'spine',.04,.17);
+street('western market',[[.15,0],[-8,-.16],[-17,.12],[-25.4,0]],2.05,'spine',.14,1.05);
+street('eastern market',[[.15,0],[8,.12],[16,-.1],[25.4,0]],2.05,'spine',.14,1.05);
+street('integrated north axis',[[5.5,0],[5.6,-5.5],[5.5,-9.5],[5.55,-15.35]],1.42,'axis',.40,1.03);
+street('integrated south axis',[[5.5,0],[5.75,4.8],[5.65,6.3]],1.32,'axis',.40,.79);
+street('west museum connection',[[-12,0],[-12,-3.5],[-12,-9.5]],.80,'transition',.66,.92);
+street('east museum connection',[[19,0],[19,-3.5],[19,-9.5]],.82,'transition',.92,.81);
+street('northern cross street west',[[5.5,-9.5],[-4,-9.5],[-12,-9.5],[-23.05,-9.5]],.62,'transition',1.09,1.06);
+street('northern cross street east',[[5.5,-9.5],[12,-9.5],[19,-9.5],[23.05,-9.5]],.62,'transition',1.09,.83);
+street('museum threshold',[[19,-3.85],[16,-3.85],[13.5,-3.85],[13.5,-4.38]],.72,'transition',1.28,.60);
+street('northwest local lane',[[-12,-9.5],[-12,-15.35]],.62,'local',1.58,.62);
+street('northeast local lane',[[19,-9.5],[19,-15.35]],.62,'local',1.66,.60);
+street('western residential threshold',[[-12,0],[-12,3.76],[-18.35,3.76],[-18.35,8.5]],.38,'local',.72,1.43);
+street('quiet western lane',[[-23.05,0],[-23.05,8.9]],.52,'peripheral',1.14,1.20);
+street('north rim west',[[5.55,-15.35],[-12,-15.35],[-23.05,-15.35]],.54,'peripheral',1.48,1.12);
+street('north rim east',[[5.55,-15.35],[19,-15.35],[23.05,-15.35]],.54,'peripheral',1.48,.93);
+street('northwest perimeter',[[-23.05,-9.5],[-23.05,-15.35]],.5,'peripheral',2.13,.50);
+street('northeast perimeter',[[23.05,-9.5],[23.05,-15.35]],.5,'peripheral',1.90,.58);
+
+// Physical miniature people: bronze bodies, ivory heads, actual world-space travel.
+const count=132,people=[];
+const bodies=new THREE.InstancedMesh(new THREE.CylinderGeometry(.075,.10,.31,6),new THREE.MeshStandardMaterial({color:'#715b3d',roughness:.83}),count);
+const heads=new THREE.InstancedMesh(new THREE.SphereGeometry(.077,6,5),new THREE.MeshStandardMaterial({color:'#f4e0b0',roughness:1}),count);
+bodies.castShadow=true;heads.castShadow=true;bodies.instanceMatrix.setUsage(THREE.DynamicDrawUsage);heads.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+const pc=new THREE.Color();
+for(let i=0;i<count;i++){
+ const secondary=i>=99;
+ people.push({secondary,u:rand(),lane:(rand()-.5)*(secondary?.55:1.28),speed:.35+rand()*.42,dir:rand()>.48?1:-1,phase:rand()*Math.PI*2});
+ pc.set(['#735640','#eee0b6','#556568','#b8784d'][i%4]);bodies.setColorAt(i,pc);
+}
+scene.add(bodies,heads);
+// Two seated courtyard occupants remain within the enclosure throughout the reveal.
+const residentMat=new THREE.MeshStandardMaterial({color:'#785c46',roughness:1});
+for(let x of [-14.15,-13.6]){
+ const body=new THREE.Mesh(new THREE.CylinderGeometry(.075,.1,.22,6),residentMat);body.position.set(x,.22,7.9);body.castShadow=true;scene.add(body);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.077,6,5),mats.pale);head.position.set(x,.39,7.9);scene.add(head);
+}
+function ease(a,b,t){const p=THREE.MathUtils.clamp((t-a)/(b-a),0,1);return p*p*(3-2*p);}
+function renderAt(t){
+ timeUniform.value=t;
+ for(const p of privacy){p.group.scale.y=1;}
+ for(let i=0;i<count;i++){
+  const p=people[i];let x,z;
+  if(p.secondary){z=-14+p.u*20+p.dir*t*p.speed;z=((z+14)%20+20)%20-14;x=5.48+p.lane+Math.sin(z*.4)*.12;}
+  else{x=-24+p.u*48+p.dir*t*p.speed;x=((x+25)%50+50)%50-25;z=p.lane+Math.sin(x*.15)*.08;}
+  const bob=Math.sin(t*9+p.phase)*.011;
+  dummy.position.set(x,.245+bob,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();bodies.setMatrixAt(i,dummy.matrix);
+  dummy.position.y=.46+bob;dummy.updateMatrix();heads.setMatrixAt(i,dummy.matrix);
+ }
+ bodies.instanceMatrix.needsUpdate=true;heads.instanceMatrix.needsUpdate=true;
+ // A continuous descending orbit: pass over the south wall toward the public core.
+ const drift=ease(0,3,t);
+ camera.position.set(23-14*drift,43-11*drift,60-9*drift);
+ target.set(0,0,-4.3-1.9*drift);camera.lookAt(target);camera.updateMatrixWorld();
+ composer.render();
+}
+const params=new URLSearchParams(location.search),raw=params.get('t'),parsed=raw===null?NaN:Number(raw);
+const frozen=raw!==null&&Number.isFinite(parsed),freezeTime=Math.max(0,parsed||0);
+const cycle=4.2,started=performance.now();
+if(frozen){renderAt(freezeTime);}else{renderer.setAnimationLoop(()=>renderAt(((performance.now()-started)/1000)%cycle));}
+// Read-only hooks for non-browser geometry inspection and deterministic production checks.
+window.__KAED={scene,camera,renderAt,privacy,people,renderer,analysisRoutes,hierarchy,sun,composer};
+</script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!doctype html>
+<!--
+PAPER: Sumbula, Sulaiman & Ariffin, IJPCC 12(2), 2026, pp. 11–18.
+Fig. 2, p. 15: HUMAN/AI raw POS counts: nouns 10,672/15,900;
+punctuation 4,970/8,003; adjectives 4,107/6,484; pronouns 3,834/2,300.
+Fig. 3, p. 15: Logistic Regression AUC 0.990. Fig. 4 and Table IV,
+p. 16: 20/20 human essays correct, 18/20 AI essays correct, two AI
+essays classified as human. Pilot scope: one prompt, GPT-4 (pp. 13, 17).
+The four POS words illustrate the lexical input; they are not the whole model.
+ARTISTIC LICENCE: typefaces, palette, paper texture, composition, timing,
+token positions and landing order. Tokens represent essays, not actual essay
+texts or an observed classification sequence. Size encodes raw count via a
+shared linear cap-height scale, calibrated separately for the two typefaces.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Word habits caught 18 of 20 AI essays</title>
+  <style>
+    @font-face {
+      font-family: 'Human'; font-style: normal; font-weight: 600;
+      font-display: block;
+      src: url('https://cdn.jsdelivr.net/npm/@fontsource/source-serif-4@5.1.0/files/source-serif-4-latin-600-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Machine'; font-style: normal; font-weight: 600;
+      font-display: block;
+      src: url('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.1.0/files/inter-latin-600-normal.woff2') format('woff2');
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #f3eee4; }
+    body { display: grid; place-items: center; }
+    canvas { display: block; width: min(100vw, 177.777778vh); height: auto; aspect-ratio: 16 / 9; }
+  </style>
+</head>
+<body>
+  <canvas id="clip" width="1920" height="1080" role="img"
+    aria-label="Word habits caught 18 of 20 AI essays. Logistic Regression recognised all 20 human essays; none were flagged as AI. Two AI essays passed as human. AUC 0.990. Pilot test: 40 held-out essays, one prompt, GPT-4.">
+    HUMAN: nouns 10,672; punctuation 4,970; adjectives 4,107; pronouns 3,834.
+    AI: nouns 15,900; punctuation 8,003; adjectives 6,484; pronouns 2,300.
+    20 / 20 human essays recognised; none flagged as AI. 18 / 20 AI essays caught.
+  </canvas>
+  <script>
+    'use strict';
+    const canvas = document.getElementById('clip');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const W = 1920, H = 1080, DURATION = 3;
+    const INK = '#24231f', RED = '#e0442b', PAPER = '#f3eee4';
+    const HUMAN = '"Human", "Georgia", serif';
+    const AI = '"Machine", "Arial", sans-serif';
+    const columns = [
+      { x: 750, width: 440, face: HUMAN, color: INK, heading: 'HUMAN' },
+      { x: 1260, width: 570, face: AI, color: RED, heading: 'AI' }
+    ];
+    const features = [
+      { word: 'nouns', counts: [10672, 15900] },
+      { word: 'punctuation', counts: [4970, 8003] },
+      { word: 'adjectives', counts: [4107, 6484] },
+      { word: 'pronouns', counts: [3834, 2300] }
+    ];
+    const title = 'Word habits caught 18 of 20 AI essays';
+    const footnote = 'Logistic Regression · AUC 0.990 · pilot test: 40 held-out essays, one prompt, GPT-4';
+    const clamp = v => Math.max(0, Math.min(1, v));
+    const progress = (t, start, end) => clamp((t - start) / (end - start));
+    const mix = (a, b, p) => a + (b - a) * p;
+    const smooth = p => p * p * (3 - 2 * p);
+    const out = p => 1 - Math.pow(1 - p, 3);
+    const spring = p => 1 + 1.8 * Math.pow(p - 1, 3) + 0.8 * Math.pow(p - 1, 2);
+    const format = n => Math.round(n).toLocaleString('en-US');
+    let capRatios = [], countScale = 0.0072, grain;
+
+    function font(size, face) { ctx.font = `600 ${size}px ${face}`; }
+    function width(text, size, face) { font(size, face); return ctx.measureText(text).width; }
+    function text(value, x, y, size, face, color, alpha = 1, tracking = 0) {
+      if (alpha <= 0 || size < 0.1 || !value) return;
+      ctx.save();
+      ctx.globalAlpha = clamp(alpha);
+      ctx.fillStyle = color;
+      font(size, face);
+      if (tracking === 0) ctx.fillText(value, x, y);
+      else for (const char of value) {
+        ctx.fillText(char, x, y);
+        x += ctx.measureText(char).width + tracking;
+      }
+      ctx.restore();
+    }
+
+    function prepare() {
+      // H gives an actual cap-height ratio, avoiding misleading comparisons
+      // between equal CSS font sizes in faces with different cap heights.
+      capRatios = columns.map(c => {
+        font(1000, c.face);
+        const metrics = ctx.measureText('H');
+        return (metrics.actualBoundingBoxAscent || 700) / 1000;
+      });
+      // If a fallback face is wider, reduce ONE global scale for all eight words.
+      for (let c = 0; c < 2; c++) for (const feature of features) {
+        const size = feature.counts[c] * countScale / capRatios[c];
+        const available = columns[c].width - width(format(feature.counts[c]), 25, AI) - 24;
+        countScale *= Math.min(1, available / width(feature.word, size, columns[c].face));
+      }
+      const tile = document.createElement('canvas');
+      tile.width = tile.height = 128;
+      const tc = tile.getContext('2d');
+      const pixels = tc.createImageData(128, 128);
+      let seed = 699;
+      for (let i = 0; i < pixels.data.length; i += 4) {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        pixels.data[i] = 55; pixels.data[i + 1] = 43; pixels.data[i + 2] = 30;
+        pixels.data[i + 3] = (seed >>> 29); // Extremely faint paper grain.
+      }
+      tc.putImageData(pixels, 0, 0);
+      grain = ctx.createPattern(tile, 'repeat');
+    }
+
+    // Immutable test cases: true authorship determines face/color, destination
+    // determines column. Exactly two AI cases go to HUMAN and stay vermilion.
+    // Both stacks share a bottom baseline, row pitch and four-column grid.
+    // Full rows fill upward; AI's last two cases form its left-aligned top row.
+    const stackPosition = (column, i) => ({
+      x: columns[column].x + (i % 4) * 108,
+      y: 616 - Math.floor(i / 4) * 34
+    });
+    const tokens = [];
+    for (let i = 0; i < 20; i++) tokens.push({
+      author: 0, destination: 0, ...stackPosition(0, i),
+      start: 1.06 + i * 0.027, duration: 0.32, phase: i * 0.7
+    });
+    for (let i = 0; i < 18; i++) tokens.push({
+      author: 1, destination: 1, ...stackPosition(1, i),
+      start: 1.09 + i * 0.028, duration: 0.34, phase: i * 0.9
+    });
+    for (let i = 0; i < 2; i++) tokens.push({
+      author: 1, destination: 0, x: 750 + i * 108, y: 658,
+      start: 1.23 + i * 0.10, duration: 0.51, phase: i, miss: true
+    });
+
+    function drawTitle(t) {
+      const visible = Math.floor(title.length * out(progress(t, 0, 0.38)));
+      const lines = [
+        { value: 'Word habits', y: 416, size: 80, face: HUMAN, color: INK },
+        { value: 'caught', y: 500, size: 80, face: HUMAN, color: INK },
+        { value: '18 of 20', y: 607, size: 102, face: AI, color: RED },
+        { value: 'AI essays', y: 691, size: 78, face: AI, color: RED }
+      ];
+      let offset = 0;
+      for (const line of lines) {
+        const value = line.value.slice(0, Math.max(0, visible - offset));
+        text(value, 90, line.y + 8 * (1 - out(progress(t, 0, 0.4))),
+          line.size, line.face, line.color);
+        offset += line.value.length + 1;
+      }
+    }
+
+    function drawFingerprint(t) {
+      const compression = smooth(progress(t, 1.0, 1.31));
+      const scale = mix(1, 0.72, compression);
+      const initialY = [305, 425, 528, 625];
+      // Shared baselines allow >=16px ink clearance, including descenders and
+      // count labels, between compressed rows in both faces.
+      const finalY = [240, 302, 367, 411];
+      for (let c = 0; c < 2; c++) {
+        const column = columns[c];
+        text(column.heading, column.x, 143, 47, column.face, column.color,
+          out(progress(t, 0.02, 0.2)), c === 0 ? 5 : 2);
+        features.forEach((feature, row) => {
+          const p = progress(t, 0.04 + row * 0.045, 0.52 + row * 0.045);
+          const growth = spring(p);
+          const size = feature.counts[c] * countScale * scale * growth / capRatios[c];
+          const y = mix(initialY[row], finalY[row], compression);
+          const wordWidth = width(feature.word, Math.max(size, 0.1), column.face);
+          text(feature.word, column.x, y, size, column.face, column.color, out(p));
+          const countProgress = out(progress(t, 0.04 + row * 0.045, 0.45));
+          text(format(feature.counts[c] * countProgress), column.x + wordWidth + 18,
+            y - 2, mix(25, 22, compression), AI, column.color, out(p) * 0.77);
+        });
+      }
+    }
+
+    function drawTokens(t) {
+      const landed = [0, 0];
+      let misses = 0;
+      for (const token of tokens) {
+        if (t < token.start) continue;
+        const p = progress(t, token.start, token.start + token.duration);
+        const route = smooth(p);
+        const isLanded = p >= 1;
+        if (isLanded) {
+          if (token.miss) misses++;
+          else landed[token.author]++;
+        }
+        const originX = token.miss ? 1300 + token.phase * 90 : token.x + 18 * Math.sin(token.phase);
+        const x = mix(originX, token.x, route);
+        // The misses drop below the stacks before crossing into HUMAN.
+        const fall = token.miss ? out(progress(p, 0, 0.45)) : out(p);
+        const y = mix(438, token.y, fall) - 5 * Math.sin(p * Math.PI * 2) * (1 - p);
+        const breath = t > 2.1 ? Math.sin((t - 2.1) * 2.2) * 0.10 : 0;
+        // One gentle expansion and return singles out the two missed AI cases.
+        const missPulse = 2 * Math.pow(Math.sin(Math.PI * progress(t, 2.1, 3.0)), 2);
+        text('ESSAY', x, y, token.author === 0 ? 25 : 23,
+          columns[token.author].face, columns[token.author].color,
+          out(progress(p, 0, 0.27)), 0.65 + (token.miss ? missPulse : breath));
+      }
+      return { landed, misses };
+    }
+
+    function drawVerdict(t, state) {
+      const alpha = out(progress(t, 1.38, 1.65));
+      const rise = 10 * (1 - alpha);
+      text(`${state.landed[0]} / 20`, 750, 717 + rise, 56, HUMAN, INK, alpha);
+      text('human essays recognised', 750, 746 + rise, 25, HUMAN, INK, alpha);
+      text('none flagged as AI', 750, 770, 24, HUMAN, INK,
+        state.landed[0] === 20 ? out(progress(t, 1.893, 1.98)) : 0);
+      text(`${state.landed[1]} / 20`, 1260, 717 + rise, 56, AI, RED, alpha);
+      text('AI essays caught', 1260, 755 + rise, 29, AI, RED, alpha);
+      if (state.misses === 2) text('2 AI essays passed as human', 968, 658, 19, AI, RED,
+        out(progress(t, 1.84, 1.98)));
+      const footSize = Math.min(17, 800 / width(footnote, 17, AI) * 17);
+      text(footnote, 90, 953, footSize, AI, INK,
+        0.60 * smooth(progress(t, 1.91, 2.1)));
+    }
+
+    function render(time) {
+      const t = Math.max(0, Math.min(DURATION, time));
+      ctx.fillStyle = PAPER;
+      ctx.fillRect(0, 0, W, H);
+      const wash = ctx.createLinearGradient(0, 0, W, H);
+      wash.addColorStop(0, 'rgba(255,253,247,0.48)');
+      wash.addColorStop(1, 'rgba(220,204,180,0.12)');
+      ctx.fillStyle = wash; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = grain; ctx.fillRect(0, 0, W, H);
+      drawTitle(t);
+      drawFingerprint(t);
+      const state = drawTokens(t);
+      drawVerdict(t, state);
+      canvas.dataset.time = t.toFixed(6);
+    }
+
+    async function boot() {
+      await Promise.allSettled([
+        document.fonts.load('600 100px "Human"'),
+        document.fonts.load('600 100px "Machine"')
+      ]);
+      await document.fonts.ready;
+      prepare();
+      const params = new URLSearchParams(location.search);
+      const requested = Number(params.get('t'));
+      const frozen = params.has('t') && Number.isFinite(requested);
+      canvas.dataset.fonts = document.fonts.check('600 100px "Human"') &&
+        document.fonts.check('600 100px "Machine"') ? 'loaded' : 'fallback';
+      if (frozen) render(requested);
+      else {
+        const started = performance.now();
+        const tick = now => {
+          const t = (now - started) / 1000;
+          render(t);
+          if (t < DURATION) requestAnimationFrame(tick);
+        };
+        render(0);
+        requestAnimationFrame(tick);
+      }
+      canvas.dataset.ready = 'true';
+      window.__clipReady = true;
+    }
+    boot();
+  </script>
+</body>
+</html>

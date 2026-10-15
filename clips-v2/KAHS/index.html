@@ -1,0 +1,443 @@
+<!--
+KAHS / Hamid FA et al. (2025), Front. Endocrinol. 16:1590716.
+FROM THE PAPER: four groups, n = 10 each (pp. 1–3); PCOS BMI means
+23.05 and 31.25 kg/m² (Table 2, p. 4); RT-qPCR relative mRNA, GAPDH,
+2^-ΔΔCt (p. 3). Normal-weight PCOS 1.0 versus obese PCOS ≈ 0.27
+(estimated from the Fig. 1 bar in the supplied brief, p. 4), p = 0.090.
+Mucin-1 and E-cadherin: no significant difference (Fig. 2, p. 5; p. 6).
+ARTISTIC LICENCE (the clip is an illustration; the integrin value was measured by RT-qPCR of endometrial biopsies, not imaged): tabs and strip are a visual proxy for relative mRNA level,
+not receptor counts; Fig. 1 p-values as printed (0.090) are above 0.05 although
+the text calls the drop significant, so the clip does not say significant.
+REVIEWER EDIT: the title was softened to "integrin trends lower", with the subline "not statistically
+significant (p = 0.090)", so the headline doesn't claim an effect the printed p-values don't support.
+That caveat concerns the integrin drop; the specified secondary-marker label
+accurately says "no significant difference". Four of fifteen tabs approximate
+0.27. Tissue anatomy, gland openings, fat layer thickness, equal secondary
+marker sizes, paper, colour, lighting and motion are illustrative. BMI, not
+endometrial fat, was measured. No embryo, implantation success or pregnancy
+outcome is shown or implied. The mandated headline is not causal evidence.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2eade">
+  <title>In PCOS, integrin trends lower with obesity</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #f2eade; }
+    body { font-family: Georgia, "Times New Roman", serif; color: #4c3536; }
+    #stage { position: absolute; width: 1920px; height: 1080px; overflow: hidden;
+      transform-origin: top left; background: radial-gradient(ellipse at 28% 27%, #fcf7ec, #efe5d6 80%); }
+    #scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #grain { position: absolute; inset: 0; pointer-events: none; opacity: .13; mix-blend-mode: multiply; }
+    .tag { position: absolute; top: 150px; padding: 18px 24px 20px; white-space: nowrap;
+      background: #fbf5e9; box-shadow: 1px 3px 2px #5639240b, 3px 10px 18px #5639240a;
+      border-bottom: 1px solid #d4c4ae; transform: rotate(-1.1deg); }
+    .tag::before { content: ""; position: absolute; width: 6px; height: 6px; border-radius: 50%;
+      background: #ab8a61; top: 10px; left: 11px; box-shadow: 1px 1px 1px #72543750; }
+    .tag-left { left: 140px; }
+    .tag-right { left: 740px; transform: rotate(.8deg); }
+    .group-name { font-size: 32px; line-height: 1.25; font-weight: normal; margin: 0 0 9px; }
+    .bmi { font-size: 23px; color: #7b6660; margin: 0; }
+    #headline { position: absolute; left: 1255px; top: 337px; width: 596px; padding: 17px 12px 28px 4px;
+      isolation: isolate; }
+    #headline::before { content: ""; position: absolute; inset: -42px -32px -28px -35px; z-index: -1;
+      background: radial-gradient(ellipse at 43% 49%, #f6eee3fa 24%, #f6eee3e6 51%, #f6eee390 69%, #f6eee300 84%);
+      filter: blur(18px); pointer-events: none; }
+    h1 { margin: 0; font-size: 65px; font-weight: normal; line-height: 1.065; letter-spacing: -2.3px; }
+    .subline { margin: 25px 0 0; max-width: 540px; font-size: 25px; line-height: 1.42; color: #7c665b; }
+    .level-value { position: absolute; left: 0; top: 0; font-size: 38px; line-height: 1;
+      color: #664414; background: #f9e8bb; padding: 6px 15px 9px;
+      box-shadow: 2px 3px 5px #57371318; white-space: nowrap; }
+    .relative { position: absolute; left: 170px; top: 787px; width: 760px; text-align: center; font-size: 26px;
+      padding: 12px 18px; letter-spacing: .1px; color: #715545; isolation: isolate; }
+    .relative::before { content: ""; position: absolute; inset: -12px -8px; z-index: -1;
+      background: radial-gradient(ellipse, #fbf5e7f5 35%, #fbf5e7b0 60%, #fbf5e700 80%);
+      filter: blur(8px); pointer-events: none; }
+    #sample { position: absolute; left: 712px; top: 746px; width: 470px; text-align: center;
+      font-size: 23px; line-height: 1.2; color: #68544b; }
+    #unchanged { position: absolute; left: 150px; top: 869px; width: 755px;
+      padding: 18px 18px 18px 25px; font-size: 25px; line-height: 1.25;
+      background: linear-gradient(95deg, #fbf5e7e6, #fbf5e780); border-left: 3px solid #a7a0b5;
+      box-shadow: 2px 5px 12px #7b594708; white-space: nowrap; }
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"}}
+  </script>
+</head>
+<body>
+  <main id="stage" aria-label="Paper diorama comparing relative integrin mRNA in two PCOS groups">
+    <canvas id="scene" aria-label="Two layered paper endometrial slices with folding gold signal tabs"></canvas>
+    <canvas id="grain" aria-hidden="true"></canvas>
+    <div class="tag tag-left"><p class="group-name">PCOS · normal weight</p><p class="bmi">mean BMI 23.05 kg/m²</p></div>
+    <div class="tag tag-right"><p class="group-name">PCOS · obese</p><p class="bmi">mean BMI 31.25 kg/m²</p></div>
+    <div id="headline"><h1>In PCOS,<br>integrin trends<br>lower with<br>obesity</h1><p class="subline">αvβ3 integrin mRNA, womb lining<br>not statistically significant (p = 0.090)</p></div>
+    <div class="level-value" id="value-left">1.0</div>
+    <div class="level-value" id="value-right">≈ 0.27</div>
+    <div class="relative" id="relative">αvβ3 integrin mRNA, relative (RT-qPCR) · tabs illustrative</div>
+    <div id="sample">n = 10 per group</div>
+    <div id="unchanged">mucin-1 · E-cadherin: no significant difference</div>
+  </main>
+  <script type="module">
+    import * as THREE from 'three';
+
+    const WIDTH = 1920, HEIGHT = 1080, DURATION = 3;
+    const TAB_COUNT = 15, RIGHT_RAISED = new Set([0, 4, 9, 13]);
+    const STRIP_LENGTH = 414, RIGHT_LEVEL = 0.27;
+    const stage = document.getElementById('stage');
+    const queryTime = new URLSearchParams(location.search).get('t');
+    const frozen = queryTime !== null && Number.isFinite(Number(queryTime));
+    const frozenTime = frozen ? Math.max(0, Math.min(DURATION, Number(queryTime))) : 0;
+    const clamp = x => Math.max(0, Math.min(1, x));
+    const smooth = (a, b, t) => { const x = clamp((t - a) / (b - a)); return x * x * (3 - 2 * x); };
+    function seeded(seed) {
+      return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let x = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        x ^= x + Math.imul(x ^ x >>> 7, 61 | x);
+        return ((x ^ x >>> 14) >>> 0) / 4294967296; };
+    }
+    const rng = seeded(1590716);
+
+    function makeStock() {
+      const canvas = document.createElement('canvas'); canvas.width = canvas.height = 512;
+      const ctx = canvas.getContext('2d'); const pixels = ctx.createImageData(512, 512);
+      for (let i = 0; i < pixels.data.length; i += 4) {
+        const value = 212 + Math.floor(rng() * 43);
+        pixels.data[i] = value; pixels.data[i + 1] = value;
+        pixels.data[i + 2] = value; pixels.data[i + 3] = 255;
+      }
+      ctx.putImageData(pixels, 0, 0);
+      for (let i = 0; i < 3700; i++) {
+        const x = rng() * 512, y = rng() * 512;
+        ctx.strokeStyle = rng() > .5 ? '#fff8e785' : '#796e5d32';
+        ctx.lineWidth = .4 + rng() * .8; ctx.beginPath(); ctx.moveTo(x, y);
+        ctx.lineTo(x + 3 + rng() * 21, y + (rng() - .5) * 6); ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      const grain = document.getElementById('grain'); grain.width = WIDTH; grain.height = HEIGHT;
+      const grainCtx = grain.getContext('2d');
+      grainCtx.fillStyle = grainCtx.createPattern(canvas, 'repeat'); grainCtx.fillRect(0, 0, WIDTH, HEIGHT);
+      return tex;
+    }
+    const stock = makeStock();
+    function paper(color, extra = {}) {
+      return new THREE.MeshStandardMaterial({ color, map: stock, bumpMap: stock, bumpScale: .65,
+        roughness: 1, metalness: 0, side: THREE.DoubleSide, ...extra });
+    }
+    const materials = {
+      rose: ['#ae606c', '#c77d87', '#dd98a0', '#bf7782', '#e8b0b4', '#d48b95'].map(c => paper(c)),
+      edge: paper('#a66371'), cutEdge: paper('#f1c2b9'), blush: paper('#f2c9c8'), cell: paper('#e9acae'),
+      cream: paper('#f0dbaf'), creamLight: paper('#fff0cd'), creamEdge: paper('#d4b785'),
+      gold: paper('#d2a046'), goldLight: paper('#e7bc65'), goldEdge: paper('#997036'),
+      recess: paper('#ba8383'), lilac: paper('#a28aba'), teal: paper('#4f928b'),
+      card: paper('#fcf5e5'), background: paper('#f3ecdf'),
+      hills: ['#f0e2d0', '#e7cfc8', '#f7ebd7'].map(c => paper(c))
+    };
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene'), antialias: true, alpha: false });
+    renderer.setSize(WIDTH, HEIGHT, false); renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.13;
+    const scene = new THREE.Scene(); scene.background = new THREE.Color('#f2eade');
+    const camera = new THREE.OrthographicCamera(-960, 960, 540, -540, 1, 3000);
+    camera.position.set(0, 0, 1600); camera.lookAt(0, 0, 0);
+    scene.add(new THREE.AmbientLight('#f9e9d7', .83));
+    // Three warm window samples give actual overlapping penumbras, not just a hard key shadow.
+    for (const [dx, dy, power] of [[-125, -75, 1.1], [0, 0, 1.6], [125, 75, 1.1]]) {
+      const key = new THREE.DirectionalLight('#fff0d4', power); key.position.set(-930 + dx, 950 + dy, 900);
+      key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+      Object.assign(key.shadow.camera, { left: -1450, right: 1450, top: 1150, bottom: -1050, near: 1, far: 3200 });
+      key.shadow.normalBias = .45; key.shadow.bias = -.00009; key.shadow.radius = 4;
+      key.target.position.set(-300, -50, -150); scene.add(key, key.target);
+    }
+    const fill = new THREE.DirectionalLight('#f2e5e1', .42); fill.position.set(800, 100, 650); scene.add(fill);
+
+    function sheet(shape, depth, material, edge = material) {
+      const geometry = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 10, steps: 1 });
+      const uv = geometry.attributes.uv, positions = geometry.attributes.position;
+      for (let i = 0; i < uv.count; i++) uv.setXY(i, positions.getX(i) / 310, positions.getY(i) / 310);
+      const mesh = new THREE.Mesh(geometry, [material, edge]); mesh.castShadow = true; mesh.receiveShadow = true;
+      return mesh;
+    }
+    function rounded(x, y, width, height, r = 8) {
+      const s = new THREE.Shape();
+      s.moveTo(x + r, y); s.lineTo(x + width - r, y); s.quadraticCurveTo(x + width, y, x + width, y + r);
+      s.lineTo(x + width, y + height - r); s.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      s.lineTo(x + r, y + height); s.quadraticCurveTo(x, y + height, x, y + height - r);
+      s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y); return s;
+    }
+    const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(2700, 1600), materials.background);
+    // The distant paper stage never receives rig shadows. Keep real shadows local to the slices.
+    backdrop.position.z = -580; backdrop.receiveShadow = false; scene.add(backdrop);
+
+    function torn(x, seed = 0) {
+      return 1.6 * Math.sin(x * .41 + seed) + .8 * Math.sin(x * 1.13 - seed) + .5 * Math.cos(x * 2.37 + seed);
+    }
+    // Short, feathered ambient seams give scenery depth without receiving projected rig silhouettes.
+    const seamCanvas = document.createElement('canvas'); seamCanvas.width = 1; seamCanvas.height = 64;
+    const seamCtx = seamCanvas.getContext('2d');
+    const seamFade = seamCtx.createLinearGradient(0, 0, 0, 64);
+    seamFade.addColorStop(0, '#735c4200'); seamFade.addColorStop(.5, '#735c4209');
+    seamFade.addColorStop(1, '#735c4233'); seamCtx.fillStyle = seamFade; seamCtx.fillRect(0, 0, 1, 64);
+    const seamTexture = new THREE.CanvasTexture(seamCanvas); seamTexture.colorSpace = THREE.SRGBColorSpace;
+    function paperSeam(points, z, width) {
+      const vertices = [], uvs = [], indices = [];
+      points.forEach(([x, y], i) => {
+        vertices.push(x, y, z, x, y + width, z); uvs.push(0, 0, 0, 1);
+        if (i) { const k = i * 2; indices.push(k - 2, k, k - 1, k, k + 1, k - 1); }
+      });
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); geometry.setIndex(indices);
+      const seam = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map: seamTexture,
+        transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+      scene.add(seam);
+    }
+    // Side boundaries are beyond the frame; the right contour eases below the title region.
+    for (let i = 0; i < 3; i++) {
+      const hill = new THREE.Shape(); hill.moveTo(-1260, -1100); const contour = [];
+      for (let x = -1260; x <= 1260; x += 7) {
+        const y = 70 + 340 * Math.exp(-Math.pow((x + 470 - i * 75) / (650 - i * 45), 2)) - i * 73
+          - 740 * smooth(-150, 500, x) + torn(x, i) * 1.3;
+        hill.lineTo(x, y); contour.push([x, y]);
+      }
+      hill.lineTo(1260, -1100); hill.closePath();
+      const flat = sheet(hill, 5, materials.hills[i], materials.card);
+      flat.castShadow = flat.receiveShadow = false;
+      flat.position.z = -470 + i * 64; scene.add(flat);
+      paperSeam(contour, flat.position.z - 1, 13);
+    }
+    // Continuous pale ground replaces the long, dark wall projection from r2.
+    for (let i = 0; i < 2; i++) {
+      const groundShape = new THREE.Shape(); groundShape.moveTo(-1260, -900); const contour = [];
+      for (let x = -1260; x <= 1260; x += 7) {
+        const y = -255 - i * 110 + 14 * Math.sin(x * .003 + i * 1.3) + torn(x, 20 + i) * .25;
+        groundShape.lineTo(x, y); contour.push([x, y]);
+      }
+      groundShape.lineTo(1260, -900); groundShape.closePath();
+      const ground = sheet(groundShape, 3, paper(i ? '#f4e7d9' : '#f7eddf'), materials.card);
+      ground.castShadow = ground.receiveShadow = false;
+      ground.position.z = -316 + i * 8; scene.add(ground);
+      paperSeam(contour, ground.position.z - 1, 8);
+    }
+    // Bounded, soft contact shadows beneath the base cards; no rig silhouettes or hard texture edges.
+    const contactCanvas = document.createElement('canvas'); contactCanvas.width = 512; contactCanvas.height = 128;
+    const contactCtx = contactCanvas.getContext('2d'); contactCtx.scale(1, .25);
+    const contactFade = contactCtx.createRadialGradient(256, 256, 0, 256, 256, 250);
+    contactFade.addColorStop(0, '#60493638'); contactFade.addColorStop(.55, '#60493624');
+    contactFade.addColorStop(1, '#60493600'); contactCtx.fillStyle = contactFade; contactCtx.fillRect(0, 0, 512, 512);
+    const contactTexture = new THREE.CanvasTexture(contactCanvas); contactTexture.colorSpace = THREE.SRGBColorSpace;
+    for (const [screenX, screenY] of [[345, 748], [935, 776]]) {
+      const contact = new THREE.Mesh(new THREE.PlaneGeometry(600, 104), new THREE.MeshBasicMaterial({
+        map: contactTexture, transparent: true, depthWrite: false, toneMapped: false }));
+      contact.position.set(screenX - 960, 540 - screenY, -300); contact.rotation.z = -.055; scene.add(contact);
+    }
+
+    function tissueShape(layer) {
+      // Shorter front sheets expose each lower sheet's torn edge and the air gap beneath it.
+      const bottom = -210 + layer * 28;
+      const s = new THREE.Shape(); s.moveTo(-242, bottom);
+      for (let x = -242; x <= 242; x += 4) s.lineTo(x, bottom + 3.6 * Math.sin(x * .032 + layer * .6) + torn(x, layer));
+      for (let y = bottom; y < -10; y += 4) s.lineTo(242 + torn(y, layer) * .65, y);
+      s.lineTo(242, -10);
+      for (let i = 14; i >= 0; i--) {
+        const x = -240 + i * 32;
+        s.quadraticCurveTo(x + 32, 8, x + 16, 10);
+        s.quadraticCurveTo(x, 8, x, -10);
+      }
+      for (let y = -10; y > bottom; y -= 4) s.lineTo(-242 + torn(y, layer + 3) * .65, y);
+      s.lineTo(-242, bottom);
+      // Open gland lumens through successive sheets create actual layered recesses.
+      for (const x of [-157, -36, 91, 187]) {
+        const p = new THREE.Path(); p.moveTo(x - 8, -20);
+        p.bezierCurveTo(x - 31, -30, x + 14, -37, x - 9, -48);
+        p.bezierCurveTo(x - 30, -64, x + 24, -66, x + 23, -47);
+        p.bezierCurveTo(x + 23, -33, x - 5, -28, x + 7, -21);
+        p.quadraticCurveTo(x, -15, x - 8, -20); s.holes.push(p);
+      }
+      return s;
+    }
+    function forkShape() {
+      const s = new THREE.Shape(); s.moveTo(-4, 0); s.lineTo(-4, 36);
+      s.bezierCurveTo(-18, 43, -17, 65, -13, 78);
+      s.bezierCurveTo(0, 70, 3, 56, 0, 47);
+      s.bezierCurveTo(2, 60, 11, 76, 17, 79);
+      s.bezierCurveTo(22, 58, 18, 43, 5, 36);
+      s.lineTo(5, 0); s.closePath(); return s;
+    }
+    const fork = forkShape();
+    const tabGeometry = sheet(fork, 2.5, materials.gold, materials.goldEdge).geometry;
+    // A shallow physical V-fold catches different light on the two leaves of each card tab.
+    const tabPositions = tabGeometry.attributes.position;
+    for (let i = 0; i < tabPositions.count; i++) {
+      tabPositions.setZ(i, tabPositions.getZ(i) + Math.abs(tabPositions.getX(i)) * .22);
+    }
+    tabPositions.needsUpdate = true; tabGeometry.computeVertexNormals();
+    const outlinePoints = fork.getPoints(45).map(p => new THREE.Vector3(p.x, p.y, 0));
+    const outlineGeometry = new THREE.BufferGeometry().setFromPoints(outlinePoints);
+    const scoreMat = new THREE.LineBasicMaterial({ color: '#997a61', transparent: true, opacity: .63 });
+    const creaseGeometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 5, 2.7), new THREE.Vector3(0, 43, 2.7)]);
+    const creaseMat = new THREE.LineBasicMaterial({ color: '#94632a', transparent: true, opacity: .92 });
+
+    function frond() {
+      const group = new THREE.Group();
+      group.add(sheet(rounded(-2, 0, 4, 46, 2), 1.4, materials.lilac));
+      for (let j = 0; j < 4; j++) for (const sign of [-1, 1]) {
+        const leaf = new THREE.Shape(); leaf.moveTo(0, 10 + j * 9);
+        leaf.quadraticCurveTo(sign * 23, 12 + j * 9, sign * 15, 25 + j * 9);
+        leaf.quadraticCurveTo(sign * 4, 26 + j * 9, 0, 10 + j * 9);
+        group.add(sheet(leaf, 1, materials.lilac));
+      }
+      return group;
+    }
+    function zipper() {
+      const group = new THREE.Group();
+      for (const x of [-9, 6]) { const spine = sheet(rounded(x, 0, 3, 39, 1), 1.5, materials.teal); group.add(spine); }
+      for (let i = 0; i < 6; i++) {
+        group.add(sheet(rounded(i % 2 ? -2 : -9, 4 + i * 5, 11, 3, 1), 1.6, materials.teal));
+      }
+      return group;
+    }
+
+    function buildSlice(screenX, obese) {
+      const root = new THREE.Group(); root.position.set(screenX - 960, 140, 0);
+      // Reframe only the physical stage so the fixed documentary title retains its placement.
+      root.scale.set(1.06, 1.20, 1.08);
+      root.rotation.set(.57, -.10, -.018); scene.add(root);
+      const fatHeight = obese ? 62 : 34;
+      // A pale pop-up book page below each freestanding tissue slice.
+      const page = sheet(rounded(-258, -172, 516, 342, 6), 4, materials.card);
+      page.rotation.x = -Math.PI / 2; page.position.set(0, -216 - fatHeight, -5); root.add(page);
+      for (let i = 0; i < 7; i++) {
+        const cream = sheet(rounded(-242 + (i % 2), -210 - fatHeight, 484, fatHeight + 5, 9), 4,
+          i % 2 ? materials.creamLight : materials.cream, materials.creamEdge);
+        cream.position.z = -65 + i * 20; root.add(cream);
+      }
+      const fatFace = new THREE.Shape(); fatFace.moveTo(-242, -210);
+      for (let x = -242; x <= 242; x += 4) fatFace.lineTo(x, -210 + torn(x, 11));
+      fatFace.lineTo(242, -210 - fatHeight);
+      for (let x = 242; x >= -242; x -= 4) fatFace.lineTo(x, -210 - fatHeight + torn(x, 12));
+      fatFace.closePath();
+      const rows = obese ? 2 : 1;
+      for (let row = 0; row < rows; row++) for (let i = 0; i < 12; i++) {
+        const p = new THREE.Path(); const cx = -220 + i * 39 + (row % 2) * 4;
+        const cy = -227 - row * 28; p.absellipse(cx, cy, 15 + (i % 3), 10, 0, Math.PI * 2, true);
+        fatFace.holes.push(p);
+      }
+      const adipose = sheet(fatFace, 4, materials.creamLight, materials.creamEdge); adipose.position.z = 65; root.add(adipose);
+      for (let i = 0; i < 6; i++) {
+        const layer = sheet(tissueShape(i), 4.5, materials.rose[i], materials.cutEdge);
+        layer.position.set((i % 2 ? 1 : -1) * 2, 0, -8 + i * 18);
+        layer.scale.x = 1 - i * .006; root.add(layer);
+      }
+      // A continuous horizontal epithelial sheet with individually cut scalloped cells.
+      const top = sheet(rounded(-240, -150, 480, 300, 12), 4, materials.blush, materials.cutEdge);
+      top.rotation.x = -Math.PI / 2; top.position.y = 4; root.add(top);
+      for (let i = 0; i < TAB_COUNT; i++) {
+        const cell = sheet(rounded(-14.5, -148, 29, 293, 13), 3, i % 2 ? materials.blush : materials.cell, materials.cutEdge);
+        cell.rotation.x = -Math.PI / 2; cell.position.set(-224 + i * 32, 8, 0); root.add(cell);
+      }
+      const tabs = [];
+      for (let i = 0; i < TAB_COUNT; i++) {
+        const x = -224 + i * 32;
+        const outline = new THREE.LineLoop(outlineGeometry, scoreMat);
+        outline.rotation.x = -Math.PI / 2; outline.position.set(x, 13, -25); root.add(outline);
+        const active = !obese || RIGHT_RAISED.has(i);
+        const hinge = new THREE.Group(); hinge.position.set(x, 14, -25);
+        if (active) {
+          const tab = new THREE.Mesh(tabGeometry, [i % 3 ? materials.gold : materials.goldLight, materials.goldEdge]);
+          tab.castShadow = tab.receiveShadow = true; hinge.add(tab);
+          hinge.add(new THREE.Line(creaseGeometry, creaseMat));
+        } else {
+          const recess = new THREE.Mesh(tabGeometry, materials.recess); recess.scale.set(.86, .94, .35);
+          hinge.add(recess);
+        }
+        root.add(hinge); tabs.push({ hinge, active, index: i });
+      }
+      // Common start, full-scale length and backing slot. Only the ribbon length changes.
+      const track = sheet(rounded(-STRIP_LENGTH / 2 - 5, -201, STRIP_LENGTH + 10, 30, 3), 2, materials.edge);
+      track.position.z = 99; root.add(track);
+      // Separate cardstock rails leave a shadowed empty groove visible beyond the short ribbon.
+      for (const y of [-204, -172]) {
+        const rail = sheet(rounded(-STRIP_LENGTH / 2 - 7, y, STRIP_LENGTH + 14, 4, 1), 5, materials.rose[4], materials.cutEdge);
+        rail.position.z = 101; root.add(rail);
+      }
+      const strip = sheet(rounded(0, -198, STRIP_LENGTH, 23, 2), 2, materials.goldLight, materials.goldEdge);
+      strip.position.set(-STRIP_LENGTH / 2, 0, 103); root.add(strip);
+      const lip = sheet(rounded(-STRIP_LENGTH / 2 - 9, -205, 13, 39, 2), 5, materials.rose[4], materials.cutEdge);
+      lip.position.z = 106; root.add(lip);
+      const markers = [];
+      const markerLayout = [[-183, 'frond'], [-110, 'zipper'], [-37, 'frond'], [36, 'zipper'], [109, 'frond'], [182, 'zipper']];
+      for (const [x, kind] of markerLayout) {
+        const marker = kind === 'frond' ? frond() : zipper(); marker.position.set(x, 14, 133);
+        marker.scale.setScalar(1.4);
+        root.add(marker); markers.push(marker);
+      }
+      return { root, tabs, strip, markers, level: obese ? RIGHT_LEVEL : 1,
+        value: document.getElementById(obese ? 'value-right' : 'value-left') };
+    }
+    const slices = [buildSlice(345, false), buildSlice(935, true)];
+    const headline = document.getElementById('headline');
+    const unchanged = document.getElementById('unchanged');
+    const sample = document.getElementById('sample');
+    function hingeAngle(t, index) {
+      const elapsed = t - (.3 + index * .058);
+      if (elapsed <= 0) return -Math.PI / 2;
+      const u = clamp(elapsed / .285);
+      const back = 1 + 2.5 * Math.pow(u - 1, 3) + 1.5 * Math.pow(u - 1, 2);
+      const wobble = elapsed > .285 ? .023 * Math.sin((elapsed - .285) * 18) * Math.exp(-(elapsed - .285) * 1.1) : 0;
+      return -Math.PI / 2 * (1 - back) + wobble;
+    }
+    const projected = new THREE.Vector3();
+    function renderAt(seconds) {
+      const t = Math.max(0, Math.min(DURATION, seconds));
+      const reveal = smooth(.6, 1.5, t), secondary = smooth(1.9, 2.3, t);
+      for (const slice of slices) {
+        slice.root.rotation.y = -.10 + .008 * Math.sin(t * 1.3);
+        slice.root.rotation.x = .57 + .004 * Math.sin(t * 1.7);
+        for (const tab of slice.tabs) tab.hinge.rotation.x = tab.active ? hingeAngle(t, tab.index) : -Math.PI / 2;
+        slice.strip.scale.x = Math.max(.00001, slice.level * reveal);
+        for (const marker of slice.markers) {
+          marker.visible = t >= 1.9;
+          marker.rotation.x = -Math.PI / 2 * (1 - secondary) + .015 * secondary * Math.sin(t * 17);
+        }
+        slice.root.updateMatrixWorld(true);
+        // Anchor above each ribbon tip; neither label occludes the unfilled groove.
+        projected.set(-STRIP_LENGTH / 2 + STRIP_LENGTH * slice.level * reveal, -187, 107);
+        slice.root.localToWorld(projected); projected.project(camera);
+        const x = (projected.x + 1) * WIDTH / 2, y = (1 - projected.y) * HEIGHT / 2;
+        slice.value.style.transform = `translate(${x}px, ${y - 90}px) translateX(-50%)`;
+        slice.value.style.opacity = String(smooth(1.12, 1.5, t));
+      }
+      headline.style.opacity = String(.12 + .88 * smooth(.15, 1, t));
+      headline.style.transform = `translateY(${(1 - smooth(.15, 1, t)) * 12}px)`;
+      unchanged.style.opacity = String(smooth(2, 2.4, t));
+      unchanged.style.transform = `translateY(${(1 - secondary) * 7}px)`;
+      sample.style.opacity = String(.55 + .45 * smooth(1, 1.5, t));
+      renderer.render(scene, camera);
+      stage.dataset.time = t.toFixed(4);
+    }
+    function resize() {
+      const scale = Math.min(innerWidth / WIDTH, innerHeight / HEIGHT);
+      stage.style.transform = `scale(${scale})`;
+      stage.style.left = `${(innerWidth - WIDTH * scale) / 2}px`;
+      stage.style.top = `${(innerHeight - HEIGHT * scale) / 2}px`;
+    }
+    addEventListener('resize', resize); resize();
+    // No clock, RAF, unseeded randomness or integration in the frozen render path.
+    renderAt(frozen ? frozenTime : 0);
+    if (!frozen) {
+      const epoch = performance.now();
+      function animate(now) {
+        const t = Math.min(DURATION, (now - epoch) / 1000); renderAt(t);
+        if (t < DURATION) requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
+    }
+  </script>
+</body>
+</html>

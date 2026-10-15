@@ -1,0 +1,256 @@
+﻿<!--
+PAPER: Sumbula, Sulaiman & Ariffin (2026), Detecting AI-Generated Essays with
+Lexical Stylometric Features using Machine Learning. A controlled 200-essay
+corpus; lexical richness, density, word/POS usage and n-grams support essay
+classification. Generalization across prompts/models/domains was not tested.
+ARTISTIC LICENCE: invented essay prose, sampled words, colours, paths and
+HUMAN/AI sculptures. Varied versus repeated words illustrate vocabulary
+richness and frequency, NOT measured class-specific word lists, effect sizes,
+or a universal claim that AI has a smaller vocabulary. This is not a working
+classifier or evidence of misconduct. The snap represents model assignment.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Word patterns help spot AI-written essays</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#131969}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--scale,1));overflow:hidden;background:radial-gradient(ellipse at 77% 29%,#3548ba 0%,#232d98 35%,#131969 78%);color:#fff8ea}
+canvas{position:absolute;inset:0;width:1920px;height:1080px}
+.scrim{position:absolute;inset:0;background:linear-gradient(90deg,rgba(14,21,88,.68),rgba(14,21,88,.23) 32%,transparent 49%);pointer-events:none}
+.grain{position:absolute;inset:0;opacity:.045;pointer-events:none;mix-blend-mode:screen;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E")}
+.title{position:absolute;left:104px;top:391px;width:665px}
+h1{font:700 76px/1.08 Arial,Helvetica,sans-serif;letter-spacing:-4.4px;margin:0}
+h1 em{font:italic 80px/.98 Georgia,serif;font-weight:400;letter-spacing:-4.4px;color:#ff9b77}
+h1 .last{white-space:nowrap}
+.scope{font:400 23px/1.5 Arial,sans-serif;letter-spacing:.15px;color:#bcc8f4;margin:32px 0 0;max-width:555px}
+#shade{position:absolute;inset:0;background:#131969;opacity:0;pointer-events:none}
+#error{display:none;position:absolute;left:105px;top:840px;font:22px Arial;color:#fff8ea}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
+</head>
+<body>
+<main id="stage" aria-label="Essay text unfolds into varied and repeated words, then snaps into illustrative HUMAN and AI letterforms.">
+<canvas id="scene" aria-hidden="true"></canvas><div class="grain"></div><div class="scrim"></div>
+<div class="title"><h1>Word patterns<br>help spot<br><span class="last"><em>AI-written</em> essays</span></h1><p class="scope">A controlled study of 200 essays.</p></div>
+<div id="shade"></div><div id="error">The 3D scene could not load. Please check WebGL and the module connection.</div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+const stage=document.querySelector('#stage');
+function fit(){stage.style.setProperty('--scale',Math.min(innerWidth/1920,innerHeight/1080));}
+addEventListener('resize',fit);fit();
+const param=new URLSearchParams(location.search).get('t');
+const fixed=param!==null&&param.trim()!==''&&Number.isFinite(Number(param));
+const freeze=fixed?Math.max(0,Number(param)):0;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(2*Math.atan(540/1800)*180/Math.PI,1920/1080,1,6000);
+camera.position.z=1800;
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas:document.querySelector('#scene'),antialias:true,alpha:true,powerPreference:'high-performance'});}
+catch(e){document.querySelector('#error').style.display='block';throw e;}
+renderer.setSize(1920,1080,false);renderer.setPixelRatio(1);
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0,0);
+scene.add(new THREE.HemisphereLight(0xdce5ff,0x27336b,.8));
+const light=new THREE.DirectionalLight(0xffedda,1.3);light.position.set(-500,650,900);scene.add(light);
+const rim=new THREE.PointLight(0xffb786,80000,2400,2);rim.position.set(800,200,600);scene.add(rim);
+let seed=112;
+function rnd(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;}
+const smooth=(a,b,t)=>{const v=Math.max(0,Math.min(1,(t-a)/(b-a)));return v*v*(3-2*v);};
+const mix=(a,b,t)=>a+(b-a)*t;
+
+// Invented examples illustrate the features; neither list is an empirical authorship marker.
+const words=['curiosity','voices','imagine','memory','wonder','debate','question','learning','perhaps','discover','language','reason','reflect','context','ideas','choice','evidence','nuance','explore','meaning','experience','insight','consider','practice','thought','original','dialogue','possibility','understand','perspective','knowledge','education'];
+const repeated=[7,7,30,31,7,30,31,31];
+const atlas=document.createElement('canvas');atlas.width=2048;atlas.height=1024;
+const ctx=atlas.getContext('2d');ctx.fillStyle='white';ctx.font='500 43px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';
+const rects=[],aspects=[];
+words.forEach((w,i)=>{
+ const x=(i%8)*256+128,y=Math.floor(i/8)*128+64;
+ const metrics=ctx.measureText(w),ww=Math.min(242,metrics.width+12),hh=58;
+ ctx.fillText(w,x,y,230);
+ rects.push([(x-ww/2)/2048,1-(y+hh/2)/1024,ww/2048,hh/1024]);aspects.push(ww/hh);
+});
+const tex=new THREE.CanvasTexture(atlas);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+
+function glyphCanvas(text){
+ const cv=document.createElement('canvas');cv.width=1000;cv.height=300;
+ const c=cv.getContext('2d');c.fillStyle='white';c.font='900 260px Arial';c.textAlign='center';c.textBaseline='middle';
+ c.translate(500,156);c.scale(980/c.measureText(text).width,1);c.fillText(text,0,0);return cv;
+}
+const forms=[{text:'HUMAN',x:385,y:298,w:895,h:270,color:0xfff8df},{text:'AI',x:420,y:36,w:440,h:274,color:0xff966e}];
+function glyphTargets(form,k){
+ const cv=glyphCanvas(form.text),c=cv.getContext('2d'),pixels=c.getImageData(0,0,1000,300).data,targets=[];
+ // Sparse, larger word tiles, regular on AI and subtly varied on HUMAN.
+ const dx=k?92:49,dy=27;
+ for(let y=30;y<280;y+=dy)for(let x=20;x<980;x+=dx){
+  if(pixels[(y*1000+x)*4+3]>180)targets.push([form.x+(x/1000-.5)*form.w,form.y-(y/300-.5)*form.h,k?0:(rnd()-.5)*10]);
+ }
+ return targets;
+}
+const destinations=forms.map(glyphTargets);
+
+// Embedded type is on the paper material itself: transparent-sort order cannot hide it.
+function essayTexture(k){
+ const cv=document.createElement('canvas');cv.width=1024;cv.height=1400;const c=cv.getContext('2d');
+ c.fillStyle=k?'#ffead8':'#fff9e9';c.fillRect(0,0,1024,1400);
+ const wash=c.createLinearGradient(0,0,1024,0);wash.addColorStop(0,'#9c815f20');wash.addColorStop(.28,'#fffef700');wash.addColorStop(.82,'#fffef700');wash.addColorStop(1,'#72584328');c.fillStyle=wash;c.fillRect(0,0,1024,1400);
+ c.fillStyle='#27304b';c.font='bold 54px Georgia';c.fillText('Learning in the age of AI',83,126);
+ c.font='italic 30px Georgia';c.fillStyle='#5d6170';c.fillText('An essay on language, ideas and education',85,183);
+ const paragraphs=k?[
+ 'Education depends on knowledge. Learning develops knowledge through practice. The role of education is to support learning and strengthen understanding. Knowledge can support students as they learn.',
+ 'Learning tools can support education in many ways. Knowledge is useful when students apply it to learning. Education should support this process through practice and reflection.',
+ 'Students need opportunities to develop knowledge. Learning requires careful attention to ideas and evidence. Education can provide these opportunities while encouraging learning.',
+ 'The value of learning depends on how knowledge is used. Education should support understanding and thoughtful practice. Learning remains central to education.'
+ ]:[
+ 'I first noticed how a question could change a classroom. One voice offered a memory; another imagined a possibility. Our curiosity turned a familiar lesson into a conversation about what it means to understand.',
+ 'A useful tool may open a door, yet the choice to explore remains ours. Language carries experience, doubt and wonder. Different perspectives invite us to consider evidence and discover connections.',
+ 'Perhaps the important task is to reflect on how we learn. Original thought grows through dialogue, patient practice and the freedom to question an easy answer. Context gives each idea its meaning.',
+ 'Education should leave room for nuance. We can value new knowledge while listening to individual voices. A reasoned response emerges when curiosity meets careful judgement.'
+ ];
+ c.font='33px Georgia';c.fillStyle='#343747';let y=263;
+ for(const p of paragraphs){let line='';for(const word of p.split(' ')){const next=line?line+' '+word:word;if(c.measureText(next).width>850){c.fillText(line,85,y);y+=48;line=word;}else line=next;}c.fillText(line,85,y);y+=82;}
+ const map=new THREE.CanvasTexture(cv);map.colorSpace=THREE.SRGBColorSpace;map.anisotropy=8;return map;
+}
+function paperCurve(x,y){return 21*Math.pow(x/190,2)+9*Math.sin(y/85)+.035*x;}
+const sheets=[],sheetCenters=[new THREE.Vector3(230,113,-65),new THREE.Vector3(570,156,15)],sheetAngles=[-.12,.075];
+for(let k=0;k<2;k++){
+ const geo=new THREE.PlaneGeometry(372,502,30,34),p=geo.attributes.position;
+ for(let i=0;i<p.count;i++)p.setZ(i,paperCurve(p.getX(i),p.getY(i)));
+ geo.computeVertexNormals();
+ const material=new THREE.MeshStandardMaterial({map:essayTexture(k),color:0xffffff,roughness:.86,metalness:0,transparent:true,side:THREE.DoubleSide,depthWrite:false});
+ const sheet=new THREE.Mesh(geo,material);sheet.position.copy(sheetCenters[k]);sheet.rotation.set(0,-.12,sheetAngles[k]);sheet.renderOrder=k;scene.add(sheet);sheets.push(sheet);
+ const back=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0xc7ae8b,roughness:.95,transparent:true,side:THREE.DoubleSide,depthWrite:false}));back.position.z=-1.8;back.renderOrder=k-2;sheet.add(back);
+}
+
+const positions=[],ends=[],controls=[],meta=[],sizes=[],classIds=[],uvRects=[];
+// A shuffled screen-space lattice keeps the airborne words legible instead of piling them up.
+const count=destinations.reduce((n,a)=>n+a.length,0);
+const slots=Array.from({length:count},(_,i)=>i);
+for(let i=slots.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[slots[i],slots[j]]=[slots[j],slots[i]];}
+const columns=9,rows=Math.ceil(count/columns);
+let serial=0;
+for(let k=0;k<2;k++){
+ destinations[k].forEach((target,i)=>{
+  const hero=serial%13===0;
+  const id=k?repeated[i%repeated.length]:(hero?[1,4,14,13][Math.floor(serial/13)%4]:(i*13)%words.length);
+  const sourcePitch=Math.min(22,344/Math.max(1,Math.ceil(destinations[k].length/4)-1));
+  const localX=-143+(i%4)*89,localY=158-Math.floor(i/4)*sourcePitch;
+  const local=new THREE.Vector3(localX,localY,paperCurve(localX,localY)+5);
+  local.applyEuler(new THREE.Euler(0,-.12,sheetAngles[k]));local.add(sheetCenters[k]);positions.push(local.x,local.y,local.z);
+  ends.push(...target);
+  const slot=slots[serial],col=slot%columns,row=Math.floor(slot/columns);
+  const z=hero?250:mix(-210,80,rnd());
+  const screenX=945+col*102+(rnd()-.5)*10,screenY=116+row*(545/Math.max(1,rows-1));
+  // Inverse projection: depth changes focus/scale without crowding the screen-space layout.
+  const factor=(1800-z)/1800;
+  controls.push((screenX-960)*factor,(540-screenY)*factor,z);
+  meta.push(rnd(),sheetAngles[k],(rnd()-.5)*.42,hero?1:0);
+  const endHeight=k?15:13+rnd()*4;
+  sizes.push(aspects[id]*16,16,aspects[id]*endHeight,endHeight);
+  uvRects.push(...rects[id]);classIds.push(k);serial++;
+ });
+}
+// Pack the paused letterforms using full projected word rectangles, not just
+// glyph-centre spacing. Surplus words remain in the flight and fade at the snap.
+function packFinalWords(endPositions,wordSizes,gap=8){
+ const occupied=[],keep=[];
+ for(let i=0;i<endPositions.length/3;i++){
+  const scale=1800/(1800-endPositions[i*3+2]);
+  const x=960+endPositions[i*3]*scale,y=540-endPositions[i*3+1]*scale;
+  const halfW=wordSizes[i*4+2]*scale/2,halfH=wordSizes[i*4+3]*scale/2;
+  const box={left:x-halfW,right:x+halfW,top:y-halfH,bottom:y+halfH};
+  const overlaps=occupied.some(b=>box.left<b.right+gap&&box.right>b.left-gap&&box.top<b.bottom+gap&&box.bottom>b.top-gap);
+  keep.push(overlaps?0:1);
+  if(!overlaps)occupied.push(box);
+ }
+ return keep;
+}
+const finalKeep=packFinalWords(ends,sizes);
+const geometry=new THREE.InstancedBufferGeometry();
+geometry.setAttribute('position',new THREE.Float32BufferAttribute([-.5,-.5,0,.5,-.5,0,.5,.5,0,-.5,.5,0],3));
+geometry.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,1,0,1,1,0,1],2));geometry.setIndex([0,1,2,0,2,3]);
+for(const [name,data,itemSize] of [['aStart',positions,3],['aEnd',ends,3],['aControl',controls,3],['aMeta',meta,4],['aSize',sizes,4],['aClass',classIds,1],['aRect',uvRects,4],['aKeep',finalKeep,1]])geometry.setAttribute(name,new THREE.InstancedBufferAttribute(new Float32Array(data),itemSize));
+geometry.instanceCount=count;
+const ink=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:false,side:THREE.DoubleSide,uniforms:{uTime:{value:0},uAtlas:{value:tex}},vertexShader:`
+ precision highp float;
+ attribute vec3 aStart,aEnd,aControl;
+ attribute vec4 aMeta,aSize,aRect;
+ attribute float aClass,aKeep;
+ uniform float uTime;
+ varying vec2 vUv;
+ varying vec4 vRect;
+ varying float vClass,vLift,vOpacity,vBlur;
+ void main(){
+  float lift=smoothstep(.30+aMeta.x*.14,1.12+aMeta.x*.08,uTime);
+  float delay=clamp((aEnd.x+80.0)/900.0,0.0,1.0)*.075;
+  float lock=smoothstep(1.73+delay,2.04+delay,uTime);
+  float flight=lift*(1.0-lock);
+  vec3 freePos=aControl;
+  freePos.x+=sin(uTime*1.8+aMeta.x*6.28)*8.0;
+  freePos.y+=cos(uTime*1.5+aMeta.x*6.28)*7.0;
+  vec3 center=mix(mix(aStart,freePos,lift),aEnd,lock);
+  // The peel bows toward the lens; the return collapses in a coordinated 0.31-second snap.
+  center.z+=sin(lift*3.14159265)*(1.0-lock)*90.0;
+  float settleTime=max(0.0,uTime-(2.04+delay));
+  float settle=sin(settleTime*43.0)*exp(-settleTime*22.0)*step(2.04+delay,uTime);
+  center+=(aEnd-freePos)*settle*.016;
+  vec2 flyingSize=vec2(aSize.x/aSize.y,1.0)*mix(26.0,40.0,aMeta.w)*(1800.0-aControl.z)/1800.0;
+  vec2 size=mix(mix(aSize.xy,flyingSize,lift),aSize.zw,lock);
+  float angle=mix(aMeta.y,aMeta.z,lift)*(1.0-lock);
+  vec2 q=position.xy*size;
+  q=mat2(cos(angle),-sin(angle),sin(angle),cos(angle))*q;
+  gl_Position=projectionMatrix*modelViewMatrix*vec4(center+vec3(q,0.0),1.0);
+  vUv=aRect.xy+uv*aRect.zw;vRect=aRect;
+  vClass=aClass;vLift=lift;
+  vOpacity=smoothstep(.015,.14,lift)*mix(1.0,aKeep,lock);
+  // Per-word circle of confusion: foreground at z=250 is crisp, distant words soften.
+  float focalZ=mix(250.0,0.0,lock);
+  vBlur=clamp(abs(center.z-focalZ)/48.0,0.0,8.0)*flight;
+ }
+`,fragmentShader:`
+ precision highp float;
+ uniform sampler2D uAtlas;
+ varying vec2 vUv;
+ varying vec4 vRect;
+ varying float vClass,vLift,vOpacity,vBlur;
+ float sampleInk(vec2 offset){
+  vec2 uv=clamp(vUv+offset,vRect.xy+vec2(.0001),vRect.xy+vRect.zw-vec2(.0001));
+  return texture2D(uAtlas,uv).a;
+ }
+ void main(){
+  vec2 r=vec2(vBlur/2048.0,vBlur/1024.0);
+  float a=sampleInk(vec2(0.0))*.20;
+  a+=sampleInk(vec2(r.x,0.0))*.10; a+=sampleInk(vec2(-r.x,0.0))*.10;
+  a+=sampleInk(vec2(0.0,r.y))*.10; a+=sampleInk(vec2(0.0,-r.y))*.10;
+  a+=sampleInk(r*.707)*.10; a+=sampleInk(-r*.707)*.10;
+  a+=sampleInk(vec2(r.x,-r.y)*.707)*.10; a+=sampleInk(vec2(-r.x,r.y)*.707)*.10;
+  if(a*vOpacity<.01)discard;
+  vec3 color=mix(vec3(1.0,.975,.91),vec3(1.0,.57,.37),vClass);
+  color=mix(vec3(.16,.19,.28),color,smoothstep(.02,.38,vLift));
+  gl_FragColor=vec4(color,a*vOpacity);
+ }
+`});
+const cloud=new THREE.Mesh(geometry,ink);cloud.frustumCulled=false;cloud.renderOrder=10;scene.add(cloud);
+
+// A solidifying type silhouette gives the sparse word mosaic an instantly readable destination.
+const type=forms.map(form=>{
+ const map=new THREE.CanvasTexture(glyphCanvas(form.text));map.colorSpace=THREE.SRGBColorSpace;
+ const material=new THREE.MeshBasicMaterial({map,color:form.color,transparent:true,opacity:0,depthWrite:false});
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(form.w,form.h),material);mesh.position.set(form.x,form.y,-12);mesh.renderOrder=5;scene.add(mesh);return mesh;
+});
+const shade=document.querySelector('#shade');
+function renderAt(t){
+ ink.uniforms.uTime.value=t;
+ sheets.forEach(s=>{const opacity=1-smooth(.64,1.14,t);s.material.opacity=opacity;s.children[0].material.opacity=opacity;s.visible=t<1.14;});
+ type.forEach((m,k)=>{const lock=smooth(1.81,2.14,t),impact=Math.exp(-Math.pow((t-2.08)/.075,2));m.material.opacity=lock*(.34+impact*.24);m.scale.setScalar(1+impact*.012);});
+ shade.style.opacity=smooth(3.65,4.1,t);renderer.render(scene,camera);
+}
+if(fixed){renderAt(freeze%4.25);}
+else{const start=performance.now();function tick(now){renderAt(((now-start)/1000)%4.25);requestAnimationFrame(tick);}requestAnimationFrame(tick);}
+window.__clip={renderAt,particleCount:count,duration:4.25};
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!--
+RESEARCH: Ab Hamid et al. (2026), supplied AIKOL paper, section 3.3.3,
+p.228: closing smuggling routes can be followed by new pathways.
+GEOGRAPHY: world-atlas 2.0.2 countries-10m.json, fetched from jsDelivr;
+unmodified TopoJSON converted by topojson-client and projected by d3-geo.
+Selected offshore context follows historical treaty coordinates (NOTES.md).
+ARTISTIC LICENCE: every animated path, width, speed, branch and closure is
+illustrative, not an observed route, crime quantity or actual operation.
+The capillary timing and pigment effects are an artistic ink metaphor.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crime finds new routes into Malaysia</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#eee8dc}
+#frame{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--scale,1));overflow:hidden;background:#eee8dc}
+canvas{display:block;width:1920px;height:1080px}
+.scrim{position:absolute;left:540px;right:425px;top:0;height:245px;background:radial-gradient(ellipse at 50% 28%,#eee8dc 25%,#eee8dceb 67%,#eee8dc00 100%);pointer-events:none}
+h1{position:absolute;left:150px;right:150px;top:49px;margin:0;text-align:center;font:400 76px/1.07 Georgia,'Times New Roman',serif;letter-spacing:-2.7px;color:#30332d}h1 span{display:block;font-style:italic}
+.note{position:absolute;left:116px;bottom:63px;margin:0;color:#6e6a5b;font:italic 23px Georgia,'Times New Roman',serif;letter-spacing:.25px}
+#status{position:absolute;left:116px;bottom:105px;color:#786c59;font:20px Georgia,serif}
+</style>
+<script type="importmap">{"imports":{"d3-geo":"https://cdn.jsdelivr.net/npm/d3-geo@3.1.1/+esm","topojson-client":"https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm"}}</script>
+</head>
+<body>
+<main id="frame" aria-label="A geographic ink-and-paper map of Malaysia and its neighbours. Ink pools at a vermilion closure and wicks sideways into illustrative new routes.">
+<canvas id="map" width="1920" height="1080" aria-hidden="true"></canvas>
+<div class="scrim"></div><h1>Crime finds new routes<span>into Malaysia</span></h1>
+<p class="note">Illustrative paths · not observed routes</p><div id="status" role="status">Loading map…</div>
+</main>
+<script type="module">
+import {geoMercator,geoPath,geoContains} from 'd3-geo';
+import {feature,mesh,merge} from 'topojson-client';
+const W=1920,H=1080,ATLAS_URL='https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-10m.json';
+const frame=document.getElementById('frame'),canvas=document.getElementById('map'),ctx=canvas.getContext('2d');
+function fit(){frame.style.setProperty('--scale',Math.min(innerWidth/W,innerHeight/H));}
+addEventListener('resize',fit);fit();
+const params=new URLSearchParams(location.search),requestTime=Number(params.get('t'));
+const frozen=params.has('t')&&Number.isFinite(requestTime);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const smooth=(a,b,t)=>{const u=clamp((t-a)/(b-a));return u*u*(3-2*u);};
+const hash=n=>{const x=Math.sin(n*127.13+105)*43758.5453;return x-Math.floor(x);};
+let seed=105;
+const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+function newCanvas(w=W,h=H){const c=document.createElement('canvas');c.width=w;c.height=h;return c;}
+const paper=newCanvas(),paperCtx=paper.getContext('2d');paperCtx.fillStyle='#eee8dc';paperCtx.fillRect(0,0,W,H);
+for(let i=0;i<120000;i++){
+ const x=rand()*W,y=rand()*H;paperCtx.fillStyle=rand()>.5?`rgba(255,253,242,${.05+rand()*.10})`:`rgba(107,89,62,${.02+rand()*.05})`;
+ paperCtx.fillRect(x,y,.4+rand()*1.1,.3+rand()*.6);
+}
+for(let i=0;i<8500;i++){const x=rand()*W,y=rand()*H;paperCtx.beginPath();paperCtx.moveTo(x,y);paperCtx.lineTo(x+rand()*4+1,y+rand());paperCtx.strokeStyle='rgba(113,95,68,.025)';paperCtx.lineWidth=.5;paperCtx.stroke();}
+ctx.drawImage(paper,0,0);
+const base=newCanvas(),b=base.getContext('2d'),inkCanvas=newCanvas(),inkCtx=inkCanvas.getContext('2d');
+const pores=newCanvas(256,256),pc=pores.getContext('2d');
+for(let i=0;i<25000;i++){pc.fillStyle=`rgba(0,0,0,${.04+rand()*.21})`;pc.fillRect(rand()*256,rand()*256,.35+rand()*.9,.3+rand()*.65);}
+const pigmentMask=inkCtx.createPattern(pores,'repeat');
+
+// D3 performs the projection, clipping, polygon winding and hole handling.
+// The northern framing includes the isthmus; no full-width scrim erases it.
+const region={type:'MultiPoint',coordinates:[[96,-4.5],[120,12.8]]};
+const projection=geoMercator().fitExtent([[150,55],[1800,1040]],region).clipExtent([[0,0],[W,H]]).precision(.12);
+const project=p=>projection(p);
+let malaysia,thaiBorder,routes,seal,poolPoint,ready=false;
+const maritime=[
+ [[98+17.5/60,5+27/60],[98+41.5/60,4+55.7/60],[99+43.6/60,3+59.6/60],[99+55/60,3+47.4/60],[101+12.1/60,2+41.5/60],[101+46.5/60,2+15.4/60],[102+13.4/60,1+55.2/60],[102+35/60,1+41.2/60],[103+3.9/60,1+19.5/60],[103+22.8/60,1.25]],
+ [[104+29.5/60,1+23.9/60],[104+53/60,1+38/60],[105+5.2/60,1+54.4/60],[105+1.2/60,2+22.5/60],[104+51.5/60,2+55.2/60],[104+46.5/60,3+50.1/60],[104+51.9/60,4+3/60],[105+28.8/60,5+4.7/60],[105+47.1/60,5+40.6/60],[105+49.2/60,6+5.8/60]],
+ [[109+38.8/60,2+5/60],[109+54.5/60,3],[110+2/60,4+40/60],[109+59/60,5+31.2/60],[109+38.6/60,6+18.2/60]]
+];
+function geoLine(points){return {type:'LineString',coordinates:points};}
+function label(text,point,size,color='#7d735f',angle=0,italic=false,spacing=0){
+ const [x,y]=project(point);b.save();b.translate(x,y);b.rotate(angle);b.font=`${italic?'italic ':''}${size}px Georgia`;
+ b.textAlign='center';b.textBaseline='middle';b.fillStyle=color;if('letterSpacing' in b)b.letterSpacing=`${spacing}px`;b.fillText(text,0,0);b.restore();
+}
+function makeMap(world){
+ const id=g=>String(g.id).padStart(3,'0');
+ const ids=new Set(['458','764','360','096','704','116','608','702','104']);
+ const geoms=world.objects.countries.geometries.filter(g=>ids.has(id(g)));
+ malaysia=feature(world,geoms.find(g=>id(g)==='458'));
+ const land=merge(world,geoms);
+ const borders=mesh(world,world.objects.countries,(a,z)=>a!==z&&ids.has(id(a))&&ids.has(id(z)));
+ thaiBorder=mesh(world,world.objects.countries,(a,z)=>a!==z&&new Set([id(a),id(z)]).size===2&&[id(a),id(z)].every(n=>n==='458'||n==='764'));
+ b.drawImage(paper,0,0);const path=geoPath(projection,b);
+ b.beginPath();path(land);b.fillStyle='rgba(255,251,238,.44)';b.fill();
+ b.beginPath();path(malaysia);b.fillStyle='rgba(197,169,111,.20)';b.fill();
+ b.lineJoin='round';b.lineCap='round';
+ b.beginPath();path(land);b.strokeStyle='#837b69';b.lineWidth=1.05;b.stroke();
+ b.beginPath();path(borders);b.strokeStyle='#9b8a6c';b.lineWidth=.95;b.stroke();
+ b.beginPath();path(malaysia);b.strokeStyle='#74644b';b.lineWidth=1.45;b.stroke();
+ b.beginPath();path(thaiBorder);b.strokeStyle='#78664b';b.lineWidth=1.7;b.stroke();
+ b.setLineDash([4,7]);b.strokeStyle='rgba(135,122,96,.52)';b.lineWidth=1;
+ for(const line of maritime){b.beginPath();path(geoLine(line));b.stroke();}
+ const territorial=[[101+.2/60,2+51.6/60],...maritime[0].slice(4)];
+ b.setLineDash([3,5]);b.strokeStyle='rgba(125,110,84,.60)';b.beginPath();path(geoLine(territorial));b.stroke();b.setLineDash([]);
+ label('THAILAND',[98.35,10.8],21,'#85785f',0,false,2.6);
+ label('Thai border',[103.70,6.18],18,'#937955',0,true);
+ label('PENINSULAR',[105.18,3.95],17,'#817257',0,false,2.5);
+ label('MALAYSIA',[105.18,3.48],29,'#65573f',0,false,2.5);
+ b.beginPath();const l1=project([103.4,3.7]),l2=project([104,3.7]);b.moveTo(...l1);b.lineTo(...l2);b.strokeStyle='#ad9b7c';b.lineWidth=.8;b.stroke();
+ label('Straits of Malacca',[100.38,3.80],22,'#99927e',.75,true);
+ label('South China Sea',[110.5,7.25],27,'#a2977d',-.10,true);
+ label('SUMATRA',[99.15,.7],29,'#a79980',.68,false,4);
+ label('BORNEO',[114.25,.80],35,'#918268',0,false,5);
+ label('SARAWAK',[113.0,2.7],19,'#817053',0,false,2.4);
+ label('SABAH',[117.05,5.4],19,'#817053',0,false,2.4);
+ label('MALAYSIA',[115.0,3.65],23,'#776448',-.22,false,2.5);
+ label('BRUNEI',[114.9,5.2],14,'#8a7b61',0,false,1);
+ const reserve=b.createLinearGradient(0,750,0,1020);reserve.addColorStop(0,'rgba(238,232,220,0)');reserve.addColorStop(1,'rgba(238,232,220,.92)');b.fillStyle=reserve;b.fillRect(940,750,980,330);
+ const note=b.createLinearGradient(0,935,0,1050);note.addColorStop(0,'rgba(238,232,220,0)');note.addColorStop(1,'rgba(238,232,220,.83)');b.fillStyle=note;b.fillRect(65,935,650,145);
+ return {land,borders,geoms};
+}
+// All geographic controls below are artistic route sketches, never observations.
+const specs=[
+ {id:'approach',geo:[[100.45,9.40],[100.37,8.4],[100.81,7.4],[101.05,6.32]],start:-.12,end:.48,radius:3.0},
+ {id:'land',geo:[[101.05,6.32],[101.40,6.57],[101.94,6.32],[102.20,5.8],[102.42,4.90]],start:.80,end:1.62,radius:2.6},
+ {id:'strait',geo:[[101.05,6.32],[100.40,6.50],[99.3,6.0],[98.85,5.1],[99.40,4.35],[100.70,4.55]],start:.85,end:2.13,radius:3.0},
+ {id:'sea',geo:[[101.05,6.32],[102.2,6.91],[104.6,7.10],[107.1,6.35],[109.6,4.61],[111.65,2.65]],start:.94,end:2.48,radius:3.0}
+];
+function catmull(a,z,c,d,t){return .5*((2*z)+(-a+c)*t+(2*a-5*z+4*c-d)*t*t+(-a+3*z-3*c+d)*t*t*t);}
+function buildRoute(s,index){
+ const controls=s.geo.map(project),raw=[];
+ for(let i=0;i<controls.length-1;i++)for(let k=0;k<65;k++){
+  const a=controls[Math.max(0,i-1)],z=controls[i],c=controls[i+1],d=controls[Math.min(controls.length-1,i+2)],t=k/65;
+  raw.push([catmull(a[0],z[0],c[0],d[0],t),catmull(a[1],z[1],c[1],d[1],t)]);
+ }raw.push(controls.at(-1));
+ const distance=[0];for(let i=1;i<raw.length;i++)distance.push(distance.at(-1)+Math.hypot(raw[i][0]-raw[i-1][0],raw[i][1]-raw[i-1][1]));
+ const length=distance.at(-1),count=Math.ceil(length/1.4),samples=[];let j=1;
+ for(let i=0;i<=count;i++){
+  const d=length*i/count;while(j<raw.length-1&&distance[j]<d)j++;
+  const f=(d-distance[j-1])/(distance[j]-distance[j-1]||1),x=raw[j-1][0]*(1-f)+raw[j][0]*f,y=raw[j-1][1]*(1-f)+raw[j][1]*f;
+  const dx=raw[j][0]-raw[j-1][0],dy=raw[j][1]-raw[j-1][1],norm=Math.hypot(dx,dy)||1;
+  const pressure=.84+.28*Math.sin(d*.049+index*2)+.18*Math.sin(d*.117+1.7)+.10*Math.sin(d*.29+index);
+  const radius=s.radius*Math.max(.36,pressure);
+  // Growth proportional to sqrt(time) suggests wicking. It is an artistic model.
+  const born=s.start+(s.end-s.start)*Math.pow(i/count,s.id==='approach'?1:2);
+  samples.push({x,y,nx:-dy/norm,ny:dx/norm,radius,born,d});
+ }
+ return {...s,samples,length};
+}
+function inkBand(route,t,expand,alpha,lag){
+ const visible=route.samples.filter(s=>s.born<t-lag);if(visible.length<2)return;
+ const sides=[[],[]];
+ for(let i=0;i<visible.length;i++){
+  const s=visible[i],age=smooth(0,.34,t-lag-s.born);
+  const front=smooth(0,5,visible.length-1-i);
+  const wick=(.58+.42*age)*(.45+.55*front);
+  const edge=.25*Math.sin(s.d*1.7)+.13*Math.sin(s.d*3.31);
+  const r=s.radius*wick+expand*(.65+.35*age)+edge;
+  sides[0].push([s.x+s.nx*r,s.y+s.ny*r]);sides[1].push([s.x-s.nx*r,s.y-s.ny*r]);
+ }
+ inkCtx.beginPath();const outline=[...sides[0],...sides[1].reverse()];outline.forEach(([x,y],i)=>i?inkCtx.lineTo(x,y):inkCtx.moveTo(x,y));inkCtx.closePath();inkCtx.fillStyle=`rgba(36,57,50,${alpha})`;inkCtx.fill();
+ // Microscopic rounded paper pores soften edges without thorn-like protrusions.
+ if(expand===0)for(let i=0;i<visible.length;i+=3){
+  const s=visible[i],age=smooth(0,.35,t-s.born),side=hash(i+route.length)>.5?1:-1;
+  const r=s.radius*(.7+.3*age)+hash(i*9)*1.4;
+  inkCtx.beginPath();inkCtx.arc(s.x+s.nx*r*side,s.y+s.ny*r*side,.25+hash(i+8)*.45,0,Math.PI*2);inkCtx.fillStyle='rgba(43,65,52,.10)';inkCtx.fill();
+ }
+}
+function pool(x,y,r,opacity){
+ if(r<.1)return;
+ const halo=inkCtx.createRadialGradient(x,y,0,x,y,r*1.9);halo.addColorStop(0,`rgba(33,50,43,${opacity*.40})`);halo.addColorStop(.5,`rgba(46,64,51,${opacity*.19})`);halo.addColorStop(1,'rgba(46,64,51,0)');inkCtx.fillStyle=halo;inkCtx.beginPath();inkCtx.arc(x,y,r*1.9,0,Math.PI*2);inkCtx.fill();
+ inkCtx.beginPath();for(let i=0;i<64;i++){const a=i/64*Math.PI*2,rr=r*(.87+.075*Math.sin(a*5)+.035*Math.sin(a*9+1));const px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr*.80;i?inkCtx.lineTo(px,py):inkCtx.moveTo(px,py);}inkCtx.closePath();inkCtx.fillStyle=`rgba(27,43,37,${opacity})`;inkCtx.fill();
+}
+function paintSeal(t){
+ const u=smooth(.34,.70,t);inkCtx.lineCap='round';
+ for(let i=0;i<40*u;i++){
+  const a=i/40,z=Math.min(u,(i+1)/40),at=v=>{const j=Math.min(1,Math.floor(v*2)),f=v*2-j;return [seal[j][0]*(1-f)+seal[j+1][0]*f,seal[j][1]*(1-f)+seal[j+1][1]*f];};
+  inkCtx.beginPath();inkCtx.moveTo(...at(a));inkCtx.lineTo(...at(z));inkCtx.lineWidth=5.5+7*Math.sin(a*Math.PI);inkCtx.strokeStyle='#b6442e';inkCtx.stroke();
+ }
+}
+function setTime(value){
+ if(!ready)return;const t=clamp(value,0,3);inkCtx.clearRect(0,0,W,H);
+ for(const r of routes){inkBand(r,t,4.1,.025,-.045);inkBand(r,t,2.5,.052,-.025);inkBand(r,t,1.1,.14,0);inkBand(r,t,0,.76,.045);}
+ const pause=smooth(.34,.62,t),release=smooth(.95,1.8,t);
+ pool(...poolPoint,(3+8*pause-2*release)*smooth(.31,.45,t),.30+.42*pause);
+ for(const r of routes.slice(1)){const finish=smooth(r.end,r.end+.3,t),tip=r.samples.at(-1);if(finish>0)pool(tip.x,tip.y,r.radius*(.7+.6*finish),.30*finish);}
+ paintSeal(t);
+ inkCtx.globalCompositeOperation='destination-out';inkCtx.fillStyle=pigmentMask;inkCtx.fillRect(0,0,W,H);inkCtx.globalCompositeOperation='source-over';
+ ctx.clearRect(0,0,W,H);ctx.drawImage(base,0,0);ctx.drawImage(inkCanvas,0,0);
+}
+async function boot(){
+ const response=await fetch(ATLAS_URL,{mode:'cors'});if(!response.ok)throw new Error(`Map download failed (${response.status})`);
+ const world=await response.json();if(world.type!=='Topology'||!world.objects?.countries)throw new Error('Invalid map data');
+ const map=makeMap(world);routes=specs.map(buildRoute);poolPoint=project([101.05,6.32]);seal=[[100.55,6.05],[101.04,6.22],[101.53,6.30]].map(project);
+ ready=true;document.getElementById('status').textContent='';frame.dataset.ready='true';
+ window.__AIKOL={setTime,canvas,base,inkCanvas,projection,routes,poolPoint,seal,malaysia,thaiBorder,map,world,atlasURL:ATLAS_URL,geoContains};
+ // Start only once the fetched topology has been decoded and drawn.
+ if(frozen)setTime(Math.max(0,requestTime));else{const start=performance.now();function animate(now){setTime(((now-start)/1000)%3);requestAnimationFrame(animate);}requestAnimationFrame(animate);}
+ return window.__AIKOL;
+}
+window.__AIKOL_READY=boot().catch(error=>{document.getElementById('status').textContent='Map could not load. Check the connection and reload.';console.error(error);throw error;});
+</script>
+</body></html>

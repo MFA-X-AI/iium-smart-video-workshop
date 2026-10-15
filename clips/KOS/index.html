@@ -1,0 +1,570 @@
+<!doctype html>
+<!--
+PAPER: Selected KOS / "Top pick (KOS)" row in papers.json; PDF unavailable.
+Noorbahrin et al. (2025), Results in Optics, doi:10.1016/j.rio.2025.100928.
+The supplied summary describes fusion-spliced glass microspheres, tapered-fibre
+coupling, better performance at contact than at a 10 micrometre gap, and a
+temperature sensitivity of 14.9 pm/degree C. No numerical result is drawn here.
+MECHANISM: Evanescent coupling excites a near-surface WGM inside the bead.
+Thermo-optic and thermal-expansion effects shift its resonance on warming.
+ARTISTIC LICENCE: Macro scale, studio reflections, illustrative external heater,
+heat ribbons, slowed optical crests, field thickness and three-second timing.
+The outgoing fibre carries a magnified electric-field illustration: its drawn
+wavelength stretches strongly to expose a tiny spectral shift. This is not a
+measured amplitude, spatial scale, response time or change in WGM modal order.
+Two-interface refraction and path-length absorption give the solid bead volume;
+the focused caustic is a qualitative studio-light effect, not measured data.
+The cyan-to-coral change is false colour for a magnified resonance-wavelength
+shift under continuous interrogation/tracking, NOT fixed-frequency light being
+converted to a new colour. Geometry does not visibly expand; modal order stays
+constant. This is not a reconstruction of the paper's experimental apparatus.
+Everything is procedural; all modules are pinned to Three.js 0.169.0 on jsDelivr.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#071117">
+  <title>KOS · Light in a glass bead senses heat</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Segoe UI", Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #071117; }
+    body { display: grid; place-items: center; }
+    #film { width: min(100vw, 177.777778vh); aspect-ratio: 16 / 9; position: relative; overflow: hidden; container-type: inline-size; background: #071117; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(4,12,17,.94) 0%, rgba(4,12,17,.72) 19%, rgba(4,12,17,.25) 32%, transparent 43%); }
+    .titles { position: absolute; left: 5.2%; top: 23%; width: 29%; color: #f0f2e9; }
+    h1 { margin: 0; font-weight: 500; font-size: 3.25cqw; line-height: 1.07; letter-spacing: -.045em; text-wrap: nowrap; }
+    h1 span { display: block; }
+    h1 .heat { color: #f7b18b; }
+    .deck { margin: 1.35cqw 0 0; font-size: 1.05cqw; line-height: 1.5; color: #a6b7ba; letter-spacing: .005em; }
+    #fade { position: absolute; inset: 0; pointer-events: none; background: #071117; opacity: 0; }
+    #error { display: none; position: absolute; inset: 0; padding: 14%; place-content: center; color: #d9e4e5; font-size: 2cqw; line-height: 1.5; background: #071117; }
+    noscript { position: absolute; bottom: 2%; left: 5%; color: white; }
+  </style>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <main id="film" aria-label="An animated scientific illustration: heat rises around a fibre-coupled glass microsphere and shifts the wavelength of light resonating inside it.">
+    <div class="scrim"></div>
+    <header class="titles">
+      <h1><span>Light in a</span><span>glass bead</span><span class="heat">senses heat.</span></h1>
+      <p class="deck">Wavelength shift magnified in false colour.</p>
+    </header>
+    <div id="fade"></div>
+    <div id="error" role="alert"></div>
+    <noscript>This three-second film needs JavaScript and WebGL.</noscript>
+  </main>
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+    const film = document.querySelector('#film');
+    const fade = document.querySelector('#fade');
+    const params = new URLSearchParams(location.search);
+    const requestedTime = Number(params.get('t'));
+    const frozen = params.has('t') && Number.isFinite(requestedTime);
+    const freezeTime = Math.max(0, requestedTime || 0);
+    const TAU = Math.PI * 2;
+    const RADIUS = 1.78;
+    const MODE_RADIUS = 1.655;
+    const PERIOD = 3.65;
+    const smooth = (a, b, x) => { const u = THREE.MathUtils.clamp((x-a)/(b-a), 0, 1); return u*u*(3-2*u); };
+
+    // Absolute time alone determines every animated value. No integration,
+    // wall-clock noise, unseeded randomness, CSS transitions or camera drift.
+    function stateAt(t) {
+      return {
+        time: t,
+        heater: smooth(.12, .62, t),
+        arrival: smooth(.08, 1.92, t),
+        hot: smooth(.58, 2.08, t),
+        fade: smooth(3.18, 3.48, t)
+      };
+    }
+    const uniforms = {
+      uTime: { value: 0 }, uHot: { value: 0 },
+      uHeater: { value: 0 }, uArrival: { value: 0 },
+      uBackdrop: { value: null },
+      uCentre: { value: new THREE.Vector3() },
+      uWorldToBead: { value: new THREE.Matrix4() }
+    };
+
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.35));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setClearColor(0x071117);
+    film.prepend(renderer.domElement);
+    renderer.domElement.setAttribute('aria-hidden', 'true');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(31, 16/9, .1, 60);
+    camera.position.set(0, .85, 9.15);
+    camera.lookAt(0, .1, 0);
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(new THREE.Vector2(1280, 720), .42, .40, 1.2);
+    composer.addPass(bloom);
+    const finish = new ShaderPass({
+      uniforms: { tDiffuse: { value: null }, uTime: uniforms.uTime },
+      vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+      fragmentShader: `
+        uniform sampler2D tDiffuse; uniform float uTime; varying vec2 vUv;
+        float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+        void main(){
+          vec3 c=texture2D(tDiffuse,vUv).rgb;
+          vec2 p=(vUv-.5)*vec2(1.0,.82);
+          float vignette=1.0-.40*dot(p,p);
+          c*=vignette;
+          c+=(hash(gl_FragCoord.xy+floor(uTime*24.0))-.5)*.0024;
+          gl_FragColor=vec4(max(c,vec3(0.0)),1.0);
+        }`
+    });
+    composer.addPass(finish);
+    composer.addPass(new OutputPass());
+
+    const commonVertex = `
+      varying vec2 vUv; varying vec3 vWorld; varying vec3 vNormal; varying vec3 vLocal;
+      void main(){
+        vUv=uv; vLocal=position;
+        vec4 w=modelMatrix*vec4(position,1.0); vWorld=w.xyz;
+        vNormal=normalize(mat3(modelMatrix)*normal);
+        gl_Position=projectionMatrix*viewMatrix*w;
+      }`;
+    const opticalColour = `
+      vec3 resonanceColour(float h){
+        vec3 cold=vec3(.015,.65,1.45);
+        vec3 middle=vec3(1.25,.47,.09);
+        vec3 warm=vec3(1.55,.10,.022);
+        return mix(mix(cold,middle,smoothstep(.05,.64,h)),warm,smoothstep(.60,1.0,h));
+      }`;
+    function shader(fragment, options = {}) {
+      return new THREE.ShaderMaterial({
+        uniforms, vertexShader: commonVertex, fragmentShader: fragment,
+        transparent: true, depthWrite: false, ...options
+      });
+    }
+
+    // A low-cost procedural photographic backdrop, not an environment download.
+    const backdrop = new THREE.Mesh(new THREE.PlaneGeometry(40, 24), new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: commonVertex,
+      fragmentShader: `
+        varying vec2 vUv; uniform float uHot;
+        void main(){
+          vec2 p=(vUv-.5)*vec2(1.66,1.0);
+          float halo=exp(-length((p-vec2(.12,.0))*vec2(3.1,4.8)));
+          float warm=exp(-length((p-vec2(.15,-.13))*vec2(6.2,9.0)));
+          float strip=exp(-pow((p.x-.19)*28.0,2.0));
+          float shelf=exp(-pow((p.y+.06)*45.0,2.0));
+          vec3 col=vec3(.004,.011,.017)+vec3(.012,.035,.047)*halo;
+          col+=vec3(.035,.065,.08)*strip+vec3(.016,.030,.036)*shelf;
+          col+=vec3(.08,.017,.004)*warm*uHot;
+          gl_FragColor=vec4(col,1.0);
+        }`
+    }));
+    backdrop.position.z = -6;
+    scene.add(backdrop);
+
+    // Genuine three-dimensional sphere, stem and touching tapered fibre.
+    const apparatus = new THREE.Group();
+    apparatus.position.set(1.31, .34, 0);
+    apparatus.rotation.set(-1.03, -.16, .08);
+    apparatus.updateMatrixWorld(true);
+    uniforms.uCentre.value.copy(apparatus.position);
+    uniforms.uWorldToBead.value.copy(apparatus.matrixWorld).invert();
+    scene.add(apparatus);
+
+    // Two air/glass interfaces, not an alpha-blended outline. The background
+    // bends through the solid volume; the optical field is integrated INSIDE it.
+    const glass = shader(`
+      uniform float uHot; uniform float uTime;
+      uniform sampler2D uBackdrop; uniform vec3 uCentre;
+      uniform mat4 uWorldToBead; uniform mat4 projectionMatrix;
+      varying vec3 vWorld; varying vec3 vNormal; varying vec3 vLocal;
+      ${opticalColour}
+      vec3 studio(vec3 d){
+        float key=pow(max(dot(d,normalize(vec3(-.65,.92,1.30))),0.0),95.0);
+        float fill=pow(max(dot(d,normalize(vec3(.90,-.15,.90))),0.0),45.0);
+        float window=exp(-pow(abs((d.x+.48)*12.0),6.0))
+          *exp(-pow(abs((d.y-.52)*3.9),6.0))*smoothstep(.05,.30,d.z);
+        float strip=exp(-pow(abs((d.x-.75)*36.0),2.0))
+          *exp(-pow(abs((d.y-.15)*1.9),4.0))*smoothstep(-.1,.25,d.z);
+        return vec3(.014,.032,.045)+vec3(.81,.93,1.0)*(key*32.0+window*14.0)
+          +vec3(.40,.69,.95)*strip*8.0+vec3(1.0,.64,.31)*fill*2.4;
+      }
+      void main(){
+        const float radius=(${RADIUS.toFixed(3)});
+        const float modeRadius=(${MODE_RADIUS.toFixed(3)});
+        vec3 n=normalize(vWorld-uCentre);
+        vec3 incoming=normalize(vWorld-cameraPosition);
+        float facing=clamp(dot(-incoming,n),0.0,1.0);
+        float fresnel=.035+.965*pow(1.0-facing,5.0);
+        vec3 inside=refract(incoming,n,1.0/1.46);
+        float distanceInGlass=max(.001,-2.0*radius*dot(n,inside));
+        vec3 exitPoint=vWorld+inside*distanceInGlass;
+        vec3 exitNormal=normalize(exitPoint-uCentre);
+        vec3 outgoing=refract(inside,-exitNormal,1.46);
+        float toBackground=clamp((-6.0-exitPoint.z)/min(outgoing.z,-.08),.5,18.0);
+        vec4 projected=projectionMatrix*viewMatrix*vec4(exitPoint+outgoing*toBackground,1.0);
+        vec2 refractedUV=clamp(projected.xy/projected.w*.5+.5,vec2(.002),vec2(.998));
+        vec3 through=texture2D(uBackdrop,refractedUV).rgb;
+        vec3 attenuation=exp(-vec3(.18,.073,.042)*distanceInGlass);
+        // Internal secondary reflection is a restrained cue to solid thickness.
+        vec3 rearReflection=studio(reflect(inside,exitNormal))*.028;
+        vec3 colour=through*attenuation*(1.0-fresnel)+rearReflection*attenuation;
+        colour+=studio(reflect(incoming,n))*fresnel;
+
+        vec3 start=(uWorldToBead*vec4(vWorld,1.0)).xyz;
+        vec3 direction=mat3(uWorldToBead)*inside;
+        float stepLength=distanceInGlass/32.0;
+        vec3 modeLight=vec3(0.0);
+        for(int i=0;i<32;i++){
+          float travel=(float(i)+.5)*stepLength;
+          vec3 p=start+direction*travel;
+          float radial=length(p.xy)-modeRadius;
+          float d2=radial*radial+p.z*p.z;
+          float core=exp(-d2/.0042);
+          float halo=exp(-d2/.0100);
+          // Constant angular order and constant field power at all temperatures.
+          float angle=atan(p.y,p.x);
+          float comet=pow(.5+.5*cos(angle*3.0-uTime*12.0),12.0);
+          float fringe=pow(.5+.5*cos(angle*44.0-uTime*20.0),5.0);
+          float envelope=(.72+comet*2.7+fringe*.22);
+          float field=(core*6.0+halo*.46)*envelope;
+          // A local evanescent envelope joins the touching taper to the WGM.
+          vec3 coupling=(p-vec3(0.0,-radius+.045,0.0))/vec3(.13,.16,.10);
+          field+=exp(-dot(coupling,coupling))*1.8;
+          modeLight+=resonanceColour(uHot)*field*stepLength*exp(-travel*.09);
+        }
+        colour+=modeLight*(1.0-fresnel);
+        gl_FragColor=vec4(colour,1.0);
+      }`, { side: THREE.FrontSide, transparent: false, depthWrite: true });
+    const bead = new THREE.Mesh(new THREE.SphereGeometry(RADIUS, 96, 64), glass);
+    bead.renderOrder = 12;
+    apparatus.add(bead);
+
+    const stemProfile = [
+      new THREE.Vector2(0,1.69), new THREE.Vector2(.20,1.73),
+      new THREE.Vector2(.15,1.84), new THREE.Vector2(.085,2.01),
+      new THREE.Vector2(.078,3.15), new THREE.Vector2(.10,3.5)
+    ];
+    const stem = new THREE.Mesh(new THREE.LatheGeometry(stemProfile, 32), shader(`
+      varying vec3 vWorld; varying vec3 vNormal;
+      void main(){
+        vec3 n=normalize(vNormal);vec3 v=normalize(cameraPosition-vWorld);
+        float rim=pow(1.0-abs(dot(n,v)),3.0);
+        float shine=pow(max(dot(reflect(-v,n),normalize(vec3(-.5,.8,1.0))),0.0),30.0);
+        gl_FragColor=vec4(vec3(.08,.18,.22)+vec3(.6,.8,.9)*shine,.12+rim*.5+shine*.3);
+      }`));
+    // The supporting stem is at the POLE, perpendicular to the mode's equator.
+    stem.rotation.x=Math.PI/2;
+    stem.renderOrder = 11;
+    apparatus.add(stem);
+
+    const fibreHalfLength = 7.4;
+    const fibreWaist = .042;
+    const fibreY = -RADIUS-fibreWaist;
+    const fibreGeometry = new THREE.BufferGeometry();
+    const positions = [], normals = [], uvs = [], indices = [];
+    const fibreSegments = 240, fibreSides = 14;
+    for (let i=0; i<=fibreSegments; i++) {
+      const x = (i/fibreSegments*2-1)*fibreHalfLength;
+      const r = fibreWaist+.11*Math.pow(smooth(.8,5.7,Math.abs(x)),1.5);
+      for (let j=0;j<=fibreSides;j++) {
+        const theta=j/fibreSides*TAU;
+        positions.push(x,fibreY+Math.cos(theta)*r,Math.sin(theta)*r);
+        normals.push(0,Math.cos(theta),Math.sin(theta));
+        uvs.push(i/fibreSegments,j/fibreSides);
+        if(i<fibreSegments && j<fibreSides){
+          const a=i*(fibreSides+1)+j, b=a+fibreSides+1;
+          indices.push(a,a+1,b,b,a+1,b+1);
+        }
+      }
+    }
+    fibreGeometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+    fibreGeometry.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));
+    fibreGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));
+    fibreGeometry.setIndex(indices);
+    const fibre = new THREE.Mesh(fibreGeometry, shader(`
+      varying vec3 vNormal; varying vec3 vWorld; varying vec2 vUv;
+      uniform float uHot; ${opticalColour}
+      void main(){
+        vec3 n=normalize(vNormal); vec3 v=normalize(cameraPosition-vWorld);
+        float fres=pow(1.0-abs(dot(n,v)),2.5);
+        float strip=pow(max(0.0,dot(n,normalize(vec3(0.0,1.0,1.0)))),22.0);
+        vec3 col=vec3(.10,.21,.25)+vec3(.5,.76,.83)*strip;
+        col+=resonanceColour(uHot)*fres*.36;
+        gl_FragColor=vec4(col,.22+.4*fres+.2*strip);
+      }`, { side: THREE.DoubleSide }));
+    fibre.renderOrder = 9;
+    apparatus.add(fibre);
+
+    const fibrePath = new THREE.LineCurve3(new THREE.Vector3(-fibreHalfLength,fibreY,0),new THREE.Vector3(fibreHalfLength,fibreY,0));
+    const fibreLight = new THREE.Mesh(new THREE.TubeGeometry(fibrePath,240,.011,6,false),shader(`
+      varying vec2 vUv; uniform float uTime; uniform float uHot; ${opticalColour}
+      void main(){
+        float x=vUv.x;
+        float crest=pow(.5+.5*cos(x*113.0-uTime*23.0),9.0);
+        float envelope=.35+.65*pow(.5+.5*cos(x*17.0-uTime*10.0),5.0);
+        vec3 col=resonanceColour(uHot);
+        // Incoming and outgoing probe show the same tracked resonance colour.
+        gl_FragColor=vec4(col*(.65+crest*2.0)*envelope,.9);
+      }`,{blending:THREE.AdditiveBlending}));
+    fibreLight.renderOrder=6;
+    apparatus.add(fibreLight);
+
+    // Magnified transverse electric-field trace at the OUTPUT fibre. Its
+    // wavelength, not the WGM angular order or optical power, changes with heat.
+    const waveGeometry=new THREE.PlaneGeometry(4.4,1,420,1);
+    const waveVertex=`
+      uniform float uTime;uniform float uHot;uniform float uWidth;
+      varying vec2 vUv;
+      void main(){
+        vUv=uv;
+        float x=position.x+2.45;
+        float envelope=smoothstep(.25,.65,x)*(1.0-smoothstep(4.15,4.65,x));
+        float wavelength=mix(.32,.90,uHot);
+        float phase=(x-.25)*6.28318530718/wavelength-uTime*8.0;
+        vec3 p=vec3(x,(${fibreY.toFixed(4)})+position.y*uWidth,
+          sin(phase)*.34*envelope);
+        gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);
+      }`;
+    const outputWaves=[];
+    for(const width of [.075,.24]){
+      const waveMaterial=new THREE.ShaderMaterial({
+        uniforms:{...uniforms,uWidth:{value:width},uAlpha:{value:width<.1?.95:.12}},
+        vertexShader:waveVertex,
+        fragmentShader:`
+          uniform float uHot;uniform float uAlpha;varying vec2 vUv;${opticalColour}
+          void main(){
+            float crossSection=pow(max(0.0,1.0-abs(vUv.y*2.0-1.0)),1.4);
+            float ends=smoothstep(.0,.075,vUv.x)*(1.0-smoothstep(.86,1.0,vUv.x));
+            gl_FragColor=vec4(resonanceColour(uHot)*1.8,crossSection*ends*uAlpha);
+          }`,transparent:true,depthWrite:false,side:THREE.DoubleSide,
+        blending:THREE.AdditiveBlending
+      });
+      const outputWave=new THREE.Mesh(waveGeometry,waveMaterial);
+      outputWave.frustumCulled=false;outputWave.renderOrder=13;
+      apparatus.add(outputWave);outputWaves.push(outputWave);
+    }
+
+    // A soft evanescent bridge at the physical contact, not a radial laser beam.
+    const contact = new THREE.Mesh(new THREE.SphereGeometry(.10,24,16),shader(`
+      varying vec3 vWorld; varying vec3 vNormal; uniform float uHot; ${opticalColour}
+      void main(){
+        float face=max(dot(normalize(vNormal),normalize(cameraPosition-vWorld)),0.0);
+        gl_FragColor=vec4(resonanceColour(uHot)*3.2,pow(face,2.0)*.70);
+      }`,{blending:THREE.AdditiveBlending}));
+    contact.position.y=-RADIUS-.006;
+    contact.scale.set(1.4,.72,1);
+    contact.renderOrder=14;
+    apparatus.add(contact);
+
+    const hemi = new THREE.HemisphereLight(0xb9dbe5,0x18202c,2.2);
+    scene.add(hemi);
+    const key = new THREE.DirectionalLight(0xcceefa,3.6);
+    key.position.set(-3,6,4); scene.add(key);
+    const heatLight = new THREE.PointLight(0xff6a28,0,7,2);
+    heatLight.position.set(1.31,-1.6,1.6); scene.add(heatLight);
+
+    // Restrained copper heater: a cause the viewer recognises immediately.
+    const heater = new THREE.Group();
+    heater.position.set(1.31,-1.98,-.12);
+    scene.add(heater);
+    const heaterBase = new THREE.Mesh(new THREE.CylinderGeometry(1.12,1.21,.15,96),new THREE.MeshStandardMaterial({color:0x4b3025,metalness:.76,roughness:.31}));
+    heater.add(heaterBase);
+    const heaterTop = new THREE.Mesh(new THREE.CircleGeometry(1.10,96),shader(`
+      varying vec2 vUv; uniform float uTime; uniform float uHeater;
+      void main(){
+        float r=length((vUv-.5)*2.0);
+        float rings=pow(.5+.5*cos(r*43.0),18.0);
+        float radial=1.0-smoothstep(.30,1.0,r);
+        vec3 col=vec3(.10,.045,.02)+vec3(1.7,.31,.035)*uHeater*(radial*.28+rings*.40);
+        gl_FragColor=vec4(col,.9);
+      }`,{side:THREE.DoubleSide}));
+    heaterTop.rotation.x=-Math.PI/2;
+    heaterTop.position.y=.081;
+    heater.add(heaterTop);
+    const heaterLip = new THREE.Mesh(new THREE.TorusGeometry(1.11,.013,8,96),new THREE.MeshStandardMaterial({color:0xad7555,metalness:.9,roughness:.23}));
+    heaterLip.rotation.x=Math.PI/2; heaterLip.position.y=.081; heater.add(heaterLip);
+
+    // Focused studio light beneath the ball: a narrow cusp and an offset pool
+    // make a refracting solid legible. Qualitative caustic, not a measured map.
+    const caustic=new THREE.Mesh(new THREE.PlaneGeometry(3.1,2.9),shader(`
+      varying vec2 vUv;uniform float uHot;${opticalColour}
+      void main(){
+        vec2 p=(vUv-.5)*vec2(2.7,2.5);
+        float r=length(p-vec2(.05,.08));
+        float focus=exp(-dot(p*vec2(2.2,3.1),p*vec2(2.2,3.1)));
+        float cusp=exp(-pow(abs((r-.48)*28.0),2.0))
+          *(1.0-smoothstep(.05,.48,p.y));
+        float streak=exp(-pow(abs((p.y+.22+.40*p.x*p.x)*23.0),2.0))
+          *exp(-p.x*p.x*2.4);
+        vec3 light=mix(vec3(.43,.77,1.0),vec3(1.0,.48,.22),uHot*.65);
+        gl_FragColor=vec4(light*(focus*.4+cusp*2.2+streak*1.4),.64);
+      }`,{blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));
+    caustic.rotation.x=-Math.PI/2;caustic.position.set(1.31,-1.892,-.12);
+    caustic.renderOrder=3;scene.add(caustic);
+
+    // Broad curved thermal sheets rise from the heater and flow around the bead.
+    // They represent external warming, not a measured air velocity or a flame.
+    const thermalMaterial = shader(`
+      varying vec2 vUv; uniform float uTime; uniform float uHeater;
+      uniform float uArrival;
+      void main(){
+        float height=vUv.y;
+        float leading=mix(-.12,1.20,uArrival);
+        float arrived=1.0-smoothstep(leading-.12,leading+.055,height);
+        float softAcross=pow(max(0.0,sin(vUv.x*3.14159265359)),2.6);
+        float ribbons=.25+.75*pow(.5+.5*sin(height*27.0-uTime*8.2+vUv.x*5.0),2.0);
+        float floorFade=smoothstep(.0,.1,height)*(1.0-smoothstep(.76,1.0,height));
+        float tip=exp(-pow((height-leading+.035)*13.0,2.0));
+        vec3 col=mix(vec3(.92,.18,.034),vec3(1.5,.69,.21),vUv.x);
+        float alpha=softAcross*floorFade*arrived*uHeater*(.040+.07*ribbons+.22*tip);
+        gl_FragColor=vec4(col*(.75+.7*tip),alpha);
+      }`,{side:THREE.DoubleSide,blending:THREE.AdditiveBlending});
+
+    const thermalSheets=[];
+    for(let sheet=0;sheet<8;sheet++){
+      const geo=new THREE.BufferGeometry(), p=[], uv=[], idx=[];
+      const steps=84, across=4;
+      const side=sheet%2===0 ? -1 : 1;
+      const depth=Math.floor(sheet/2);
+      for(let i=0;i<=steps;i++){
+        const h=i/steps;
+        const y=-1.89+h*4.65;
+        const relativeY=y-.34;
+        const sphereEdge=Math.sqrt(Math.max(0,RADIUS*RADIUS-relativeY*relativeY));
+        const curl=Math.sin(h*8.5+depth*.65)*.10;
+        const spread=(.34+1.35*Math.sin(Math.min(h/.89,1)*Math.PI));
+        const x=1.31+side*Math.max(spread,sphereEdge+.11+depth*.055)+curl;
+        const z=-.36+depth*.29+.17*Math.sin(h*TAU+depth);
+        for(let j=0;j<=across;j++){
+          const a=j/across;
+          const width=(.10+.20*Math.sin(h*Math.PI))*(depth===2?1.3:1);
+          p.push(x+(a-.5)*width*side,y,z+(a-.5)*width*.45);
+          uv.push(a,h);
+          if(i<steps&&j<across){ const n=i*(across+1)+j,b=n+across+1;idx.push(n,b,n+1,b,b+1,n+1); }
+        }
+      }
+      geo.setAttribute('position',new THREE.Float32BufferAttribute(p,3));
+      geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));
+      geo.setIndex(idx);geo.computeVertexNormals();
+      const mesh=new THREE.Mesh(geo,thermalMaterial); mesh.renderOrder=depth<2?1:14;scene.add(mesh);thermalSheets.push(mesh);
+    }
+
+    // Low, wide wash ties the heater to the rising thermal sheets.
+    const thermalWash=new THREE.Mesh(new THREE.PlaneGeometry(3.5,3.8,1,1),shader(`
+      varying vec2 vUv; uniform float uArrival; uniform float uHeater;
+      void main(){
+        vec2 p=vUv-.5;
+        float head=mix(-.60,.64,uArrival);
+        float warm=exp(-pow(p.x*3.9,2.0))*(1.0-smoothstep(head-.18,head+.16,p.y));
+        float bounds=sin(vUv.y*3.14159265)*pow(sin(vUv.x*3.14159265),2.0);
+        gl_FragColor=vec4(.46,.13,.025,warm*bounds*uHeater*.10);
+      }`,{blending:THREE.AdditiveBlending}));
+    thermalWash.position.set(1.31,-.10,-.80);thermalWash.renderOrder=1;scene.add(thermalWash);
+
+    // A moving heat boundary across the surface makes arrival readable even
+    // when the glass is seen small in a montage. No geometry expansion occurs.
+    const thermalSkin = new THREE.Mesh(new THREE.SphereGeometry(RADIUS+.006,64,40),shader(`
+      uniform float uArrival;uniform float uHeater;uniform float uHot;
+      varying vec3 vLocal;varying vec3 vWorld;varying vec3 vNormal;
+      void main(){
+        float front=mix(-2.05,2.12,uArrival);
+        float band=exp(-pow(abs((vLocal.y-front)*3.7),2.0));
+        float facing=max(0.0,dot(normalize(vNormal),normalize(cameraPosition-vWorld)));
+        float edge=pow(1.0-facing,2.0);
+        float ongoing=1.0-smoothstep(.85,1.0,uArrival);
+        float alpha=(band*(.18+.38*edge)*ongoing+edge*.015*uHot)*uHeater;
+        gl_FragColor=vec4(2.0,.49,.055,alpha);
+      }`,{blending:THREE.AdditiveBlending}));
+    thermalSkin.position.copy(apparatus.position);
+    thermalSkin.renderOrder=15;
+    scene.add(thermalSkin);
+
+    // Distant lens bokeh; deterministic, faint and well away from the title.
+    const bokehPositions=new Float32Array(26*3), bokehSizes=new Float32Array(26);
+    let seed=84173;
+    function rand(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;}
+    for(let i=0;i<26;i++){
+      bokehPositions[i*3]=-.2+rand()*7;
+      bokehPositions[i*3+1]=-3.8+rand()*7.6;
+      bokehPositions[i*3+2]=-3-rand()*2;
+      bokehSizes[i]=10+rand()*35;
+    }
+    const bokehGeo=new THREE.BufferGeometry();
+    bokehGeo.setAttribute('position',new THREE.BufferAttribute(bokehPositions,3));
+    bokehGeo.setAttribute('aSize',new THREE.BufferAttribute(bokehSizes,1));
+    const bokeh=new THREE.Points(bokehGeo,new THREE.ShaderMaterial({
+      vertexShader:`attribute float aSize;void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_PointSize=aSize;}`,
+      fragmentShader:`void main(){float r=length(gl_PointCoord-.5)*2.0;float a=(1.0-smoothstep(.25,1.0,r))*.045;gl_FragColor=vec4(.18,.40,.46,a);}`,
+      transparent:true,depthWrite:false,blending:THREE.AdditiveBlending
+    }));scene.add(bokeh);
+
+    const refractionTarget=new THREE.WebGLRenderTarget(1280,720,{
+      type:THREE.HalfFloatType,depthBuffer:true,stencilBuffer:false
+    });
+    uniforms.uBackdrop.value=refractionTarget.texture;
+
+    function resize(){
+      const w=Math.max(1,film.clientWidth),h=Math.max(1,film.clientHeight);
+      // 1080p at a normal screen; cap very large/high-DPI canvases to a sane budget.
+      const ratio=Math.min(devicePixelRatio,1.35,1920/w);
+      renderer.setPixelRatio(ratio);renderer.setSize(w,h,false);
+      composer.setPixelRatio(ratio);composer.setSize(w,h);
+      refractionTarget.setSize(Math.max(1,Math.round(w*ratio*.67)),Math.max(1,Math.round(h*ratio*.67)));
+      camera.aspect=w/h;camera.updateProjectionMatrix();
+      if(frozen) draw(freezeTime);
+    }
+    function draw(t){
+      const state=stateAt(t);
+      uniforms.uTime.value=state.time;
+      uniforms.uHot.value=state.hot;
+      uniforms.uHeater.value=state.heater;
+      uniforms.uArrival.value=state.arrival;
+      heatLight.intensity=state.heater*5;
+      // Frozen frames after the story keep the final image, not the loop separator.
+      fade.style.opacity=frozen?'0':String(state.fade);
+      // Capture the surroundings in linear HDR. Hiding the glass prevents a
+      // texture feedback loop; the completed opaque glass then refracts them.
+      apparatus.visible=false;thermalSkin.visible=false;
+      const previousTarget=renderer.getRenderTarget();
+      renderer.setRenderTarget(refractionTarget);
+      renderer.clear();renderer.render(scene,camera);
+      renderer.setRenderTarget(previousTarget);
+      apparatus.visible=true;thermalSkin.visible=true;
+      composer.render();
+      film.dataset.time=t.toFixed(3);
+    }
+    window.addEventListener('resize',resize);
+    renderer.domElement.addEventListener('webglcontextlost',event=>{
+      event.preventDefault();
+      const error=document.querySelector('#error');
+      error.textContent='The graphics context was interrupted. Reload to replay this film.';
+      error.style.display='grid';
+    });
+    resize();
+    if(!frozen){
+      let start=null;
+      renderer.setAnimationLoop(ms=>{
+        if(start===null)start=ms;
+        draw(((ms-start)/1000)%PERIOD);
+      });
+    }
+  </script>
+</body>
+</html>

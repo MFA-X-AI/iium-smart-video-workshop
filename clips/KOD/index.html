@@ -1,0 +1,271 @@
+﻿<!--
+SOURCE: Abidin et al., 2026, supplied KOD PDF, papers.json[63]. In 100 extracted,
+single-canal maxillary second premolars, fracture resistance did not differ
+significantly among five restoration groups. Fibre/metal posts predominantly
+produced favorable Class 2 fractures; flowable composite predominantly Class 4.
+SHOWN: representative fibre-post versus flowable-composite post-space specimens,
+with direct composite restorations and a retained buccal wall, under axial loading.
+ARTISTIC LICENCE: procedural anatomy and CT rendering, magnified fracture opening,
+illustrative crack paths, synchronized/time-compressed load and fracture events.
+This is not patient CT data, a stress simulation, a guaranteed outcome, or evidence
+of identical failure loads. The mounting cylinder and dental dam are omitted.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KOD — A post can change how teeth break</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#04121d}
+body{font-family:Arial,Helvetica,sans-serif;color:#e7f7ff}
+#frame{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--scale,1));overflow:hidden;background:radial-gradient(ellipse at 35% 41%,#163c51 0%,#091f30 43%,#030e18 83%)}
+canvas{position:absolute;inset:0;width:1920px;height:1080px}
+#scrim{position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,#04111a55 68%,#04111adb 100%);pointer-events:none}
+#title{position:absolute;top:176px;right:100px;width:595px}
+h1{font-size:78px;font-weight:400;letter-spacing:-3.8px;line-height:1.06;margin:0}
+h1 em{font-style:normal;color:#9ee9f0}
+#title p{margin:36px 0 0;font-size:28px;line-height:1.48;font-weight:400;color:#b1c8d6;letter-spacing:-.35px}
+.specimen{position:absolute;top:794px;text-align:center;font-size:23px;letter-spacing:2px;color:#c5e9f5;width:420px;font-weight:500}
+#label-a{left:143px}#label-b{left:657px;width:280px;font-size:20px;letter-spacing:1.4px}
+.outcome{position:absolute;top:848px;line-height:1.2;opacity:0;text-align:center;white-space:nowrap}
+#outcome-a{left:143px;width:420px}#outcome-b{left:657px;width:280px}
+.outcome strong{font-size:42px;letter-spacing:-1.3px;font-weight:400;color:#c9ffff}
+#outcome-b strong{color:#ffc9b7}
+#error{display:none;position:absolute;left:110px;top:460px;font-size:25px;color:#ceeafa}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<main id="frame" aria-label="Two restored teeth under laboratory loading: a fibre-post example fractures above the neck, while a flowable-composite example splits down its root. Typical fracture patterns, not guaranteed outcomes.">
+<div id="scrim"></div>
+<div id="title"><h1>A post can<br>change how<br><em>teeth break.</em></h1><p>Similar fracture strength.<br>Different chances of repair.</p></div>
+<div class="specimen" id="label-a">FIBRE POST</div>
+<div class="specimen" id="label-b">FLOWABLE COMPOSITE</div>
+<div class="outcome" id="outcome-a"><strong>Repairable</strong></div>
+<div class="outcome" id="outcome-b"><strong>Beyond repair</strong></div>
+<div id="error">The dental scene needs WebGL and access to jsDelivr.</div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const W=1920,H=1080, frame=document.querySelector('#frame');
+function fit(){frame.style.setProperty('--scale',Math.min(innerWidth/W,innerHeight/H));}
+addEventListener('resize',fit);fit();
+const query=new URLSearchParams(location.search), rawTime=query.get('t');
+const freeze=rawTime!==null && Number.isFinite(Number(rawTime));
+const freezeTime=freeze?Math.max(0,Math.min(3,Number(rawTime))):0;
+const scene=new THREE.Scene();
+const camera=new THREE.OrthographicCamera(-9.6,9.6,5.4,-5.4,.1,80);
+camera.position.set(0,0,20);camera.lookAt(0,0,0);
+let renderer;
+try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});}
+catch(error){document.querySelector('#error').style.display='block';throw error;}
+renderer.setPixelRatio(1);renderer.setSize(W,H);renderer.setClearColor(0x061624,0);
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;frame.prepend(renderer.domElement);
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(W,H),.34,.55,.86);
+composer.addPass(bloom);composer.addPass(new OutputPass());
+scene.add(new THREE.HemisphereLight(0xd7f7ff,0x153448,2.1));
+function light(color,power,x,y,z){const l=new THREE.DirectionalLight(color,power);l.position.set(x,y,z);scene.add(l);}
+light(0xd6f5ff,3,-4,7,8);light(0x59d2ed,3.2,4,1,-3);light(0xffffff,1.6,-8,0,4);
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const ease=(a,b,t)=>{const k=clamp((t-a)/(b-a));return k*k*(3-2*k);};
+
+// GEOMETRY START — CPU-verifiable procedural, single-root premolar.
+const profile=[[-3.10,.015,.022],[-2.92,.15,.17],[-2.6,.26,.28],[-2.1,.36,.35],[-1.45,.47,.43],[-.7,.56,.49],[.0,.61,.53],[.45,.65,.55],[.85,.78,.65],[1.35,.94,.74],[1.9,.99,.75],[2.26,.89,.66],[2.4,.66,.5],[2.31,.34,.25],[2.23,.002,.002]];
+function surface(u,v){
+ const p=u*(profile.length-1),i=Math.min(profile.length-2,Math.floor(p)),f=p-i;
+ const a=profile[i],b=profile[i+1],k=f*f*(3-2*f);
+ const y=THREE.MathUtils.lerp(a[0],b[0],f),rx=THREE.MathUtils.lerp(a[1],b[1],k),rz=THREE.MathUtils.lerp(a[2],b[2],k);
+ const theta=v*Math.PI*2,crest=Math.exp(-Math.pow((u-.83)/.10,2));
+ const cusp=.30*Math.cos(theta*2)*crest;
+ const flute=1+.025*Math.cos(theta*5+u*2)+.012*Math.sin(theta*9+u*11);
+ return new THREE.Vector3(rx*Math.cos(theta)*flute+.06*Math.pow(1-u,2),y+cusp,rz*Math.sin(theta)*flute);
+}
+function toothGeometry(){
+ const pos=[],idx=[],rows=154,cols=96;
+ for(let i=0;i<=rows;i++)for(let j=0;j<=cols;j++)pos.push(...surface(i/rows,j/cols).toArray());
+ for(let i=0;i<rows;i++)for(let j=0;j<cols;j++){const a=i*(cols+1)+j,b=a+cols+1;idx.push(a,b,a+1,b,b+1,a+1);}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g;
+}
+const cuts={
+ crown:p=>p.y-(1.48+.28*p.x+.065*Math.sin(p.z*11)+.055*Math.sin(p.x*14)),
+ root:p=>p.x-(.07*Math.sin(p.y*6)+.035*Math.sin(p.y*15)+.05*p.z)
+};
+// Clip each triangle into two closed pieces; share intersection edges with fracture faces.
+function splitGeometry(geometry,field){
+ const g=geometry.toNonIndexed(),a=g.attributes.position,normals=g.attributes.normal,out=[[],[]],outNormals=[[],[]],edges=[];
+ for(let i=0;i<a.count;i+=3){
+  const tri=[0,1,2].map(n=>new THREE.Vector3().fromBufferAttribute(a,i+n));
+  const triNormals=[0,1,2].map(n=>new THREE.Vector3().fromBufferAttribute(normals,i+n));
+  const hits=[];
+  for(let side=0;side<2;side++){
+   const poly=[],polyNormals=[],sign=side?1:-1;
+   for(let j=0;j<3;j++){
+    const p=tri[j],q=tri[(j+1)%3],dp=field(p),dq=field(q),inside=dp*sign>=0,next=dq*sign>=0;
+    if(inside){poly.push(p);polyNormals.push(triNormals[j]);}
+    if(inside!==next){const t=dp/(dp-dq),h=p.clone().lerp(q,t);poly.push(h);polyNormals.push(triNormals[j].clone().lerp(triNormals[(j+1)%3],t).normalize());if(side===0)hits.push(h);}
+   }
+   for(let j=1;j<poly.length-1;j++){
+    out[side].push(...poly[0].toArray(),...poly[j].toArray(),...poly[j+1].toArray());
+    outNormals[side].push(...polyNormals[0].toArray(),...polyNormals[j].toArray(),...polyNormals[j+1].toArray());
+   }
+  }
+  if(hits.length===2)edges.push(hits);
+ }
+ const center=new THREE.Vector3();for(const [p,q]of edges)center.add(p).add(q);center.divideScalar(edges.length*2);
+ const cap=[];for(const [p,q]of edges)cap.push(...center.toArray(),...p.toArray(),...q.toArray());
+ const make=(arr,normalArray)=>{const v=new THREE.BufferGeometry();v.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));if(normalArray)v.setAttribute('normal',new THREE.Float32BufferAttribute(normalArray,3));else v.computeVertexNormals();return v;};
+ g.dispose();return {shells:out.map((arr,i)=>make(arr,outNormals[i])),cap:make(cap),edgeCount:edges.length};
+}
+// GEOMETRY END
+const shellVertex=`
+varying vec3 vN; varying vec3 vP; varying vec3 vEye;
+void main(){vP=position;vN=normalize(normalMatrix*normal);vec4 p=modelViewMatrix*vec4(position,1.0);vEye=-p.xyz;gl_Position=projectionMatrix*p;}`;
+const shellFragment=`
+precision highp float;
+uniform float uTime; uniform float uScan; uniform float uLayer; uniform float uDentine;
+varying vec3 vN; varying vec3 vP; varying vec3 vEye;
+void main(){
+ vec3 normal=normalize(vN),viewDir=normalize(vEye);
+ float rim=pow(1.0-abs(dot(normal,viewDir)),2.3);
+ float sweep=exp(-pow((vP.y-uScan)*2.8,2.0));
+ float crown=smoothstep(.30,.80,vP.y);
+ float buccal=smoothstep(.18,.48,vP.z);
+ float enamel=crown*buccal*(1.0-uDentine);
+ vec3 halfLight=normalize(normalize(vec3(-.7,1.1,1.8))+viewDir);
+ float polish=pow(max(dot(normal,halfLight),0.0),42.0)*enamel;
+ vec3 mineral=mix(vec3(.31,.57,.66),vec3(.64,.85,.89),rim);
+ mineral=mix(mineral,vec3(.77,.92,.96),enamel*.52);
+ mineral=mix(mineral,vec3(.38,.67,.72)+rim*.14,uDentine*.72);
+ mineral+=vec3(.30,.35,.38)*polish+vec3(.045,.085,.095)*sweep;
+ float alpha=(.12+.49*rim+.055*enamel+.08*polish+.014*sweep)*uLayer;
+ gl_FragColor=vec4(mineral,alpha);
+}`;
+const shells=[];
+function shellMaterial(layer=1,dentine=0){
+ const m=new THREE.ShaderMaterial({vertexShader:shellVertex,fragmentShader:shellFragment,uniforms:{uTime:{value:0},uScan:{value:3},uLayer:{value:layer},uDentine:{value:dentine}},transparent:true,side:THREE.DoubleSide,depthWrite:false});shells.push(m);return m;
+}
+const cutMaterial=new THREE.MeshStandardMaterial({color:0xa0dfe8,emissive:0x1b5867,emissiveIntensity:.32,roughness:.64,metalness:.06,transparent:true,opacity:.74,side:THREE.DoubleSide});
+cutMaterial.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 mineralP;').replace('#include <begin_vertex>','#include <begin_vertex>\nmineralP=position;');shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 mineralP;').replace('#include <color_fragment>','#include <color_fragment>\nfloat mineralNoise=fract(sin(dot(floor(mineralP*100.0),vec3(13.7,91.1,43.6)))*43758.5453);\ndiffuseColor.rgb*=.66+.34*mineralNoise;');};
+function tube(points,radius,material,segments=90){return new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p))),segments,radius,8,false),material);}
+const bright=new THREE.MeshBasicMaterial({color:0xb6ffff,transparent:true,opacity:.75});
+const fillMat=new THREE.MeshStandardMaterial({color:0x8da6b3,emissive:0x395b6f,emissiveIntensity:.3,metalness:.12,roughness:.4,transparent:true,opacity:.63});
+const fibreMat=new THREE.MeshStandardMaterial({color:0xceffff,emissive:0x4abdc9,emissiveIntensity:.45,roughness:.24,metalness:.24});
+const compositeMat=new THREE.MeshStandardMaterial({color:0x5ba6b5,emissive:0x174652,emissiveIntensity:.4,roughness:.5,transparent:true,opacity:.58});
+const fractureCyan=new THREE.MeshBasicMaterial({color:0xbeffff,transparent:true,opacity:0,depthWrite:false});
+const fractureWarm=new THREE.MeshBasicMaterial({color:0xffb7a1,transparent:true,opacity:0,depthWrite:false});
+function fractureHighlight(path){
+ const material=new THREE.ShaderMaterial({
+  uniforms:{uProgress:{value:0},uPulse:{value:0}},
+  vertexShader:`varying float vAlong;void main(){vAlong=uv.x;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+  fragmentShader:`precision highp float;uniform float uProgress;uniform float uPulse;varying float vAlong;
+  void main(){if(vAlong>uProgress)discard;float tip=exp(-pow((vAlong-uProgress)/.075,2.0));gl_FragColor=vec4(vec3(2.5,3.2,3.4),uPulse*(.45+.55*tip));}`,
+  transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false
+ });
+ return tube(path,.012,material,100);
+}
+const base=toothGeometry();
+function createSpecimen(kind,x){
+ const root=new THREE.Group();root.position.set(x,.95,0);root.rotation.set(.09,-.20,-.035);scene.add(root);
+ const split=splitGeometry(base,kind==='post'?cuts.crown:cuts.root),pieces=[],caps=[];
+ for(let n=0;n<2;n++){
+  const piece=new THREE.Group();root.add(piece);pieces.push(piece);
+  const shell=new THREE.Mesh(split.shells[n],shellMaterial());piece.add(shell);
+  const inner=new THREE.Mesh(split.shells[n],shellMaterial(.53,1));inner.scale.set(.85,.985,.85);piece.add(inner);
+  const cap=new THREE.Mesh(split.cap,cutMaterial);cap.visible=false;piece.add(cap);caps.push(cap);
+ }
+ // Apical gutta-percha plus a genuine long prefabricated post or short resin filling.
+ const internals=new THREE.Group();root.add(internals);
+ if(kind==='post'){
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(.10,.072,3.65,32),fibreMat);post.position.y=-.22;internals.add(post);
+  for(let j=0;j<11;j++){
+   const a=j/11*Math.PI*2,r=.081;
+   const line=tube([[r*Math.cos(a),-2.03,r*Math.sin(a)],[r*Math.cos(a),-.2,r*Math.sin(a)],[r*Math.cos(a),1.60,r*Math.sin(a)]],.007,bright,4);internals.add(line);
+  }
+  internals.add(tube([[.035,-2.97,0],[.015,-2.64,0],[0,-2.05,0]],.056,fillMat));
+ }else{
+  const fill=new THREE.Mesh(new THREE.CylinderGeometry(.14,.11,.94,24),compositeMat);fill.position.y=.05;internals.add(fill);
+  internals.add(tube([[.035,-2.97,0],[.025,-1.9,0],[0,-.44,0]],.07,fillMat));
+ }
+ // Restoration is internal to the tooth contour; no artificial full-coverage crown.
+ const core=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),compositeMat);core.scale.set(.53,.55,.39);core.position.set(0,1.04,-.06);internals.add(core);
+ // Thin cervical contour is anatomical, not a UI scale or assumed bone level.
+ const cejPoints=[];for(let i=0;i<=128;i++){const a=i/128*Math.PI*2;cejPoints.push(new THREE.Vector3(.65*Math.cos(a),.42+.045*Math.cos(2*a),.56*Math.sin(a)));}
+ const cej=new THREE.Line(new THREE.BufferGeometry().setFromPoints(cejPoints),new THREE.LineBasicMaterial({color:0x84c0d4,transparent:true,opacity:.36}));root.add(cej);
+ const crackMat=(kind==='post'?fractureCyan:fractureWarm).clone(),cracks=[],crackHighlights=[];
+ const paths=kind==='post'?[
+  [[-.92,1.20,.37],[-.55,1.40,.64],[-.30,1.34,.72],[0,1.53,.76],[.24,1.47,.73],[.57,1.66,.63],[.92,1.73,.30]],
+  [[-.3,1.34,.72],[-.41,1.64,.70],[-.29,1.93,.67]]
+ ]:[
+  [[.05,2.35,.40],[-.06,1.97,.75],[.09,1.62,.78],[-.05,1.22,.74],[.10,.82,.66],[-.045,.35,.56],[.09,-.12,.52],[-.08,-.61,.50],[.04,-1.05,.46],[-.06,-1.6,.41],[.05,-2.05,.36],[.03,-2.68,.24]],
+  [[.06,1.55,.78],[.38,1.34,.67],[.51,1.13,.56],[.83,1.01,.30]],
+  [[-.03,.38,.57],[-.25,.11,.5],[-.48,-.15,.35]]
+ ];
+ for(const path of paths){
+  const crack=tube(path,.019,crackMat,100);crack.geometry.setDrawRange(0,0);root.add(crack);cracks.push(crack);
+  const highlight=fractureHighlight(path);root.add(highlight);crackHighlights.push(highlight);
+ }
+ // Actual steel-ball loading cue, aligned to the long axis (no force value is implied).
+ const load=new THREE.Group();root.add(load);
+ const steel=new THREE.MeshStandardMaterial({color:0xb5cbd7,metalness:.85,roughness:.24});
+ const ball=new THREE.Mesh(new THREE.SphereGeometry(.48,48,32),steel);load.add(ball);
+ const stem=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.87,24),steel);stem.position.y=.71;load.add(stem);
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(.469,.011,8,80),new THREE.MeshBasicMaterial({color:0xaddce8}));ring.rotation.x=Math.PI/2;ring.position.y=-.055;load.add(ring);
+ const flash=new THREE.Mesh(new THREE.SphereGeometry(.54,24,16),new THREE.MeshBasicMaterial({color:0xc1ffff,transparent:true,opacity:0,depthWrite:false}));flash.scale.set(1,.17,1);flash.position.y=2.49;root.add(flash);
+ return{root,pieces,caps,internals,core,cracks,crackHighlights,crackMat,load,flash,kind};
+}
+const specimens=[createSpecimen('post',-6.02),createSpecimen('flow',-1.33)];
+
+// Sparse atmosphere; the broad, subtle CT sweep is confined to the tissue shader.
+const dustPositions=[];let seed=71;function random(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+for(let i=0;i<250;i++){dustPositions.push(-9+random()*12,-4.7+random()*9.4,-3-random()*3);}
+const dustGeometry=new THREE.BufferGeometry();dustGeometry.setAttribute('position',new THREE.Float32BufferAttribute(dustPositions,3));
+const dust=new THREE.Points(dustGeometry,new THREE.PointsMaterial({color:0x739cad,size:.009,transparent:true,opacity:.07,depthWrite:false}));scene.add(dust);
+const outcomeA=document.querySelector('#outcome-a'),outcomeB=document.querySelector('#outcome-b');
+function setTime(t){
+ const contact=ease(.10,.91,t),split=ease(1.18,1.88,t),settle=ease(1.9,2.48,t),crack=ease(1.04,1.67,t);
+ for(let i=0;i<specimens.length;i++){
+  const s=specimens[i],post=s.kind==='post';
+  s.load.position.y=3.47-.64*contact+.25*ease(1.65,2.18,t);
+  s.flash.material.opacity=.27*Math.exp(-Math.pow((t-1.12)/.105,2));
+  if(post){
+   s.pieces[1].position.set(-.31*split, .25*split+.04*settle,.10*split);
+   s.pieces[1].rotation.set(.055*split,0,.14*split);
+  }else{
+   s.pieces[0].position.set(-.20*split,-.035*split,.025*split);
+   s.pieces[0].rotation.z=.045*split;
+   s.pieces[1].position.set(.28*split,-.07*split,.07*split);
+   s.pieces[1].rotation.z=-.074*split;
+   // The short filling follows one failed side rather than bridging the opened cleft.
+   s.internals.position.x=.19*split;s.core.rotation.z=-.1*split;
+  }
+  s.caps.forEach(c=>c.visible=split>.008);
+  s.crackMat.opacity=clamp(crack*1.8)*(.82-.54*settle);
+  s.cracks.forEach((c,j)=>{
+   const full=c.geometry.index.count,fraction=clamp(crack*(j===0?1.15:1.45)-(j===0?0:.25));
+   c.geometry.setDrawRange(0,Math.floor(full*fraction/3)*3);c.position.z=.045*split;
+   const highlight=s.crackHighlights[j];highlight.position.z=c.position.z+.006;
+   highlight.material.uniforms.uProgress.value=fraction;
+   highlight.material.uniforms.uPulse.value=Math.exp(-Math.pow((t-1.35)/.10,2));
+  });
+ }
+ shells.forEach(m=>{m.uniforms.uTime.value=t;m.uniforms.uScan.value=2.8-5.95*ease(0,2.9,t);});
+ const textAlpha=ease(1.22,1.68,t);outcomeA.style.opacity=textAlpha;outcomeB.style.opacity=textAlpha;
+ composer.render();
+}
+// Exact deterministic stills; animation resets only after a long result hold.
+let origin;
+function animate(now){if(origin===undefined)origin=now;const elapsed=(now-origin)/1000;setTime(Math.min(elapsed%4.5,3));requestAnimationFrame(animate);}
+if(freeze){setTime(freezeTime);document.documentElement.dataset.frozen=String(freezeTime);}else requestAnimationFrame(animate);
+</script>
+</body>
+</html>

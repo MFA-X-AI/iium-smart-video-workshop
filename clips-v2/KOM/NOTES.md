@@ -1,0 +1,23 @@
+# KOM — TP53 signal under lemon oil
+
+**So what:** In this cell-culture experiment, lemon essential oil lowered TP53 expression in skin cancer cells while normal fibroblasts showed no significant change, revealing different responses worth investigating.
+
+Read the supplied brief and the paper text in `clips-v2/.qa/KOM/paper.txt`: morphology in Fig. 1, pp. 384–385; qPCR in Fig. 3 and p. 386; the unexpected direction and unresolved mechanism on p. 387. The attempted fresh pypdf extraction could not reach the package registry; the existing complete paper extraction was available. No material from `clips/KOM/` was used.
+
+Three shot concepts considered:
+- **Paired fluorescence fields (selected):** the red signal persists on the left and fades on the right while cell shapes change. Simultaneous comparison reads quickly and gives a strong final thumbnail; fluorescence must be explicitly documented as an illustration.
+- **One field changing from normal to cancer:** a dramatic transformation, but falsely implies fibroblasts become carcinoma cells. Reject.
+- **Sequential close-ups:** more room for texture, but the viewer has to remember the first population and loses the direct comparison. Reject.
+
+Plan: self-contained Canvas 2D with seeded, cached actin and chromatin textures. Enlarged fibroblasts and clustered carcinoma cells fill both fields, with cropped neighbours, defocused background cells, fuzzy membrane edges, Gaussian bloom on all channels, sensor grain and a slight vignette. A shared warm treatment wash accompanies selective red-channel loss, contraction, round membrane buds and optical defocus. The original layout, title and result text are retained; the title subline is now exactly “Opposite of the expected rise”, supported by the Discussion on p. 387.
+
+Intended sampled frames:
+- **0.5 s:** dense intact fields with irregular blue nuclei, filamentous green actin and red puncta. An amber/yellow front with soft droplet-like blobs descends through both panels, most prominent around 0.3–0.8 s, then settles to a faint warm tint. Translucent screen blending keeps the cells visible.
+- **1.5 s:** cancer cells have visibly contracted and rounded, with distinct circular membrane buds. Four of nine puncta per cell are extinguished in a spatially interleaved order; the remaining five have at most 40% illustrative intensity. All are near-dark by 2.2 s. Seven cells begin lifting and softening. Two fibroblasts retract modestly and round between 0.8–2.0 s. All HFF1 cells stay attached and in focus, with tiny travelling membrane ruffles and slow puncta twinkle; no puncta are removed. Whole result labels fade/slide in from 1.1 to 1.5 s and are fully readable at this sample.
+- **2.5 s:** stable bright fibroblast signal contrasts with a nearly dark cancer red channel. Seven carcinoma cells are enlarged optically, blurred and drifting as they detach; attached cells retain visible round blebs. Full results hold.
+
+Scientific limits: qPCR measures population-level steady-state mRNA, not individual fluorescent puncta. Fluorescence channels, signal fade magnitude, cell counts, treatment haze and compressed timing are artistic licence. Morphology and TP53 changes are shown together without asserting that TP53 loss causes detachment. “Only” refers to the two tested cell lines. No clinical efficacy claim is intended.
+
+Revision validation: `node --check clips-v2/KOM/.qa/extracted.js` passed. Native Canvas renders at 0.5/1.5/2.5 s were inspected without launching a browser. Repeat renders are byte-identical, frozen mode never reads the clock or schedules animation, autoplay matches the sampled frozen frames, title/results fit, and the entire 980×300 attribution reserve is black. Additional checks verify exactly four A431 puncta per cell extinguished at 1.5 s, remaining intensity at most 40%, and all below 1% by 2.2 s. HFF1 puncta persist throughout with slight twinkle. These are animation parameters, not measured biological values. This revision's QA script, PNGs and report are inside `clips-v2/KOM/.qa/`; all revision writes were confined to `clips-v2/KOM/`. Browser-specific playback performance was not tested.
+
+Final self-critique: the fields now have optical softness, textured interiors and background depth rather than isolated outlined icons. Twelve foreground fibroblasts and fourteen foreground cancer cells remain legible, with some cells cropped naturally at the field boundaries. The treatment wash and complete midpoint labels make the cause and comparison easier to read. The regular population arrangement and exaggerated signal loss still serve montage readability; this is an illustrative rendering, not a real fluorescent assay or measured time course. No browser was launched.

@@ -1,0 +1,677 @@
+<!doctype html>
+<!--
+PAPER: Omar, Mamat (& Muhamad Sani), IIUM Journal of Educational Studies
+14(1), 144–159 (2026). Qualitative literature analysis (p. 146), not an
+intervention or a quantitative result. Four dimensions: pp. 147, 149–150.
+Proposed applications: fractions/ratios/proportions, emotional management and
+confidence, theory with practice, and multicultural music education including
+gamelan and dikir barat (pp. 152–155). The cosmological/unity link is also
+explicit in the earlier colloquium version, p. 480.
+ARTISTIC LICENCE: manuscript composition, pigments, quatrefoil, vine scrolls,
+miniature figures/instruments, beat subdivisions, star ring and gold effects.
+The images illustrate proposals; they do not depict measured classroom gains.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Al-Farabi's four musical dimensions, for Malaysian classrooms</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #241b13; }
+  body { display: grid; place-items: center; }
+  canvas { display: block; width: min(100vw, 177.7777778vh); height: min(100vh, 56.25vw); }
+</style>
+</head>
+<body>
+<canvas id="folio" width="1920" height="1080" role="img" aria-label="Al-Farabi's four musical dimensions, for Malaysian classrooms. Mathematical: Fractions, ratios and proportions. Psychological: Managing emotions, building confidence. Pedagogical: Theory integrated with practice. Cosmological: Local heritage in the curriculum: gamelan, dikir barat."></canvas>
+<script>
+'use strict';
+(() => {
+  const W = 1920, H = 1080;
+  const canvas = document.getElementById('folio');
+  let g = canvas.getContext('2d', { alpha: false });
+  let layerOrigin = [0, 0];
+  const INK = '#352a20', RED = '#842f27', BLUE = '#254b70', GREEN = '#38674d';
+  const PAPER = '#e8d5ac';
+  let serif = 'Georgia, "Times New Roman", serif';
+  const clamp = x => Math.max(0, Math.min(1, x));
+  const phase = (t, a, b) => clamp((t - a) / (b - a));
+  const ease = x => x * x * (3 - 2 * x);
+  const TAU = Math.PI * 2;
+  function rng(seed) {
+    return () => {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let n = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      n = n + Math.imul(n ^ n >>> 7, 61 | n) ^ n;
+      return ((n ^ n >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function surface(w, h) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    return c;
+  }
+  function path(d, fill, stroke = INK, width = 1.5) {
+    const p = new Path2D(d);
+    if (fill) {
+      g.fillStyle = fill; g.fill(p);
+      // Pigment settles against the ink boundary instead of a flat solid fill.
+      g.save(); g.clip(p); g.strokeStyle = 'rgba(49,32,22,.15)';
+      g.lineWidth = width * 3 + 2; g.stroke(p); g.restore();
+    }
+    if (stroke) quill(p, stroke, width);
+  }
+  function quill(p, color, width) {
+    g.save(); g.strokeStyle = color; g.lineWidth = width * .68; g.stroke(p);
+    // A broad nib catches the paper intermittently: thin connective strokes,
+    // thicker ink deposits, and a very slight offset on the pressure strokes.
+    g.setLineDash([17, 7, 9, 4, 24, 11]); g.lineDashOffset = 3;
+    g.lineWidth = width * 1.23; g.translate(.18, .24); g.stroke(p); g.restore();
+  }
+  function ellipse(x, y, rx, ry, fill, stroke = null, width = 1) {
+    g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, TAU);
+    if (fill) { g.fillStyle = fill; g.fill(); }
+    if (stroke) { g.strokeStyle = stroke; g.lineWidth = width; g.stroke(); }
+  }
+  function line(x1, y1, x2, y2, color, width = 1) {
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2);
+    g.strokeStyle = color; g.lineWidth = width; g.stroke();
+  }
+  const goldPalette = [
+    [0,[62,34,10]], [.13,[171,111,24]], [.27,[247,217,124]],
+    [.34,[255,249,211]], [.43,[124,75,13]], [.58,[205,158,53]],
+    [.73,[255,236,164]], [.79,[255,252,225]], [.87,[138,83,16]], [1,[65,36,10]]
+  ];
+  const lightNormal = [.30, Math.sqrt(1-.30*.30)];
+  function goldSweep(t) {
+    const p = phase(t,1.6,3);
+    return -160 + 1040*p + 910*p*p;
+  }
+  function goldReflection(q,t) {
+    const d = q-goldSweep(t);
+    return .45*Math.exp(-((d/68)**2)) + .55*Math.exp(-((d/21)**2));
+  }
+  function gold(x, y, w, t, h = w) {
+    // Local, high-contrast metal reflections keep every piece burnished even
+    // away from the moving light. A second, shared diagonal reflection sweeps
+    // through ALL pieces in folio coordinates, including offscreen paintings.
+    // At 2.5 s its white core crosses the right lobe and the title's initial A.
+    const m = g.getTransform(), det = m.a * m.d - m.b * m.c;
+    const [nx,ny] = lightNormal;
+    const project = (X,Y) => nx*(m.a*X+m.c*Y+m.e+layerOrigin[0]) + ny*(m.b*X+m.d*Y+m.f+layerOrigin[1]);
+    const corners = [project(x,y),project(x+w,y),project(x,y+h),project(x+w,y+h)];
+    const low = Math.min(...corners), span = Math.max(1,Math.max(...corners)-low);
+    const local = (X, Y) => {
+      X -= m.e + layerOrigin[0]; Y -= m.f + layerOrigin[1];
+      return [(m.d * X - m.c * Y) / det, (-m.b * X + m.a * Y) / det];
+    };
+    const gradient = g.createLinearGradient(...local(nx*low,ny*low),...local(nx*(low+span),ny*(low+span)));
+    const positions = new Set(goldPalette.map(stop=>stop[0]));
+    for(let i=0;i<=16;i++) positions.add(i/16);
+    for(const offset of [-140,-90,-65,-40,-25,-12,0,12,25,40,65,90,140]) {
+      const u = (goldSweep(t)+offset-low)/span;
+      if(u>0&&u<1) positions.add(u);
+    }
+    for(const u of [...positions].sort((a,b)=>a-b)) {
+      let k=1; while(k<goldPalette.length-1&&goldPalette[k][0]<u) k++;
+      const [a,A]=goldPalette[k-1], [b,B]=goldPalette[k];
+      const v=(u-a)/(b-a), reflection=goldReflection(low+u*span,t);
+      const rgb=A.map((c,i)=>{
+        const metal=c+(B[i]-c)*v;
+        const laid=[112,77,29][i]+(metal-[112,77,29][i])*(.5+.5*phase(t,.12,.46));
+        return Math.round(laid+([255,255,241][i]-laid)*reflection);
+      });
+      gradient.addColorStop(u,`rgb(${rgb.join(',')})`);
+    }
+    return gradient;
+  }
+  function gilt(p, width, t, length = 3000, progress = 1, x = 200, y = 200, w = 1300) {
+    if (progress <= 0) return;
+    g.save(); g.lineJoin = 'round'; g.lineCap = 'round';
+    g.setLineDash(progress < 1 ? [length * progress, length * 2] : []);
+    if (width >= 3) {
+      g.shadowColor = 'rgba(56,31,10,.34)'; g.shadowBlur = 2.8;
+      g.shadowOffsetX = 1.1; g.shadowOffsetY = 2;
+    }
+    g.strokeStyle = '#39210b'; g.lineWidth = width + 1.7; g.stroke(p);
+    g.shadowColor = 'transparent'; g.shadowBlur = 0; g.shadowOffsetX = 0; g.shadowOffsetY = 0;
+    g.strokeStyle = gold(x, y, w, t); g.lineWidth = width; g.stroke(p);
+    g.save(); g.translate(-0.65, -.85); g.strokeStyle = '#fff3bb';
+    g.lineWidth = Math.max(0.65, width * 0.21); g.stroke(p); g.restore();
+    if (width >= 3) {
+      // Tiny punched depressions with raised lower rims in the metal.
+      const dots = [];
+      for (let d = 0; d < length * progress - 7; d += 7) dots.push(.025, 6.975);
+      dots.push(.025, length * 3);
+      g.setLineDash(dots); g.lineWidth = 1.35; g.strokeStyle = 'rgba(86,51,12,.58)'; g.stroke(p);
+      g.translate(.3, .6); g.lineWidth = .7; g.strokeStyle = '#ffe3a0'; g.stroke(p);
+    }
+    g.restore();
+  }
+  function star(x, y, r, fill, points = 8) {
+    g.beginPath();
+    for (let i = 0; i < points * 2; i++) {
+      const a = -Math.PI / 2 + i * Math.PI / points;
+      const q = i % 2 ? r * 0.4 : r;
+      const X = x + Math.cos(a) * q, Y = y + Math.sin(a) * q;
+      if (i === 0) g.moveTo(X, Y); else g.lineTo(X, Y);
+    }
+    g.closePath(); g.fillStyle = fill; g.fill();
+    g.strokeStyle = '#664623'; g.lineWidth = 0.7; g.stroke();
+  }
+
+  // The paper and mineral grain are generated once, from fixed seeds.
+  const paper = surface(W, H), pg = paper.getContext('2d');
+  const prng = rng(144159);
+  const paperLight = pg.createRadialGradient(1040, 460, 130, 920, 560, 1180);
+  paperLight.addColorStop(0, '#f3e6c8'); paperLight.addColorStop(0.62, '#e8d4aa');
+  paperLight.addColorStop(1, '#b58c54'); pg.fillStyle = paperLight; pg.fillRect(0, 0, W, H);
+  for (let i = 0; i < 62000; i++) {
+    const x = prng() * W, y = prng() * H, a = 0.015 + prng() * 0.055;
+    pg.strokeStyle = `rgba(89,63,35,${a})`; pg.lineWidth = 0.35 + prng() * 0.8;
+    pg.beginPath(); pg.moveTo(x, y); pg.lineTo(x + prng() * 8 - 4, y + prng() * 2.5); pg.stroke();
+  }
+  for (let i = 0; i < 14000; i++) {
+    pg.fillStyle = i % 2 ? 'rgba(255,248,219,.15)' : 'rgba(86,56,27,.05)';
+    pg.fillRect(prng() * W, prng() * H, 0.6 + prng() * 1.3, 0.6 + prng() * 1.3);
+  }
+  for (let i = 0; i < 460; i++) {
+    let x = prng() * W, y = prng() * H;
+    if (i % 3) { if (i % 2) x = prng() < 0.5 ? prng() * 100 : W - prng() * 100;
+      else y = prng() < 0.5 ? prng() * 80 : H - prng() * 80; }
+    const r = 1.2 + prng() * 13;
+    const stain = pg.createRadialGradient(x, y, 0, x, y, r);
+    stain.addColorStop(0, 'rgba(116,61,21,.13)'); stain.addColorStop(0.5, 'rgba(128,75,32,.06)');
+    stain.addColorStop(1, 'rgba(128,75,32,0)'); pg.fillStyle = stain;
+    pg.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  // Soft gutter, edge wear and shallow undulations in the vellum.
+  for (const [x, w, a] of [[14, 25, .21], [66, 65, .035], [1885, 40, .11]]) {
+    const fold = pg.createLinearGradient(x - w, 0, x + w, 0);
+    fold.addColorStop(0, 'rgba(63,34,14,0)'); fold.addColorStop(.5, `rgba(63,34,14,${a})`);
+    fold.addColorStop(1, 'rgba(63,34,14,0)'); pg.fillStyle = fold; pg.fillRect(x - w, 0, w * 2, H);
+  }
+  for (let x = 0; x < W; x += 3) {
+    const edge = 3 + prng() * 4;
+    pg.fillStyle = '#86643d'; pg.fillRect(x, 0, 3, edge); pg.fillRect(x, H - edge, 3, edge);
+    pg.fillStyle = 'rgba(255,246,215,.36)'; pg.fillRect(x, edge, 3, 1);
+  }
+  const grain = surface(256, 256), gg = grain.getContext('2d'), grng = rng(731);
+  for (let i = 0; i < 9500; i++) {
+    gg.fillStyle = i % 3 ? 'rgba(22,24,26,.14)' : 'rgba(255,237,181,.13)';
+    gg.fillRect(grng() * 256, grng() * 256, 0.5 + grng() * 1.5, 0.5 + grng() * 1.5);
+  }
+  for (let i = 0; i < 65; i++) {
+    const x = grng()*256, y = grng()*256, r = 5 + grng()*28;
+    const stain = gg.createRadialGradient(x, y, 0, x, y, r);
+    stain.addColorStop(0, i % 2 ? 'rgba(57,37,19,.085)' : 'rgba(255,238,182,.08)');
+    stain.addColorStop(1, 'rgba(57,37,19,0)');
+    gg.fillStyle = stain; gg.fillRect(x-r, y-r, r*2, r*2);
+  }
+  const mineral = g.createPattern(grain, 'repeat');
+  const cracks = Array.from({ length: 155 }, () => {
+    const x = grng() * 520 - 260, y = grng() * 520 - 260;
+    return [x, y, x + grng() * 9 - 3, y + grng() * 11 - 4];
+  });
+
+  function bloomLayer(size, seed) {
+    const painting = surface(size, size), mask = surface(size, size);
+    const mg = mask.getContext('2d'), pixels = mg.createImageData(size, size);
+    const arrival = new Float32Array(size * size), random = rng(seed);
+    const phases = Array.from({length:5}, () => random() * TAU);
+    // Fixed coarse and fine capillary noise, not a moving circular clip edge.
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+      const dx = x-size/2, dy = y-size/2, a = Math.atan2(dy, dx);
+      const r = Math.hypot(dx, dy)/(size*.44);
+      const capillary = .10*Math.sin(a*5+phases[0]) + .06*Math.sin(a*9+phases[1]) + .025*Math.sin(a*23+phases[2]);
+      const fibre = .019*Math.sin(x*.18+phases[3])*Math.sin(y*.13+phases[4]) + .012*(random()-.5);
+      const i = y*size+x;
+      arrival[i] = r*(1+capillary) + fibre;
+      pixels.data[i*4] = pixels.data[i*4+1] = pixels.data[i*4+2] = 255;
+    }
+    return {painting, mask, mg, pixels, arrival, size};
+  }
+  const lobeBloom = bloomLayer(640, 819);
+  const miniatureBlooms = [271, 379, 541, 661].map(seed => bloomLayer(320, seed));
+  function bloomPaint(x, y, layer, p, paint) {
+    if (p <= 0) return;
+    const parent = g, oldOrigin = layerOrigin;
+    const {painting, mask, mg, pixels, arrival, size} = layer;
+    g = painting.getContext('2d'); layerOrigin = [x-size/2, y-size/2];
+    g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,size,size);
+    g.save(); g.translate(size/2,size/2); g.lineCap = 'round'; g.lineJoin = 'round';
+    paint(); g.restore();
+    if (p < 1) {
+      for (let i = 0; i < arrival.length; i++) {
+        // A 20–40 px feather, with irregular lobes and dry fibre pinholes.
+        pixels.data[i*4+3] = Math.round(255 * ease(clamp((p*1.38-arrival[i])/.16)));
+      }
+      mg.putImageData(pixels, 0, 0);
+      g.save(); g.globalCompositeOperation = 'destination-in'; g.drawImage(mask,0,0); g.restore();
+    }
+    g = parent; layerOrigin = oldOrigin;
+    g.drawImage(painting, x-size/2, y-size/2);
+  }
+
+  function leaf(x, y, a, size, pigment, t) {
+    g.save(); g.translate(x, y); g.rotate(a);
+    if (['#ccac63','#dcc077','#b69240','#cba75a'].includes(pigment)) pigment = gold(-size,-size,size*3,t);
+    path(`M0 0 C${-size * .5} ${-size * .4},${-size * .32} ${-size},0 ${-size * 1.25} C${size * .45} ${-size * .7},${size * .4} ${-size * .15},0 0`, pigment, '#735a2f', 1);
+    path(`M0 0 Q${size * .08} ${-size * .6},0 ${-size * 1.1}`, null, gold(-size, -size, size * 3, t), 1.4);
+    g.restore();
+  }
+  function flower(x, y, r, t, color = BLUE) {
+    for (let i = 0; i < 6; i++) {
+      const a = i * TAU / 6;
+      ellipse(x + Math.cos(a) * r * .6, y + Math.sin(a) * r * .6, r * .44, r * .44, color, '#71552d', .7);
+    }
+    ellipse(x, y, r * .27, r * .27, gold(x - r, y - r, r * 2, t), INK, .7);
+  }
+  function border(t) {
+    g.save();
+    const frame = new Path2D('M36 38 H1884 V1042 H36 Z');
+    gilt(frame, 2.6, t, 6000);
+    g.strokeStyle = '#937444'; g.lineWidth = .7; g.strokeRect(44, 46, 1832, 988);
+    g.strokeRect(28, 30, 1864, 1020);
+    for (let x = 72; x < 1860; x += 48) {
+      for (const y of [38, 1042]) {
+        path(`M${x - 18} ${y} Q${x} ${y - 15} ${x + 18} ${y} Q${x} ${y + 15} ${x - 18} ${y}`, null, '#94703e', .75);
+        ellipse(x, y, 2.7, 2.7, x % 96 === 72 ? RED : BLUE);
+      }
+    }
+    for (let y = 90; y < 1010; y += 47) {
+      for (const x of [36, 1884]) {
+        path(`M${x} ${y - 18} Q${x + 14} ${y} ${x} ${y + 18} Q${x - 14} ${y} ${x} ${y - 18}`, null, '#94703e', .75);
+        ellipse(x, y, 2.6, 2.6, y % 94 === 90 ? BLUE : RED);
+      }
+    }
+    for (const [x, y, a] of [[58, 61, 0], [1862, 61, Math.PI / 2], [1862, 1019, Math.PI], [58, 1019, -Math.PI / 2]]) {
+      g.save(); g.translate(x, y); g.rotate(a);
+      const p = new Path2D('M0 77 C-4 29 62 49 39 12 C24 -12 10 24 26 24 C61 26 75 -6 92 0');
+      gilt(p, 2.3, t, 260, 1, 0, 0, 110);
+      leaf(16, 50, -.5, 17, GREEN, t); leaf(47, 33, .9, 20, BLUE, t);
+      flower(5, 9, 13, t, RED); g.restore();
+    }
+    g.restore();
+  }
+
+  const clover = new Path2D('M-110 -110 C-230 -330 230 -330 110 -110 C330 -230 330 230 110 110 C230 330 -230 330 -110 110 C-330 230 -330 -230 -110 -110 Z');
+  function quatrefoil(t) {
+    const outline = phase(t, 0, .38), fill = ease(phase(t, .06, .43));
+    bloomPaint(697, 601, lobeBloom, fill, () => {
+      g.clip(clover);
+      const sectors = [
+        ['M0 0 L-340 -340 H340 Z', BLUE],
+        ['M0 0 L340 -340 V340 Z', RED],
+        ['M0 0 L340 340 H-340 Z', GREEN],
+        ['M0 0 L-340 340 V-340 Z', gold(-330,-330,660,t)]
+      ];
+      for (const [d, color] of sectors) path(d, color, null);
+      g.strokeStyle = 'rgba(24,26,23,.23)'; g.lineWidth = 24; g.stroke(clover);
+      g.strokeStyle = 'rgba(31,27,21,.16)'; g.lineWidth = 8; g.stroke(clover);
+      const pooling = g.createRadialGradient(-65,-65,25,0,0,310);
+      pooling.addColorStop(0,'rgba(255,227,165,.12)');
+      pooling.addColorStop(.65,'rgba(42,32,23,0)'); pooling.addColorStop(1,'rgba(34,28,23,.2)');
+      g.fillStyle = pooling; g.fill(clover);
+      g.fillStyle = mineral; g.fillRect(-330, -330, 660, 660);
+      // Leaf-gold tesserae laid into each mineral pigment.
+      for (let k = 0; k < 4; k++) {
+        g.save(); g.rotate(k * Math.PI / 2);
+        for (const mirror of [-1, 1]) {
+          g.save(); g.scale(mirror, 1);
+          const scroll = new Path2D('M5 -39 C84 -70 122 -130 67 -188 C27 -232 -8 -171 30 -164 C67 -154 83 -199 38 -218');
+          gilt(scroll, 3, t, 650, 1, -220, -230, 440);
+          leaf(66, -110, .4, 25, '#ccac63', t); leaf(88, -145, -.7, 19, '#dcc077', t);
+          leaf(53, -204, .5, 17, '#b69240', t);
+          for (let j = 0; j < 6; j++) ellipse(20 + j * 10, -73 - j * 11, 1.8, 1.8, '#f0d988');
+          g.restore();
+        }
+        flower(0, -218, 13, t, k === 0 ? '#a04632' : '#294f65');
+        g.restore();
+      }
+      // Fine gold fractures never change with the frame.
+      for (const [x, y, x2, y2] of cracks) line(x, y, x2, y2, 'rgba(54,35,20,.2)', .65);
+    });
+    g.save(); g.translate(697, 601);
+    g.save(); g.setLineDash([2023 * outline, 4100]);
+    g.strokeStyle = '#59402b'; g.lineWidth = 11; g.stroke(clover);
+    g.restore();
+    gilt(clover, 7, t, 2023, phase(t, .10, .48), -265, -265, 530);
+    g.save(); g.scale(.946, .946);
+    gilt(clover, 1.5, t, 2023, phase(t, .14, .49), -265, -265, 530); g.restore();
+    if (fill > .2) {
+      g.save();
+      star(0, 0, 47, gold(-47, -47, 94, t));
+      star(0, 0, 32, '#ead6a4'); star(0, 0, 19, BLUE);
+      ellipse(0, 0, 5, 5, '#e9c765'); g.restore();
+    }
+    g.restore();
+  }
+
+  function bezierPoints(points, n = 100) {
+    const out = [];
+    for (let segment = 0; segment < (points.length - 1) / 3; segment++) {
+      const [a, b, c, d] = points.slice(segment * 3, segment * 3 + 4);
+      for (let i = 0; i <= n; i++) {
+        const p = i / n, q = 1 - p;
+        out.push([q*q*q*a[0] + 3*q*q*p*b[0] + 3*q*p*p*c[0] + p*p*p*d[0], q*q*q*a[1] + 3*q*q*p*b[1] + 3*q*p*p*c[1] + p*p*p*d[1]]);
+      }
+    }
+    return out;
+  }
+  const vines = [
+    { color: '#a18436', points: bezierPoints([[470, 535], [391, 518], [462, 356], [375, 280]]) },
+    { color: BLUE, points: bezierPoints([[719, 359], [718, 221], [867, 141], [954, 200]]) },
+    { color: RED, points: bezierPoints([[916, 489], [1060, 440], [1248, 529], [1340, 424], [1399, 357], [1378, 242], [1475, 245]]) },
+    { color: GREEN, points: bezierPoints([[596, 809], [544, 898], [479, 839], [443, 790]]) }
+  ];
+  function vine(v, t, index) {
+    const growth = Math.pow(phase(t, .36 + index * .012, 1.05 + index * .012), .72);
+    const stop = Math.floor(growth * (v.points.length - 1));
+    if (stop < 1) return;
+    const p = new Path2D(); p.moveTo(...v.points[0]);
+    for (let j = 1; j <= stop; j++) p.lineTo(...v.points[j]);
+    gilt(p, 4.2, t, 3000);
+    for (let j = 17; j < stop; j += 22) {
+      const [x, y] = v.points[j], [nx, ny] = v.points[j + 1];
+      const angle = Math.atan2(ny - y, nx - x), side = (j % 44 === 17) ? 1 : -1;
+      const leafProgress = ease(clamp((stop - j) / 13));
+      leaf(x, y, angle + side * .8, 24 * leafProgress, v.color, t);
+      g.save(); g.translate(x, y); g.rotate(angle); g.scale(leafProgress, leafProgress * side);
+      gilt(new Path2D('M0 0 C17 -17 38 -15 38 1 C38 17 15 15 22 4 C26 -2 32 1 29 5'), 1.4, t, 150, 1, 0, 0, 60);
+      g.restore();
+    }
+    if (growth > .92) flower(...v.points[v.points.length - 1], 7 * phase(growth, .92, 1), t, v.color);
+  }
+
+  const letterMetrics = new Map();
+  // Whole glyphs are deposited, never cropped. Newly written ink has a dark,
+  // slightly heavier wet edge that dries over the next fraction of a second.
+  function lettering(text, x, baseline, size, color, t, start, end, options = {}) {
+    if (t < start) return;
+    g.save(); g.font = `${options.bold ? 'bold ' : ''}${size}px ${serif}`;
+    const key = `${g.font}|${text}`;
+    if (!letterMetrics.has(key)) {
+      letterMetrics.set(key, {
+        width:g.measureText(text).width,
+        offsets:Array.from(text, (ch,i) => g.measureText(text.slice(0,i+1)).width-g.measureText(ch).width)
+      });
+    }
+    const {width, offsets} = letterMetrics.get(key), left = options.left ? x : x-width/2;
+    g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    for (let i = 0; i < text.length; i++) {
+      const birth = start + i / Math.max(1,text.length-1) * (end-start-.04);
+      if (t < birth || text[i] === ' ') continue;
+      const wet = 1-phase(t,birth,birth+.14), X = left+offsets[i];
+      if (options.initial && i === 0) {
+        // (a shadow-offset stroke under the initial made it read as a ghosted double "A"; removed)
+        g.save();
+        g.fillStyle = gold(X,baseline-size*.78,g.measureText(text[i]).width,t,size*.8); g.fillText(text[i],X,baseline);
+        g.strokeStyle = '#4a2f12'; g.lineWidth = 2.2; g.strokeText(text[i],X,baseline); // keep the A legible under the glint
+        g.restore();
+      } else {
+        g.fillStyle = color; g.fillText(text[i],X,baseline);
+        if (wet > 0) {
+          g.strokeStyle = `rgba(37,18,15,${wet*.85})`;
+          g.lineWidth = .9*wet; g.strokeText(text[i],X,baseline);
+        }
+      }
+    }
+    g.restore();
+  }
+  function ribbon(text, x, y, t, start, end) {
+    if (t < start-.035) return;
+    g.save(); g.font = `48px ${serif}`;
+    const w = g.measureText(text).width + 29;
+    const d = `M${x-w/2} ${y-46} Q${x} ${y-51} ${x+w/2} ${y-46} L${x+w/2-7} ${y-18} L${x+w/2+5} ${y+12} Q${x} ${y+5} ${x-w/2-5} ${y+12} L${x-w/2+7} ${y-18} Z`;
+    g.shadowColor = 'rgba(49,31,16,.2)'; g.shadowBlur = 5; g.shadowOffsetY = 3;
+    path(d, '#ead9b2', '#88652c', 1.4); g.shadowBlur = 0; g.shadowOffsetY = 0;
+    path(`M${x-w/2+10} ${y-42} Q${x} ${y-46} ${x+w/2-10} ${y-42}`, null, '#fff1ce', 1.5);
+    g.fillStyle = mineral; g.fill(new Path2D(d)); g.restore();
+    lettering(text, x, y, 48, RED, t, start, end);
+  }
+
+  function hatch(x, y, w, h, color = 'rgba(55,33,20,.25)', spacing = 7) {
+    g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+    for (let j = -h; j < w + h; j += spacing) line(x+j, y+h, x+j+h*.65, y, color, .8);
+    g.restore();
+  }
+  function mathematical(t) {
+    const divide = ease(phase(t, 1.25, 1.72));
+    // Each lower row partitions the same musical span. These are visual examples.
+    path('M-115 88 Q0 113 114 88 L114 101 Q0 124 -115 101 Z', '#936e36', '#654a28', 1.3);
+    for (let row = 0; row < 3; row++) {
+      const y = -65 + row * 66;
+      const parts = 2 ** row, gap = row === 0 ? 0 : 9 * divide;
+      const width = 218 / parts;
+      for (let j = 0; j < parts; j++) {
+        const x = -109 + j * width;
+        const bar = new Path2D(`M${x+gap/2} ${y} L${x+width-gap/2} ${y} L${x+width-gap/2} ${y+33} Q${x+width/2} ${y+37} ${x+gap/2} ${y+33} Z`);
+        g.save(); g.shadowColor = 'rgba(74,47,15,.3)'; g.shadowBlur = 2;
+        g.shadowOffsetX = .8; g.shadowOffsetY = 1.8;
+        g.fillStyle = gold(x+gap/2,y,width-gap,t,35); g.fill(bar); g.restore();
+        g.strokeStyle = '#594422'; g.lineWidth = 2; g.stroke(bar);
+        line(x+gap/2+2, y+3, x+width-gap/2-2, y+3, '#fae8a6', 2);
+        hatch(x+3+gap/2, y+23, width-gap-6, 10, 'rgba(70,39,16,.24)', 5);
+        ellipse(x+width/2, y+16, 3.3, 3.3, '#745721');
+        for (let dot = x+gap/2+8; dot < x+width-gap/2-5; dot += 8) {
+          ellipse(dot,y+8,.95,.95,'#876022');
+          ellipse(dot+.35,y+8.7,.55,.55,'#ffe7a0');
+        }
+      }
+      if (row < 2) {
+        const yy = y + 40;
+        for (let j = 0; j < parts; j++) {
+          const xx = -109 + (j + .5) * width;
+          path(`M${xx} ${yy} L${xx} ${yy+5} M${xx} ${yy+5} Q${xx-width*.23} ${yy+8} ${xx-width*.25} ${yy+18} M${xx} ${yy+5} Q${xx+width*.23} ${yy+8} ${xx+width*.25} ${yy+18}`, null, BLUE, 1.5 * divide + .1);
+        }
+      }
+    }
+    path('M-105 -95 Q-75 -117 -42 -101 M-101 -92 Q-73 -110 -45 -97 M48 -101 Q78 -117 107 -95', null, '#8d6c35', 1.1);
+  }
+  function calmingLine(t) {
+    const calm = ease(phase(t,1.3,2.2));
+    return Array.from({length:145},(_,j)=>{
+      const u=j/144;
+      const jagged=(2/Math.PI)*Math.asin(Math.sin(u*TAU*6))*42;
+      const wave=Math.sin(u*TAU*1.15-(t-1.3)*1.25)*16;
+      return [5+u*116,-20+jagged*(1-calm)+wave*calm];
+    });
+  }
+  function psychological(t) {
+    ellipse(-40, 105, 69, 9, 'rgba(95,67,33,.12)');
+    // Cross-legged student, with visible hands, school shirt and cloth folds.
+    path('M-76 27 C-78 58 -113 71 -99 87 Q-76 104 -40 82 Q-9 105 18 89 C31 70 -4 62 -9 31 Z', '#345974', '#403d32', 2);
+    path('M-66 -14 Q-39 -26 -17 -9 L1 50 Q-36 66 -82 47 Z', '#ddd4ad', '#554c36', 2);
+    path('M-54 -18 L-41 3 L-29 -17 M-41 3 L-39 43 M-69 4 L-77 31 M-14 1 L-7 31', null, '#746c54', 1.5);
+    path('M-71 9 Q-81 31 -91 41 Q-91 50 -80 48 L-61 21 M-12 8 Q-4 27 8 39 Q11 48 0 49 L-25 22', '#b8845d', '#62452f', 1.6);
+    ellipse(-44, -44, 23, 29, '#bd8960', '#654731', 1.7);
+    path('M-66 -44 Q-75 -76 -44 -78 Q-12 -77 -21 -43 L-28 -58 Q-49 -51 -60 -61 Z', '#332f2a', '#332f2a', 1.2);
+    path('M-60 -41 Q-54 -44 -49 -41 M-40 -42 Q-33 -45 -28 -42 M-44 -40 L-46 -30 L-41 -29 M-50 -20 Q-42 -16 -35 -21', null, '#563c29', 1.2);
+    path('M-86 75 Q-59 68 -35 84 M-13 76 L-37 88 M-69 27 L-64 44 M-54 18 L-51 42', null, '#49606a', 1.1);
+    const p = new Path2D();
+    calmingLine(t).forEach(([x,y],j)=>{ if(j===0) p.moveTo(x,y); else p.lineTo(x,y); });
+    // Twice the former vertical span and nib weight; the student remains in
+    // place, with the enlarged lapis line occupying the open space beside them.
+    g.strokeStyle = '#17364e'; g.lineWidth = 6.2; g.stroke(p);
+    g.strokeStyle = '#225a91'; g.lineWidth = 5.2; g.stroke(p);
+    path('M29 36 Q73 52 113 35 M37 43 Q76 57 106 44', null, '#a8873a', 1.1);
+    leaf(86, 67, .6, 24, GREEN, t); leaf(85, 67, -.5, 20, GREEN, t);
+  }
+  function pedagogical(t) {
+    // A continuous gold band links the open book and the frame drum.
+    const band = new Path2D('M-88 32 C-140 95 -4 121 63 60 C109 20 13 -4 -35 44');
+    gilt(band, 8, t, 500, 1, -120, 0, 245);
+    path('M-111 -63 Q-72 -79 -32 -49 Q-3 -67 29 -48 L19 43 Q-9 25 -40 45 Q-75 20 -115 28 Z', '#80523b', '#583d2b', 2);
+    path('M-108 -71 Q-69 -83 -31 -56 Q-3 -74 25 -55 L16 33 Q-8 15 -39 37 Q-73 9 -110 20 Z', '#f0e2bb', '#594a32', 1.8);
+    path('M-31 -56 Q-34 -10 -39 37 M-108 -64 Q-71 -76 -37 -52 M-105 13 Q-73 4 -44 27 M-29 -49 Q-5 -65 20 -50', null, '#a7884e', 1.4);
+    // Decorative page ruling only: no invented script or extra text.
+    for (let i = 0; i < 6; i++) {
+      path(`M-98 ${-48+i*9} Q-71 ${-55+i*9} -46 ${-36+i*9}`, null, i === 0 ? RED : '#a99671', i === 0 ? 2.5 : 1);
+      path(`M-22 ${-42+i*9} Q-6 ${-51+i*9} 12 ${-41+i*9}`, null, i === 0 ? RED : '#a99671', i === 0 ? 2.3 : 1);
+    }
+    g.save(); g.translate(69, 25); g.rotate(-.2);
+    ellipse(4, 8, 51, 62, '#78412e', '#473629', 2);
+    ellipse(0, 0, 51, 62, gold(-51, -62, 122, t), '#594328', 2);
+    ellipse(0, 0, 44, 55, '#d5b886', '#855f35', 1.5);
+    ellipse(-3, -3, 39, 49, '#e0c79b', '#b99a62', .8);
+    for (let a = 0; a < TAU; a += Math.PI / 6) {
+      line(Math.cos(a)*47, Math.sin(a)*58, Math.cos(a)*50+4, Math.sin(a)*60+8, '#e8d49b', 2);
+      ellipse(Math.cos(a)*47, Math.sin(a)*58, 1.7, 1.7, INK);
+    }
+    hatch(-29, 28, 57, 15, 'rgba(128,91,45,.1)', 4); g.restore();
+  }
+  function singer(x, y, color, alternate) {
+    g.save(); g.translate(x, y);
+    path('M-11 10 Q-19 20 -23 34 Q-10 42 0 32 Q14 43 26 32 L10 9 Z', color, '#4c4332', 1);
+    path('M-10 -6 Q0 -11 10 -5 L16 23 Q0 29 -15 23 Z', color, '#4c4332', 1);
+    ellipse(0, -18, 9.5, 12, '#bc885e', '#5e4431', 1);
+    if (alternate) path('M-11 -19 Q-14 -39 3 -32 Q14 -30 13 -10 L8 -4 L7 -24 Q-2 -20 -11 -19 Z', '#cbb77d', '#5e4431', 1);
+    else path('M-9 -25 L-8 -35 Q0 -39 9 -34 L10 -24 Z', '#353b37', '#39342c', 1);
+    path('M-10 0 L-15 10 L-4 15 M10 1 L16 9 L4 15', null, '#c99c73', 4);
+    path('M-5 -18 L-3 -18 M3 -18 L5 -18 M-2 -12 Q0 -10 3 -12', null, '#4f3525', .8);
+    line(-4, 15, 4, 15, '#5e4431', .8); g.restore();
+  }
+  function cosmological(t) {
+    const ring = new Path2D(); ring.ellipse(0, -19, 115, 99, 0, 0, TAU);
+    gilt(ring, 2, t, 750, 1, -120, -120, 240);
+    for (let i = 0; i < 13; i++) {
+      const a = Math.PI + i * Math.PI / 12;
+      star(Math.cos(a)*114, -19 + Math.sin(a)*99, i % 2 ? 4 : 6, gold(-110, -110, 220, t), 6);
+    }
+    // Dikir barat singers form one seated ensemble, above a bonang rack.
+    const shades = ['#7b8b68', '#a34735', '#355b72', '#b79b53', '#426b54'];
+    for (let i = 0; i < 5; i++) singer(-82 + i*41, -34 + Math.abs(i-2)*7, shades[i], i % 2);
+    path('M-115 37 L106 37 L117 89 L-108 89 Z', '#965036', '#59452c', 2);
+    path('M-111 41 L101 41 L109 77 L-105 77 Z', '#324c48', '#d0a957', 2);
+    path('M-105 89 L-105 105 L-96 105 L-94 90 M98 89 L100 105 L110 105 L108 89', '#855235', '#59452c', 1.5);
+    for (let row = 0; row < 2; row++) for (let j = 0; j < 5; j++) {
+      const x = -88 + j*43 + row*4, y = 48 + row*24;
+      ellipse(x, y+3, 18, 8, '#795924', '#4c3a25', 1);
+      ellipse(x, y, 18, 7, gold(x-19, y-10, 40, t), '#6e5228', .8);
+      ellipse(x,y-2,5.5,4.7,gold(x-6,y-7,12,t,10),'#654017',.9);
+      if (t > 1.6) {
+        const cycle=(t*1.45+j*.17+row*.29)%1;
+        const radius=5+13*cycle;
+        const brightness=Math.sin(Math.PI*cycle)*.8*phase(t,1.6,1.85);
+        ellipse(x,y-.7,radius,radius*.36,null,`rgba(255,249,203,${brightness})`,1.3);
+        const arc=new Path2D();
+        arc.ellipse(x,y-.7,16,5.6,0,t*1.8+j,t*1.8+j+1.4);
+        g.strokeStyle=`rgba(255,252,222,${.35+brightness*.55})`;g.lineWidth=1;g.stroke(arc);
+      }
+    }
+    for (let j = 0; j < 11; j++) leaf(-98+j*19, 86, Math.PI/2, 6, '#cba75a', t);
+  }
+
+  const miniatures = [
+    { x:244, y:232, color:'#a5863c', draw:mathematical, label:['Fractions, ratios &', 'proportions'], lx:244, ly:418 },
+    { x:1090, y:194, color:BLUE, draw:cosmological, label:['Local heritage in the curriculum:', 'gamelan, dikir barat'], lx:1090, ly:367 },
+    { x:1615, y:232, color:RED, draw:psychological, label:['Managing emotions,', 'building confidence'], lx:1615, ly:418 },
+    { x:300, y:784, color:GREEN, draw:pedagogical, label:['Theory integrated', 'with practice'], lx:300, ly:970 }
+  ];
+  function miniature(m, t, i) {
+    const p = ease(phase(t, .78+i*.035, 1.52+i*.035));
+    const pen = ease(phase(t,.56+i*.04,1.22+i*.04));
+    bloomPaint(m.x,m.y,miniatureBlooms[i],p,() => {
+      g.beginPath(); g.arc(0,0,138,0,TAU); g.clip();
+      const wash = g.createRadialGradient(-42,-42,10,0,0,145);
+      wash.addColorStop(0,'#f1e4be'); wash.addColorStop(.72,'#e2cc9f');
+      wash.addColorStop(.91,'#d2b987'); wash.addColorStop(1,'#b49968');
+      g.fillStyle = wash; g.fillRect(-145,-145,290,290);
+      m.draw(t); g.fillStyle = mineral; g.fillRect(-140,-140,280,280);
+      const pool = g.createRadialGradient(0,0,111,0,0,138);
+      pool.addColorStop(0,'rgba(71,53,30,0)'); pool.addColorStop(1,'rgba(71,53,30,.16)');
+      g.fillStyle = pool; g.fillRect(-140,-140,280,280);
+    });
+    g.save(); g.translate(m.x,m.y);
+    // The quill travels clockwise; neither the frame nor its inner ruling
+    // participates in the pigment mask.
+    const ring = new Path2D(); ring.arc(0,0,144,-Math.PI/2,Math.PI*1.5);
+    gilt(ring,4.5,t,906,pen,-150,-150,300);
+    if (pen > 0) {
+      const inner = new Path2D(); inner.arc(0,0,134,-Math.PI/2,-Math.PI/2+TAU*pen);
+      quill(inner,m.color,1.6);
+      const innerGold = new Path2D(); innerGold.arc(0,0,128,-Math.PI/2,-Math.PI/2+TAU*pen);
+      gilt(innerGold,.8,t,850,1,-150,-150,300);
+      for (let j = 0; j < 64*pen; j++) {
+        const a = -Math.PI/2+j*TAU/64;
+        ellipse(Math.cos(a)*131,Math.sin(a)*131,1,1,'#8a6934');
+      }
+    }
+    for (let k = 0; k < 4; k++) {
+      const a = -Math.PI/2+k*Math.PI/2;
+      if (pen > k/4) flower(Math.cos(a)*145, Math.sin(a)*145, 6, t, m.color);
+    }
+    g.restore();
+    for (let j = 0; j < m.label.length; j++) lettering(m.label[j],m.lx,m.ly+j*38,34,INK,t,.94+j*.09+i*.015,1.48+j*.08);
+  }
+
+  function titleGlow() {
+    // An elliptical parchment glow fades to zero on every edge. It is part
+    // of the paper lighting, below the drawing, and has no rectangular seam.
+    g.save(); g.translate(1535,617); g.scale(1,.60);
+    const glow = g.createRadialGradient(0,0,0,0,0,430);
+    glow.addColorStop(0,'rgba(245,231,199,.52)');
+    glow.addColorStop(.42,'rgba(242,227,193,.36)');
+    glow.addColorStop(.73,'rgba(241,226,191,.13)');
+    glow.addColorStop(1,'rgba(241,226,191,0)');
+    g.fillStyle = glow; g.fillRect(-431,-431,862,862); g.restore();
+  }
+  function title(t) {
+    const p = phase(t,.6,1.4);
+    if (p <= 0) return;
+    g.save();
+    const flourish = new Path2D('M1282 479 H1459 C1472 479 1471 462 1460 466 C1451 471 1469 489 1482 476 C1495 462 1512 477 1501 483 C1494 487 1488 478 1497 476 H1794');
+    gilt(flourish, 1.5, t, 650, p, 1280, 470, 520);
+    const lines = ["Al-Farabi's four", 'musical dimensions,', 'for Malaysian', 'classrooms'];
+    const times = [[.6,.81],[.78,1.05],[1.02,1.24],[1.20,1.40]];
+    for (let i = 0; i < lines.length; i++) {
+      lettering(lines[i],1274,547+i*63,58,i === 3 ? RED : INK,t,...times[i],{left:true,initial:i === 0});
+    }
+    g.restore();
+  }
+
+  function render(time) {
+    const t = Math.max(0, Math.min(3, time));
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalAlpha = 1; g.lineCap = 'round'; g.lineJoin = 'round';
+    g.drawImage(paper, 0, 0); titleGlow(); border(t);
+    quatrefoil(t);
+    vines.forEach((v, i) => vine(v, t, i));
+    miniatures.forEach((m, i) => miniature(m, t, i));
+    ribbon('COSMOLOGICAL', 697, 407, t, .10, .45);
+    ribbon('MATHEMATICAL', 436, 594, t, .16, .49);
+    ribbon('PSYCHOLOGICAL', 976, 594, t, .28, .66);
+    ribbon('PEDAGOGICAL', 697, 816, t, .39, .78);
+    title(t);
+  }
+
+  const query = new URLSearchParams(location.search);
+  const requestedTime = query.has('t') ? Number(query.get('t')) : null;
+  const frozen = requestedTime !== null && Number.isFinite(requestedTime);
+  const frozenTime = frozen ? Math.max(0, Math.min(3, requestedTime)) : 0;
+  let latestTime = frozenTime;
+  // Freeze mode never reads a wall clock or schedules an animation frame.
+  render(latestTime);
+  if (!frozen) {
+    let epoch;
+    const tick = timestamp => {
+      if (epoch === undefined) epoch = timestamp;
+      latestTime = Math.min(3, (timestamp - epoch) / 1000);
+      render(latestTime);
+      if (latestTime < 3) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  // Only system fonts: zero network dependencies. Font readiness redraws the
+  // identical time, including a frozen capture; measurements follow the font.
+  if (document.fonts) {
+    document.fonts.ready.then(() => {
+      if (!document.fonts.check('16px Georgia')) serif = '"Times New Roman", serif';
+      render(latestTime);
+    }).catch(() => { serif = '"Times New Roman", serif'; render(latestTime); });
+  }
+})();
+</script>
+</body>
+</html>

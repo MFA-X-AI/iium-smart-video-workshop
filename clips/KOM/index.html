@@ -1,0 +1,249 @@
+<!doctype html>
+<!--
+PAPER: Zamani et al., BJMS 20(3), 380–390 (2026), supplied KOM PDF.
+After 24 h lemon essential oil exposure, cultured A431 cancer cells showed
+shrinkage, membrane blebbing and detachment. Normal HFF1 fibroblasts showed
+milder morphological changes; they were not immune to treatment.
+ARTISTIC LICENCE: separately cultured cell types are COMPOSITED side by side
+for comparison, not shown as a demonstrated co-culture experiment. Radiographic
+density, internal anatomy, giant droplet, particle delivery, cell numbers,
+relative deformation, displacement and timing are illustrative. This is not
+an actual X-ray or fluorescence dataset. A 24 h response is compressed into
+3 s. Blebs remain attached; no cell explosion, eradication or clinical claim.
+No TP53-mediated causal pathway is asserted.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KOM — Lemon oil stresses skin cancer cells</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050b12;color:#e7f0f2}
+body{font-family:Arial,Helvetica,sans-serif}
+#stage{position:absolute;inset:0;overflow:hidden}
+canvas{display:block;width:100%;height:100%}
+.scrim{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 10% 54%,#040a11f2 0%,#040a11d0 20%,#040a1100 47%),linear-gradient(0deg,#040a11c0,transparent 27%)}
+.title{position:absolute;left:4.6%;top:51%;transform:translateY(-50%);width:34%;pointer-events:none}
+h1{font-size:clamp(28px,4.3vw,96px);font-weight:400;letter-spacing:-.045em;line-height:1.045;margin:0}
+h1 span{display:block}
+.context{margin:1.8vw 0 0;font:400 clamp(11px,1.23vw,26px)/1.5 Arial,sans-serif;color:#a9bdc7}
+.film{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 5vw #01070c55}
+#failure{display:none;position:absolute;right:9%;top:35%;width:35%;line-height:1.5;color:#b8c9d1}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<main id="stage" aria-label="Artistic comparison of separately cultured cell types: lemon oil exposure causes pronounced blebbing and detachment in skin cancer cells, with milder changes in a normal spindle-shaped fibroblast.">
+<div class="scrim"></div>
+<div class="title">
+  <h1><span>Lemon oil</span><span>stresses skin</span><span>cancer cells</span></h1>
+  <p class="context">Lab study: normal cells less affected.</p>
+</div>
+<div class="film"></div>
+<p id="failure">This visualization requires WebGL and access to jsDelivr.</p>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+const stage=document.getElementById('stage'),scene=new THREE.Scene();
+const camera=new THREE.OrthographicCamera(-7.1111,7.1111,4,-4,.1,70);
+camera.position.set(0,0,24);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.25));
+renderer.setClearColor(0x050b12,1);renderer.outputColorSpace=THREE.LinearSRGBColorSpace;
+stage.prepend(renderer.domElement);renderer.domElement.setAttribute('aria-hidden','true');
+renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();document.getElementById('failure').style.display='block';});
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(1920,1080),.68,.72,.40));
+const film=new ShaderPass({
+ uniforms:{tDiffuse:{value:null},uTime:{value:0}},
+ vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+ fragmentShader:`uniform sampler2D tDiffuse;uniform float uTime;varying vec2 vUv;
+ float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+ void main(){vec3 c=texture2D(tDiffuse,vUv).rgb;
+ float grain=hash(gl_FragCoord.xy+floor(uTime*12.0))-0.5;
+ float broad=hash(floor(gl_FragCoord.xy/2.0)+floor(uTime*12.0))-0.5;
+ float vignette=1.0-.22*pow(length(vUv-.5)*1.4,1.5);
+ c=vec3(1.0)-exp(-c*1.18);c=pow(max(c,vec3(0.0)),vec3(.93));
+ c=c*vignette+(grain*.032+broad*.009)*(.35+sqrt(max(c.r,0.0)));
+ gl_FragColor=vec4(c,1.0);}`
+});composer.addPass(film);
+
+let seed=5417;
+function rand(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;}
+const clamp=x=>Math.max(0,Math.min(1,x));
+const smooth=(a,b,x)=>{const v=clamp((x-a)/(b-a));return v*v*(3-2*v);};
+const mix=(a,b,t)=>a+(b-a)*t;
+const sphere=new THREE.SphereGeometry(1,128,80);
+const innerSphere=new THREE.SphereGeometry(1,48,32);
+
+// Radial intersection of a body and overlapping SPHERES, smoothly joined.
+// Unlike harmonic spikes, each bulge has a circular cap and rounded shoulders.
+const membraneVertex=`
+ uniform float uResponse,uSeed,uSpindle;uniform vec4 uBlebs[6];
+ varying vec3 vView,vLocal;
+ float smax(float a,float b,float k){float h=clamp(.5+.5*(a-b)/k,0.0,1.0);return mix(b,a,h)+k*h*(1.0-h);}
+ void main(){vec3 n=normalize(position);vec3 q;
+ if(uSpindle>.5){
+   float taper=pow(max(.001,1.0-n.x*n.x),.42);
+   q=vec3(n.x*2.38*(1.0-.024*uResponse),n.y*.46*taper*(1.0+.065*uResponse),n.z*.32*taper);
+ }else{
+   float a=atan(n.y,n.x);
+   float initial=1.0+.024*sin(3.0*a+uSeed)+.017*sin(5.0*a-uSeed*1.7);
+   float r=mix(initial,.65,uResponse);
+   for(int j=0;j<6;j++){
+     float onset=.07+float(j)*.058;
+     float grow=smoothstep(onset,.92,uResponse);
+     vec3 d=normalize(uBlebs[j].xyz);float radius=uBlebs[j].w*grow;
+     vec3 centre=d*mix(.42,.67,grow);
+     float b=dot(n,centre),disc=radius*radius-dot(centre,centre)+b*b;
+     if(grow>.001 && disc>0.0){float cap=b+sqrt(disc);r=smax(r,cap,.068*grow);}
+   }
+   q=n*r;q.z*=mix(.46,.90,uResponse);
+ }
+ vLocal=q;vec4 v=modelViewMatrix*vec4(q,1.0);vView=v.xyz;gl_Position=projectionMatrix*v;
+ }`;
+const densityFragment=`
+ uniform vec3 uColor;uniform float uOpacity,uSeed;
+ varying vec3 vView,vLocal;
+ float hash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
+ float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);
+ return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
+ mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+ void main(){vec3 n=normalize(cross(dFdx(vView),dFdy(vView)));
+ float facing=abs(dot(n,normalize(-vView)));float edge=pow(1.0-facing,2.2);
+ float cloud=.58*noise(vLocal*5.0+uSeed)+.28*noise(vLocal*13.0-uSeed)+.14*noise(vLocal*34.0);
+ float thickness=sqrt(max(facing,.0));
+ float density=.06+.21*thickness*(.3+cloud)+.48*edge;
+ gl_FragColor=vec4(uColor*density,uOpacity);}`;
+
+function makeBlebs(){
+ // Uneven angular gaps, varied out-of-plane directions, and unequal radii.
+ const angles=[.12,.82,2.22,3.01,4.45,5.77],phase=rand()*6.28;
+ return angles.map(a=>{const angle=a+phase+(rand()-.5)*.25;
+   return new THREE.Vector4(Math.cos(angle),Math.sin(angle),(rand()-.5)*.9,.18+rand()*.17);});
+}
+function material({opacity=.72,color=0xa6c4d3,spindle=false,blebs=makeBlebs()}={}){
+ return new THREE.ShaderMaterial({uniforms:{uResponse:{value:0},uSeed:{value:rand()*6.28},
+ uSpindle:{value:spindle?1:0},uBlebs:{value:blebs},uColor:{value:new THREE.Color(color)},uOpacity:{value:opacity}},
+ vertexShader:membraneVertex,fragmentShader:densityFragment,transparent:true,
+ blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+}
+function softPoints(positions,{size=4,opacity=.2,color=0xc0d3df}={}){
+ const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+ const mat=new THREE.ShaderMaterial({uniforms:{uSize:{value:size},uOpacity:{value:opacity},uColor:{value:new THREE.Color(color)}},
+ vertexShader:`uniform float uSize;void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);gl_PointSize=uSize;}`,
+ fragmentShader:`uniform float uOpacity;uniform vec3 uColor;void main(){float r=length(gl_PointCoord-.5)*2.0;float a=exp(-r*r*4.0)*(1.0-smoothstep(.6,1.0,r));gl_FragColor=vec4(uColor,uOpacity*a);}`,
+ transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+ return new THREE.Points(geometry,mat);
+}
+function interior(parent,spindle=false){
+ const group=new THREE.Group();parent.add(group);
+ const nucleus=new THREE.Mesh(innerSphere,material({opacity:1.05,color:0xc7dbe5}));
+ nucleus.scale.set(spindle?.48:.38,spindle?.22:.31,.36);
+ nucleus.position.set(-.07,.03,.13);group.add(nucleus);
+ const nucleolus=new THREE.Mesh(innerSphere,material({opacity:.85,color:0xd3e2e8}));
+ nucleolus.scale.set(.075,.085,.14);nucleolus.position.set(-.12,.04,.22);group.add(nucleolus);
+ const granules=[];
+ for(let i=0;i<1400;i++){
+   const a=rand()*6.283,r=Math.sqrt(rand())*.91,x=Math.cos(a)*r,y=Math.sin(a)*r;
+   granules.push(spindle?x*2.28:x,spindle?y*.42*Math.sqrt(1-x*x):y,(rand()-.5)*.55);
+ }
+ group.add(softPoints(granules,{size:3.4,opacity:.055}));
+ return group;
+}
+
+// Complete triangular colony, with the calm spindle below it. Framing includes
+// the entire 0–3 s lift and droplet path, with room above the citation reserve.
+const placements=[
+ [.65,.18,1.42,.00,.88,-.32],
+ [3.85,.35,1.44,.12,.67,.12],
+ [2.30,2.00,1.28,.24,.40,-.65]
+];
+const cells=[];
+for(let index=0;index<placements.length;index++){
+ const [x,y,size,delay,lift,z]=placements[index],root=new THREE.Group();scene.add(root);
+ root.scale.setScalar(size);root.position.set(x,y,z);
+ const skin=new THREE.Mesh(sphere,material());root.add(skin);
+ const envelope=new THREE.Mesh(sphere,skin.material.clone());envelope.scale.setScalar(.955);envelope.material.uniforms.uOpacity.value=.20;root.add(envelope);
+ const contents=interior(root);
+ // Soft membrane shadow remains at the original attachment site, not a diagram outline.
+ const foot=new THREE.Mesh(sphere,skin.material.clone());foot.position.set(x,y,z-.22);foot.scale.set(size,size,size*.7);
+ foot.material.uniforms.uOpacity.value=.045;scene.add(foot);
+ cells.push({root,skin,envelope,interior:contents,foot,x,y,z,size,delay,lift,index});
+}
+
+// HFF1: composite of a separate culture. Minor rounding, retained adherence.
+const fibroblast=new THREE.Group();fibroblast.position.set(2.35,-1.23,-.55);fibroblast.scale.set(.95,.62,.80);fibroblast.rotation.z=.04;scene.add(fibroblast);
+const fibroSkin=new THREE.Mesh(sphere,material({spindle:true,opacity:.84,color:0xb6cbd6}));fibroblast.add(fibroSkin);
+const fibroInside=interior(fibroblast,true);
+
+const dropGeometry=new THREE.SphereGeometry(1,56,40),dp=dropGeometry.attributes.position;
+for(let i=0;i<dp.count;i++){
+ const y=dp.getY(i),taper=1-.47*smooth(0,1,y);
+ dp.setXYZ(i,dp.getX(i)*taper*.33,y*.58+Math.pow(Math.max(y,0),5)*.16,dp.getZ(i)*taper*.33);
+}
+dropGeometry.computeVertexNormals();
+const droplet=new THREE.Mesh(dropGeometry,new THREE.ShaderMaterial({uniforms:{uOpacity:{value:1}},
+ transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,
+ vertexShader:`varying vec3 vN,vP;void main(){vN=normalMatrix*normal;vec4 p=modelViewMatrix*vec4(position,1.0);vP=p.xyz;gl_Position=projectionMatrix*p;}`,
+ fragmentShader:`uniform float uOpacity;varying vec3 vN,vP;void main(){float f=pow(1.0-abs(dot(normalize(vN),normalize(-vP))),2.0);gl_FragColor=vec4(vec3(.72,.86,.93)*(.13+f*.72),uOpacity);}`
+}));scene.add(droplet);
+
+const oilCount=680,oilPaths=[];
+for(let i=0;i<oilCount;i++){
+ const a=rand()*6.283,r=Math.sqrt(rand());oilPaths.push({x:2.5+Math.cos(a)*r*2.3,y:Math.sin(a)*r*1.9-1.55,z:(rand()-.5),delay:rand()*.16});
+}
+const oil=softPoints(new Array(oilCount*3).fill(0),{size:5.5,opacity:.26});scene.add(oil);
+const oilPositions=oil.geometry.attributes.position.array;
+
+// Out-of-focus culture haze creates depth without a wireframe or scanner UI.
+const haze=new THREE.Mesh(new THREE.PlaneGeometry(22,13),new THREE.ShaderMaterial({
+ uniforms:{uTime:{value:0}},transparent:true,depthWrite:false,
+ vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+ fragmentShader:`varying vec2 vUv;void main(){vec2 p=vUv-.5;float h=exp(-dot(p-vec2(.17,.15),p-vec2(.17,.15))*12.0);gl_FragColor=vec4(vec3(.09,.16,.21),h*.22);}`
+}));haze.position.z=-8;scene.add(haze);
+
+function renderAt(t){
+ t=Math.max(0,t);
+ for(const c of cells){
+   const response=smooth(.70+c.delay,1.80+c.delay,t),separation=smooth(1.02+c.delay,2.70+c.delay,t);
+   c.skin.material.uniforms.uResponse.value=response;c.envelope.material.uniforms.uResponse.value=response;
+   const outward=(c.x-2.8)*.18*separation;
+   c.root.position.set(c.x+outward,c.y+c.lift*separation,c.z+c.lift*separation*1.15);
+   c.root.rotation.set(separation*c.lift*.50,separation*(c.index%2?-.26:.20),separation*(c.index-1)*.07);
+   c.interior.scale.set(1-.33*response,1-.33*response,1+.40*response);
+   c.foot.material.uniforms.uOpacity.value=.045+.085*separation;
+ }
+ fibroSkin.material.uniforms.uResponse.value=smooth(.85,2.6,t);
+ fibroInside.scale.set(1-.015*smooth(.85,2.6,t),1+.035*smooth(.85,2.6,t),1);
+ const arrival=smooth(.02,.83,t),dispersal=smooth(.71,1.17,t);
+ droplet.position.set(0,3.18-1.23*arrival,.9);
+ droplet.scale.set(.65*(1+.25*dispersal),.65*(1-.74*dispersal),.65);
+ droplet.material.uniforms.uOpacity.value=1-dispersal;droplet.visible=t<1.18;
+ oil.visible=t>.68&&t<2.20;oil.material.uniforms.uOpacity.value=.29*smooth(.68,.86,t)*(1-smooth(1.40,2.20,t));
+ for(let i=0;i<oilCount;i++){
+   const p=oilPaths[i],v=smooth(.68+p.delay,1.48+p.delay,t);
+   oilPositions[i*3]=p.x*v;oilPositions[i*3+1]=1.95+p.y*v;oilPositions[i*3+2]=.9+p.z*v;
+ }
+ oil.geometry.attributes.position.needsUpdate=true;film.uniforms.uTime.value=t;composer.render();
+}
+function resize(){const w=innerWidth,h=innerHeight;camera.left=-4*w/h;camera.right=4*w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);composer.setSize(w,h);}
+let currentTime=0;
+window.addEventListener('resize',()=>{resize();renderAt(currentTime);});resize();
+const query=new URLSearchParams(location.search),value=Number(query.get('t'));
+const frozen=query.has('t')&&Number.isFinite(value);currentTime=frozen?Math.max(0,value):0;
+const epoch=performance.now();
+function animate(now){currentTime=((now-epoch)/1000)%4.2;renderAt(currentTime);requestAnimationFrame(animate);}
+renderAt(currentTime);if(!frozen)requestAnimationFrame(animate);
+window.__KOM_CLIP__={scene,camera,cells,fibroblast,fibroSkin,renderAt,droplet,oil,composer};
+</script>
+</body>
+</html>

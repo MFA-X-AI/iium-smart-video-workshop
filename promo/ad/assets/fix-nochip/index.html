@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920,height=1080">
+<title>poster_FINAL_final_v7</title>
+<!-- Six-second autonomous layout repair. All animation is a pure function of time. -->
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #202020; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; font-size: 12px; color: #1b1b1b; -webkit-font-smoothing: antialiased; }
+  #app { position: absolute; inset: 0; background: #f3f3f3; }
+
+  /* Title bar (Windows 11-like) */
+  #titlebar { position: absolute; left: 0; right: 0; top: 0; height: 40px; background: #f3f3f3; display: flex; align-items: center; }
+  #titlebar .appmark { width: 20px; height: 20px; margin: 0 10px 0 14px; border-radius: 4px; background: linear-gradient(135deg,#2f8f83,#1d6b62); position: relative; }
+  #titlebar .appmark::after { content: ""; position: absolute; left: 5px; top: 5px; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 2px; }
+  .qat { display: flex; gap: 2px; align-items: center; }
+  .qbtn { width: 30px; height: 28px; border-radius: 4px; display: grid; place-items: center; }
+  .qbtn.on { background: #d6d6d6; }
+  .qbtn svg { width: 16px; height: 16px; stroke: #333; fill: none; stroke-width: 1.4; }
+  #doctitle { position: absolute; left: 50%; transform: translateX(-50%); font-size: 12px; color: #1b1b1b; display: flex; align-items: center; gap: 6px; }
+  #doctitle .state { color: #616161; }
+  #search { position: absolute; left: 1250px; top: 6px; width: 300px; height: 28px; border-radius: 6px; background: #fff; border: 1px solid #d1d1d1; color: #7a7a7a; font-size: 12px; line-height: 26px; padding-left: 32px; }
+  #search::before { content: ""; position: absolute; left: 11px; top: 7px; width: 9px; height: 9px; border: 1.4px solid #6b6b6b; border-radius: 50%; }
+  #search::after { content: ""; position: absolute; left: 20px; top: 17px; width: 5px; height: 1.4px; background: #6b6b6b; transform: rotate(45deg); }
+  #winbtns { position: absolute; right: 0; top: 0; display: flex; }
+  #winbtns div { width: 46px; height: 40px; display: grid; place-items: center; }
+  #winbtns svg { width: 10px; height: 10px; stroke: #1b1b1b; stroke-width: 1; fill: none; }
+  #user { position: absolute; right: 150px; top: 8px; width: 24px; height: 24px; border-radius: 50%; background: #5b7c99; color: #fff; font-size: 10px; display: grid; place-items: center; font-weight: 600; }
+
+  /* Ribbon */
+  #tabs { position: absolute; left: 0; right: 0; top: 40px; height: 34px; display: flex; align-items: flex-end; padding-left: 8px; gap: 2px; }
+  .tab { padding: 0 11px; height: 30px; line-height: 28px; font-size: 13px; color: #1b1b1b; position: relative; }
+  .tab.sel { font-weight: 600; }
+  .tab.sel::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 1px; height: 3px; border-radius: 2px; background: #1d6b62; }
+  .tab.ctx { color: #1d6b62; font-weight: 600; }
+  .tab.ctx::before { content: ""; position: absolute; left: 4px; right: 4px; top: 1px; height: 3px; background: #7fbfb6; border-radius: 1px; }
+  #tabs .right { margin-left: auto; margin-right: 14px; display: flex; gap: 8px; align-items: center; height: 30px; }
+  .pill { height: 26px; padding: 0 12px; border-radius: 4px; border: 1px solid #c7c7c7; background: #fff; font-size: 12px; line-height: 24px; }
+  .pill.accent { background: #1d6b62; color: #fff; border-color: #1d6b62; }
+
+  #ribbon { position: absolute; left: 8px; right: 8px; top: 76px; height: 98px; background: #fbfbfb; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,.06); display: flex; padding: 4px 6px 0; }
+  .group { position: relative; height: 94px; padding: 2px 8px 18px; display: flex; gap: 2px; align-items: flex-start; border-right: 1px solid #e3e3e3; }
+  .group:last-child { border-right: none; }
+  .glabel { position: absolute; left: 0; right: 0; bottom: 3px; text-align: center; font-size: 11px; color: #616161; }
+  .big { width: 54px; height: 70px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 4px; font-size: 11.5px; text-align: center; line-height: 1.15; border-radius: 4px; }
+  .big svg { width: 32px; height: 32px; stroke: #333; fill: none; stroke-width: 1.3; }
+  .col { display: flex; flex-direction: column; gap: 3px; padding-top: 2px; }
+  .row { display: flex; gap: 2px; align-items: center; }
+  .sm { height: 22px; min-width: 24px; padding: 0 4px; display: flex; align-items: center; gap: 5px; font-size: 11.5px; border-radius: 3px; }
+  .sm svg { width: 16px; height: 16px; stroke: #333; fill: none; stroke-width: 1.3; }
+  .field { height: 22px; border: 1px solid #c8c8c8; background: #fff; border-radius: 3px; font-size: 12px; line-height: 20px; padding: 0 6px; position: relative; }
+  .field::after { content: ""; position: absolute; right: 6px; top: 7px; width: 5px; height: 5px; border-right: 1px solid #555; border-bottom: 1px solid #555; transform: rotate(45deg); }
+  .fmt { width: 24px; height: 22px; display: grid; place-items: center; font-family: "Times New Roman", serif; font-size: 14px; border-radius: 3px; }
+
+  /* Workspace */
+  #thumbs { position: absolute; left: 0; top: 178px; width: 206px; bottom: 26px; background: #f3f3f3; }
+  #thumbs .num { position: absolute; left: 12px; top: 14px; font-size: 12px; color: #444; }
+  #thumbframe { position: absolute; left: 28px; top: 12px; width: 166px; height: 118px; border: 2px solid #1d6b62; border-radius: 4px; overflow: hidden; background: #fff; box-shadow: 0 0 0 2px #fff inset; }
+  #thumbclip { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  #canvas { position: absolute; left: 206px; top: 178px; right: 0; bottom: 26px; background: #e7e7e7; overflow: hidden; border-top-left-radius: 8px; }
+  #vscroll { position: absolute; right: 3px; top: 8px; width: 6px; height: 560px; background: #b9b9b9; border-radius: 3px; }
+  #hscroll { position: absolute; left: 380px; bottom: 3px; width: 820px; height: 6px; background: #b9b9b9; border-radius: 3px; }
+
+  /* Status bar */
+  #status { position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: #f3f3f3; font-size: 12px; color: #444; display: flex; align-items: center; padding: 0 14px; gap: 22px; }
+  #status .right { margin-left: auto; display: flex; gap: 16px; align-items: center; }
+  #zoombar { width: 120px; height: 2px; background: #9b9b9b; position: relative; }
+  #zoombar::after { content: ""; position: absolute; left: 44px; top: -6px; width: 4px; height: 14px; background: #444; border-radius: 2px; }
+
+  /* The poster (a single slide, A0 landscape) */
+  #poster { position: absolute; left: 150px; top: 18px; width: 1300px; height: 919px; transform: scale(.9077); transform-origin: 0 0; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.05); font-family: Calibri, Carlito, "Segoe UI", sans-serif; color: #222; }
+  .band { position: absolute; left: 0; top: 0; width: 1300px; height: 150px; background: #0f4c5c; }
+  .band .t1 { position: absolute; left: 140px; top: 18px; width: 1020px; text-align: center; color: #fff; font-family: "Segoe UI Semibold", "Segoe UI", sans-serif; font-size: 33px; line-height: 1.08; letter-spacing: -.2px; }
+  .band .t2 { position: absolute; left: 150px; top: 104px; width: 1000px; text-align: center; color: #d9ecef; font-size: 17px; }
+  .band .t3 { position: absolute; left: 150px; top: 125px; width: 1000px; text-align: center; color: #a9cfd6; font-size: 14px; font-style: italic; }
+  .band .logo { position: absolute; top: 28px; width: 92px; height: 92px; border-radius: 50%; border: 3px solid rgba(255,255,255,.75); background: rgba(255,255,255,.08); }
+  .band .logo::after { content: ""; position: absolute; inset: 18px; border-radius: 50%; border: 2px solid rgba(255,255,255,.45); }
+  .foot { position: absolute; left: 36px; right: 36px; bottom: 16px; height: 18px; border-top: 1px solid #c7d6da; font-size: 11px; color: #6b7b80; padding-top: 3px; display: flex; justify-content: space-between; }
+
+  /* The body text box: 4 linked columns */
+  :is(#body, .body-copy) { position: absolute; left: 36px; top: 176px; width: 1228px; height: 690px; column-count: 4; column-gap: 34px; column-fill: auto; font-size: 13.4px; line-height: 1.33; text-align: justify; hyphens: auto; }
+  :is(#body, .body-copy) h3 { font-family: "Segoe UI Semibold", "Segoe UI", sans-serif; font-size: 19px; color: #0f4c5c; text-align: left; margin: 0 0 6px; padding-bottom: 3px; border-bottom: 2px solid #e7a13a; break-after: avoid; }
+  :is(#body, .body-copy) h3.brk { break-before: column; }
+  :is(#body, .body-copy) p { margin: 0 0 8px; }
+  :is(#body, .body-copy) .box { background: #eef5f6; border-left: 4px solid #0f4c5c; padding: 7px 9px; margin: 2px 0 10px; text-align: left; }
+  :is(#body, .body-copy) .box b { color: #0f4c5c; }
+  :is(#body, .body-copy) ol { margin: 0 0 0 18px; font-size: .86em; line-height: 1.28; text-align: left; }
+  :is(#body, .body-copy) ol li { margin-bottom: 4px; }
+  :is(#body, .body-copy) .chart { display: block; width: 100%; margin: 4px 0 26px; break-inside: avoid; }
+  .fig { display: inline-block; width: 262px; height: 168px; vertical-align: baseline; break-inside: avoid; }
+  .fig.block { display: block; margin: 4px 0 50px; }
+  .fig.jump { break-before: column; margin-top: 0; }
+  .fig.float { position: absolute; }
+  #caption { position: absolute; font-size: 11.6px; line-height: 1.25; color: #333; font-style: italic; text-align: left; width: 262px; }
+  #autofit { position: absolute; width: 22px; height: 20px; background: #fff; border: 1px solid #9a9a9a; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.2); display: none; }
+  #autofit::before { content: "A"; position: absolute; left: 4px; top: 1px; font: 600 12px "Segoe UI"; color: #333; }
+  #autofit::after { content: ""; position: absolute; right: 3px; top: 4px; width: 5px; height: 10px; border-left: 1.3px solid #333; border-right: 1.3px solid #333; }
+
+  /* Selection and guides (screen space overlay) */
+  #overlay { position: absolute; inset: 0; pointer-events: none; }
+  .selbox { position: absolute; border: 1px solid #8a8a8a; }
+  .h { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 1px solid #6e6e6e; margin: -5px 0 0 -5px; }
+  .rot { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; }
+  .ghost { position: absolute; opacity: .55; }
+  .guide { position: absolute; border-color: #e3007f; border-style: dashed; border-width: 0; }
+  .guide.v { width: 0; border-left-width: 1px; }
+  .guide.h2 { height: 0; border-top-width: 1px; }
+  #keys { position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%); background: rgba(30,30,30,.86); color: #fff; font: 600 22px "Segoe UI"; padding: 8px 18px; border-radius: 10px; display: none; letter-spacing: .5px; }
+  #keys span { display: inline-block; background: #fff; color: #1b1b1b; border-radius: 5px; padding: 0 10px; margin: 0 4px; box-shadow: 0 2px 0 #9b9b9b; }
+  #cursor { position: absolute; left: 0; top: 0; width: 32px; height: 32px; }
+  /* All animation is driven by render(t); no CSS animation or transition clocks. */
+  #agent-chip { display:none !important; } #agent-chip-x { position:absolute; right:30px; top:192px; height:38px; display:flex; align-items:center; gap:9px; padding:0 15px; border:1px solid #bbd8d3; border-radius:20px; background:#f8fffc; color:#19584e; font-size:14px; font-weight:600; box-shadow:0 3px 12px #173b3512; z-index:4; }
+  #agent-symbol { width:18px; height:18px; display:grid; place-items:center; }
+  #agent-symbol i { display:block; width:8px; height:8px; border-radius:50%; background:#229b88; }
+  #cursor { width:80px; height:80px; overflow:visible; z-index:8; pointer-events:none; filter:drop-shadow(0 2px 2px #173c4966) drop-shadow(0 0 6px #ffffffcc); }
+  #overlay { z-index:6; }
+  .repair-stage { position:absolute; inset:0; pointer-events:none; }
+  .fragment { position:absolute; overflow:hidden; }
+  .fixed-group { position:absolute; width:281.5px; font-size:13.4px; line-height:1.33; text-align:justify; hyphens:auto; }
+  .fixed-group h3 { font-family:"Segoe UI Semibold","Segoe UI",sans-serif; font-size:19px; color:#0f4c5c; text-align:left; margin:0 0 6px; padding-bottom:3px; border-bottom:2px solid #e7a13a; }
+  .fixed-group p { margin:0 0 8px; }
+  .fixed-group .box { background:#eef5f6; border-left:4px solid #0f4c5c; padding:7px 9px; margin:2px 0 10px; text-align:left; }
+  .fixed-group .box b { color:#0f4c5c; }
+  .fixed-group ol { margin:0 0 0 18px; font-size:.86em; line-height:1.28; text-align:left; }
+  .fixed-group li { margin-bottom:4px; }
+  .fixed-group .chart { display:block; width:100%; margin:4px 0 26px; }
+  .protocol-title { font-size:14px; line-height:20px; font-weight:600; color:#0f4c5c; text-align:left; border-top:2px solid #c6dfe0; padding-top:10px; margin-bottom:10px; }
+  .repair-selection { position:absolute; border:1.5px solid #448e95; }
+  .repair-handle { position:absolute; width:8px; height:8px; border:1px solid #337c86; background:white; transform:translate(-50%,-50%); }
+  .snap-guide { position:absolute; border-color:#de4a98; border-style:dashed; border-width:0; }
+  .snap-guide.teal { border-color:#20a897; }
+  .click-ring { position:absolute; border:2px solid #25a897; border-radius:50%; transform:translate(-50%,-50%); }
+  .trail { position:absolute; overflow:visible; }
+  .live-wrap { position:relative; width:100%; aspect-ratio:280 / 176; margin:4px 0 26px; }
+  .live-wrap > svg { position:absolute; inset:0; width:100%; height:100%; margin:0 !important; }
+  #thumbclip .fixed-group { font-family:Calibri,Carlito,"Segoe UI",sans-serif; }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="titlebar">
+    <div class="appmark"></div>
+    <div class="qat">
+      <div class="qbtn"><svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="1"/><rect x="5" y="2.5" width="6" height="4"/><rect x="4.5" y="9" width="7" height="4.5"/></svg></div>
+      <div class="qbtn" id="undo"><svg viewBox="0 0 16 16"><path d="M5 4 2.5 6.5 5 9"/><path d="M2.8 6.5h6.7a3.6 3.6 0 0 1 0 7.2H7"/></svg></div>
+      <div class="qbtn"><svg viewBox="0 0 16 16"><path d="M11 4l2.5 2.5L11 9"/><path d="M13.2 6.5H6.5a3.6 3.6 0 0 0 0 7.2H9"/></svg></div>
+      <div class="qbtn"><svg viewBox="0 0 16 16"><path d="M4 6l4 4 4-4"/></svg></div>
+    </div>
+    <div id="doctitle"><span>poster_FINAL_final_v7</span><span class="state" id="savestate">• Saved to this PC</span></div>
+    <div id="search">Search</div>
+    <div id="user">AR</div>
+    <div id="winbtns">
+      <div><svg viewBox="0 0 10 10"><path d="M0 5h10"/></svg></div>
+      <div><svg viewBox="0 0 10 10"><rect x=".5" y=".5" width="9" height="9" rx="1.5"/></svg></div>
+      <div><svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0 0 10"/></svg></div>
+    </div>
+  </div>
+
+  <div id="tabs">
+    <div class="tab">File</div><div class="tab sel">Home</div><div class="tab">Insert</div><div class="tab">Draw</div>
+    <div class="tab">Design</div><div class="tab">Layout</div><div class="tab">Review</div><div class="tab">View</div><div class="tab">Help</div>
+    <div class="tab ctx" id="ctxtab" style="display:none">Picture Format</div>
+    <div class="right"><div class="pill">Comments</div><div class="pill">Present</div><div class="pill accent">Share</div></div>
+  </div>
+
+  <div id="ribbon">
+    <div class="group">
+      <div class="big"><svg viewBox="0 0 32 32"><rect x="7" y="6" width="18" height="22" rx="2"/><rect x="11" y="3.5" width="10" height="5" rx="1.5"/><path d="M11 15h10M11 19h10M11 23h6"/></svg>Paste</div>
+      <div class="col"><div class="sm"><svg viewBox="0 0 16 16"><circle cx="4.5" cy="12" r="2"/><circle cx="11.5" cy="12" r="2"/><path d="M5.5 10.3 12 2M10.5 10.3 4 2"/></svg>Cut</div><div class="sm"><svg viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="9" rx="1"/><path d="M3 11V3a1 1 0 0 1 1-1h6"/></svg>Copy</div><div class="sm"><svg viewBox="0 0 16 16"><path d="M3 13l6-6M9 3l4 4-2 2-4-4z"/></svg>Format Painter</div></div>
+      <div class="glabel">Clipboard</div>
+    </div>
+    <div class="group">
+      <div class="big"><svg viewBox="0 0 32 32"><rect x="4" y="7" width="24" height="18" rx="2"/><path d="M4 12h24"/><path d="M16 3v4"/></svg>New<br>Slide</div>
+      <div class="col"><div class="sm"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 6h12M7 6v7"/></svg>Layout</div><div class="sm"><svg viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.5-3.5M3 2.5v2.5h2.5"/></svg>Reset</div><div class="sm"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M5 7h6M5 10h4"/></svg>Section</div></div>
+      <div class="glabel">Slides</div>
+    </div>
+    <div class="group">
+      <div class="col">
+        <div class="row"><div class="field" style="width:150px">Calibri (Body)</div><div class="field" style="width:52px">18</div><div class="sm" style="font-size:14px">A<sup style="font-size:8px">▲</sup></div><div class="sm" style="font-size:12px">A<sup style="font-size:8px">▼</sup></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M3 13 8 3l5 10M5 9h6"/><path d="M11 13l3-3"/></svg></div></div>
+        <div class="row"><div class="fmt"><b>B</b></div><div class="fmt"><i>I</i></div><div class="fmt"><u>U</u></div><div class="fmt"><s>S</s></div><div class="fmt" style="font-size:12px">ab</div><div class="fmt" style="font-family:'Segoe UI';font-size:12px">AV</div><div class="fmt" style="font-family:'Segoe UI';font-size:12px">Aa</div><div class="fmt" style="border-bottom:3px solid #e7a13a;height:20px">A</div><div class="fmt" style="border-bottom:3px solid #c0392b;height:20px">A</div></div>
+      </div>
+      <div class="glabel">Font</div>
+    </div>
+    <div class="group">
+      <div class="col">
+        <div class="row"><div class="sm"><svg viewBox="0 0 16 16"><circle cx="3" cy="4" r="1"/><circle cx="3" cy="8" r="1"/><circle cx="3" cy="12" r="1"/><path d="M6 4h8M6 8h8M6 12h8"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M2 4h1M2 8h1M2 12h1M6 4h8M6 8h8M6 12h8"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M8 4h6M8 8h6M8 12h6M2 6l3 2-3 2"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M8 4h6M8 8h6M8 12h6M5 6 2 8l3 2"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M8 2v12M5 5l3-3 3 3M5 11l3 3 3-3"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="12"/><rect x="9" y="2" width="5" height="12"/></svg></div></div>
+        <div class="row"><div class="sm"><svg viewBox="0 0 16 16"><path d="M2 3h12M2 6h8M2 9h12M2 12h8"/></svg></div><div class="sm" style="background:#dcdcdc"><svg viewBox="0 0 16 16"><path d="M2 3h12M4 6h8M2 9h12M4 12h8"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M2 3h12M6 6h8M2 9h12M6 12h8"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M2 3h12M2 6h12M2 9h12M2 12h12"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M3 2v12M13 2v12M6 5h4M6 8h4M6 11h4"/></svg></div><div class="sm"><svg viewBox="0 0 16 16"><path d="M4 3v10M2 5l2-2 2 2M2 11l2 2 2-2M8 4h6M8 8h6M8 12h6"/></svg></div></div>
+      </div>
+      <div class="glabel">Paragraph</div>
+    </div>
+    <div class="group">
+      <div class="col" style="width:150px">
+        <div class="row" style="flex-wrap:wrap;gap:1px;width:150px;height:44px;border:1px solid #d6d6d6;background:#fff;border-radius:3px;padding:2px">
+          <svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><rect x="2" y="3" width="12" height="10"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><circle cx="8" cy="8" r="5.5"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M8 2l6 11H2z"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M2 14 14 2"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M2 8h10M9 5l3 3-3 3"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><rect x="2" y="4" width="12" height="8" rx="3"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M3 12V5l5-3 5 3v7z"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M8 2l1.8 4 4.2.4-3.2 2.8 1 4.2L8 11.2 4.2 13.4l1-4.2L2 6.4 6.2 6z"/></svg>
+          <svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M2 12c3-8 9-8 12 0"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M2 4h12v6H8l-3 3v-3H2z"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M4 2h8v12H4zM6 5h4"/></svg><svg viewBox="0 0 16 16" width="16" height="16" style="stroke:#333;fill:none;stroke-width:1.2"><path d="M2 8l6-6 6 6-6 6z"/></svg>
+        </div>
+      </div>
+      <div class="big"><svg viewBox="0 0 32 32"><rect x="5" y="9" width="12" height="12"/><rect x="14" y="13" width="12" height="12" fill="#fbfbfb"/></svg>Arrange</div>
+      <div class="big"><svg viewBox="0 0 32 32"><path d="M9 25 20 8l3 3-11 17H9z"/><path d="M19 9l3-3 4 4-3 3"/></svg>Quick<br>Styles</div>
+      <div class="col"><div class="sm"><svg viewBox="0 0 16 16"><path d="M3 13l7-7 3 3-7 7H3z"/></svg>Shape Fill</div><div class="sm"><svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11"/></svg>Shape Outline</div><div class="sm"><svg viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="9" height="9"/><path d="M13.5 5v8.5H5"/></svg>Shape Effects</div></div>
+      <div class="glabel">Drawing</div>
+    </div>
+    <div class="group">
+      <div class="col"><div class="sm"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg>Find</div><div class="sm"><svg viewBox="0 0 16 16"><path d="M2 5h9M8 2l3 3-3 3M14 11H5M8 8l-3 3 3 3"/></svg>Replace</div><div class="sm"><svg viewBox="0 0 16 16"><path d="M3 2l9 6-4 1 2 4-2 1-2-4-3 3z"/></svg>Select</div></div>
+      <div class="glabel">Editing</div>
+    </div>
+    <div class="group">
+      <div class="big"><svg viewBox="0 0 32 32"><rect x="12" y="4" width="8" height="15" rx="4"/><path d="M8 15a8 8 0 0 0 16 0M16 23v5M12 28h8"/></svg>Dictate</div>
+      <div class="glabel">Voice</div>
+    </div>
+    <div class="group">
+      <div class="big"><svg viewBox="0 0 32 32"><path d="M16 4l2.5 7.5L26 14l-7.5 2.5L16 24l-2.5-7.5L6 14l7.5-2.5z"/><path d="M25 22l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"/></svg>Designer</div>
+      <div class="glabel">Designer</div>
+    </div>
+  </div>
+
+  <div id="thumbs"><div class="num">1</div><div id="thumbframe"><div id="thumbclip"></div></div></div>
+
+  <div id="canvas">
+    <div id="poster"></div>
+    <div id="vscroll"></div><div id="hscroll"></div>
+  </div>
+
+  <div id="status">
+    <span>Slide 1 of 1</span><span>English (Malaysia)</span><span>Accessibility: Investigate</span>
+    <div class="right"><span>Notes</span><span>Display Settings</span><span>▭ ▦ ▣ ▷</span><span>–</span><div id="zoombar"></div><span>+</span><span id="zoomlbl">62%</span></div>
+  </div>
+
+  <div id="overlay"></div>
+  <div id="keys"><span>Ctrl</span> + <span>Z</span></div>
+  <div id="agent-chip"><span id="agent-symbol"></span><span id="agent-label"></span></div><svg id="cursor" viewBox="0 0 32 32"></svg>
+</div>
+
+<script>
+(async () => {
+  // ---------- content ----------
+  const FIG = `<svg class="figsvg" viewBox="0 0 262 168" width="262" height="168" style="display:block;background:#fff">
+      <rect x=".5" y=".5" width="261" height="167" fill="#fff" stroke="#d9d9d9"/>
+      <text x="14" y="24" font-family="Calibri" font-size="13" fill="#555">Input</text>
+      <text x="206" y="24" font-family="Calibri" font-size="13" fill="#555">Output</text>
+      <circle cx="131" cy="72" r="44" fill="#bdbdbd" stroke="#8c8c8c" stroke-width="1.5"/>
+      <text x="131" y="76" text-anchor="middle" font-family="Calibri" font-size="13" fill="#3a3a3a">Glass bead</text>
+      <line x1="14" y1="117" x2="248" y2="117" stroke="#3a3a3a" stroke-width="3"/>
+      <path d="M36 104h36m-7-5 7 5-7 5" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <path d="M190 104h36m-7-5 7 5-7 5" stroke="#c0392b" stroke-width="2" fill="none"/>
+      <text x="131" y="146" text-anchor="middle" font-family="Calibri" font-size="13" fill="#3a3a3a">Tapered optical fibre</text>
+    </svg>`;
+  const CHART = `<svg class="chart" viewBox="0 0 280 176">
+      <rect x="0" y="0" width="280" height="176" fill="#fff"/>
+      <text x="140" y="14" text-anchor="middle" font-family="Calibri" font-size="12.5" font-weight="700" fill="#333">Resonance shift vs temperature</text>
+      <line x1="42" y1="142" x2="268" y2="142" stroke="#666"/><line x1="42" y1="24" x2="42" y2="142" stroke="#666"/>
+      ${[0,1,2,3,4].map(i=>`<line x1="42" y1="${142-i*28}" x2="268" y2="${142-i*28}" stroke="#e5e5e5"/><text x="36" y="${146-i*28}" text-anchor="end" font-family="Calibri" font-size="10.5" fill="#555">${i*150}</text>`).join('')}
+      ${[25,35,45,55,65,75].map((v,i)=>`<text x="${52+i*42}" y="156" text-anchor="middle" font-family="Calibri" font-size="10.5" fill="#555">${v}</text>`).join('')}
+      <polyline points="52,136 94,113 136,91 178,67 220,46 262,24" fill="none" stroke="#0f4c5c" stroke-width="1.6"/>
+      ${[[52,136],[94,114],[136,90],[178,68],[220,45],[262,25]].map(p=>`<rect x="${p[0]-3.5}" y="${p[1]-3.5}" width="7" height="7" fill="#e7a13a" stroke="#0f4c5c"/>`).join('')}
+      <text x="155" y="171" text-anchor="middle" font-family="Calibri" font-size="11" fill="#444">Temperature (°C)</text>
+      <text x="12" y="84" text-anchor="middle" font-family="Calibri" font-size="11" fill="#444" transform="rotate(-90 12 84)">Δλ (pm)</text>
+    </svg>`;
+
+  const P = {
+    intro1: `Whispering-gallery-mode (WGM) microresonators confine light by repeated total internal reflection close to the curved surface of a small dielectric sphere. Only wavelengths that complete a whole number of round trips build up, so the transmission through a coupled fibre shows narrow resonance dips.`,
+    intro2: `Because the resonance wavelength depends on both the refractive index and the diameter of the sphere, any change in temperature shifts the dip. Tracking that shift turns a simple glass bead into a compact, low-cost temperature sensor with no electrical parts at the sensing tip.`,
+    intro3: `Most WGM sensors rely on microspheres made by melting a fibre tip in a flame or with a CO₂ laser, which gives little control over size and symmetry. A fusion splicer with core-to-core alignment offers a repeatable alternative that is already available in most photonics laboratories.`,
+    obj: `<b>Objectives.</b> (i) Fabricate silica microspheres with a core-to-core alignment fusion splicer; (ii) compare coupling at 0 µm and 10 µm fibre–sphere gaps; (iii) measure the temperature sensitivity of the resonance.`,
+    m1: `Single-mode fibre tips were melted with repeated arc discharges until surface tension formed a sphere on the fibre stem. A second fibre was heated and pulled into a biconical taper with a waist of a few micrometres, so that its evanescent field extends into the surrounding air.`,
+    m2: `The microsphere was brought into contact with the taper waist on a three-axis translation stage (Fig. 1). Light from a tunable laser was launched into the taper, and the transmitted spectrum was recorded on an optical spectrum analyser while the gap was set to 0 µm and to 10 µm.`,
+    m3: `For the temperature test the coupled pair was placed on a Peltier-controlled stage and heated in steps from 25 °C to 75 °C. Each spectrum was recorded after the stage had stabilised for five minutes, and the position of the deepest resonance dip was fitted with a Lorentzian profile.`,
+    m4: `All measurements were repeated over three heating cycles to check that the resonance returned to its initial baseline after cooling.`,
+    r1: `Direct contact (0 µm) produced deeper and narrower dips than the 10 µm gap, indicating stronger and more stable coupling into the whispering-gallery modes.`,
+    r2: `The resonance moved steadily towards longer wavelengths as the sphere was heated. A linear fit across the full range gives a sensitivity of 14.9 pm/°C, and the dip recovered its original position after each cooling cycle.`,
+    r4: `A bare fibre tip without a sphere, measured under the same conditions, showed no resonance dips and only a small, irregular drift, confirming that the shift comes from the microsphere.`,
+    r5: `Across the three heating cycles the fitted slope varied by less than 3 %, and the loaded quality factor stayed high enough to resolve shifts well below 0.1 nm.`,
+    r3: `The shift is dominated by the thermo-optic effect of silica, with a smaller contribution from thermal expansion of the sphere.`,
+    c1: `A standard fusion splicer can fabricate WGM microspheres reproducibly, and a contact coupling gap gives the most reliable resonances for sensing.`,
+    c2: `With a sensitivity of 14.9 pm/°C and good repeatability, the fibre-coupled glass bead is a promising, low-cost sensor for local temperature monitoring. Future work will package the sphere to reduce drift from air currents.`,
+    refs: `<ol><li>K. J. Vahala, "Optical microcavities," <i>Nature</i> 424, 839–846 (2003).</li><li>A. B. Matsko and V. S. Ilchenko, "Optical resonators with whispering-gallery modes—Part I," <i>IEEE J. Sel. Top. Quantum Electron.</i> 12, 3–14 (2006).</li><li>M. R. Foreman, J. D. Swaim and F. Vollmer, "Whispering gallery mode sensors," <i>Adv. Opt. Photon.</i> 7, 168–240 (2015).</li><li>G. Righini et al., "Whispering gallery mode microresonators," <i>Riv. Nuovo Cimento</i> 34, 435–488 (2011).</li></ol>`,
+    ack: `<b>Acknowledgement.</b> Supported by the Kulliyyah of Science research fund.`,
+  };
+
+  // m2 is split around the dropped picture (it lands mid-sentence, the classic inline-image jump).
+  const M2_SPLIT = P.m2.indexOf('Light from');
+  function bodyHTML(mode) {
+    const fig = cls => `<span class="fig ${cls}" id="figEl">${FIG}</span>`;
+    let methods;
+    if (mode === 'orig') methods = `<p>${P.m1}</p>${fig('block')}<p>${P.m2}</p><p>${P.m3}</p><p>${P.m4}</p>`;
+    else if (mode === 'jump') methods = `<p>${P.m1}</p><p>${P.m2}</p><p>${P.m3}</p><p>${P.m4}</p>${fig('block jump')}`;
+    else methods = `<p>${P.m1}</p><p>${P.m2}</p><p>${P.m3}</p><p>${P.m4}</p><span class="fig block jump" style="visibility:hidden"></span>`;   // picture floats; the hole it left stays
+    return `
+      <h3>Introduction</h3><p>${P.intro1}</p><p>${P.intro2}</p><p>${P.intro3}</p><div class="box">${P.obj}</div>
+      <h3 class="brk">Methods</h3>${methods}
+      <h3 class="${mode === 'orig' ? 'brk' : ''}">Results</h3><p>${P.r1}</p>${CHART}<p>${P.r2}</p><p>${P.r3}</p><p>${P.r4}</p><p>${P.r5}</p>
+      <h3 class="brk">Conclusion</h3><p>${P.c1}</p><p>${P.c2}</p><h3>References</h3>${P.refs}<p style="font-size:.86em;margin-top:6px">${P.ack}</p>`;
+  }
+  function posterHTML(mode, scale) {
+    return `<div class="band"><div class="logo" style="left:34px"></div><div class="logo" style="right:34px"></div>
+        <div class="t1">Fabrication of a Whispering-Gallery-Mode Glass Microsphere<br>for High-Sensitivity Temperature Sensing</div>
+        <div class="t2">A. Rahman, N. Hassan, S. Abdullah</div>
+        <div class="t3">Department of Physics, Kulliyyah of Science, International Islamic University Malaysia</div></div>
+      <div id="body" style="font-size:${(13.4 * scale).toFixed(2)}px">${bodyHTML(mode)}</div>
+      <div id="caption"><b>Fig. 1.</b> Fibre-coupled glass microsphere: light in the tapered fibre excites whispering-gallery modes in the bead.</div>
+      <div id="autofit"></div>${mode === 'float' ? `<span class="fig float" id="figEl" style="left:${origFig.x}px;top:${origFig.y}px">${FIG}</span>` : ''}
+      <div class="foot"><span>Photonics Research Group · Kulliyyah of Science · IIUM</span><span>poster · A0</span></div>`;
+  }
+
+  const S = .9077;
+  const $ = id => document.getElementById(id);
+  const poster = $('poster'), overlay = $('overlay'), cursor = $('cursor');
+  const origFig = { x:0, y:0 };
+  const clamp = x => Math.max(0, Math.min(1, x));
+  const ease = x => { x=clamp(x); return x*x*(3-2*x); };
+  const mix = (a,b,k) => a+(b-a)*k;
+  const phase = (t,a,b) => ease((t-a)/(b-a));
+  // robot cursor: a glowing ring with a bright core (hotspot = centre), so the control reads as automated
+  const ARROW = '<circle cx="16" cy="16" r="10" fill="rgba(63,208,201,0.22)" stroke="#2bb8b1" stroke-width="1.8"/><circle cx="16" cy="16" r="13.5" fill="none" stroke="rgba(63,208,201,0.35)" stroke-width="0.8"/><circle cx="16" cy="16" r="3.6" fill="#ffffff" stroke="#18313e" stroke-width="0.6"/>';
+  const TIMES = {
+    figure: { reach:.50, pick:.64, start:.73, snap:1.22, end:1.36 },
+    results: { reach:1.36, pick:1.53, start:1.60, snap:2.02, end:2.14 },
+    protocol: { reach:2.14, pick:2.31, start:2.39, snap:2.77, end:2.89 },
+    conclusion: { reach:2.89, pick:3.06, start:3.13, snap:3.49, end:3.59 },
+    text: { reach:3.59, pick:3.76, start:3.80, snap:4.04, end:4.10 },
+    live: { reach:4.10, pick:4.27, start:4.30, snap:4.56, end:4.60 }
+  };
+
+  // Wait for local font metrics, then build every state from the source's real layout.
+  await document.fonts.ready;
+  poster.innerHTML = posterHTML('orig',1);
+  const posterRect = poster.getBoundingClientRect();
+  const local = r => ({ x:(r.left-posterRect.left)/S, y:(r.top-posterRect.top)/S, w:r.width/S, h:r.height/S });
+  const screen = r => ({ x:posterRect.left+r.x*S, y:posterRect.top+r.y*S, w:(r.w||0)*S, h:(r.h||0)*S });
+  Object.assign(origFig, local($('figEl').getBoundingClientRect()));
+  poster.innerHTML = posterHTML('float',1);
+  const sourceBody = $('body');
+  const figure = $('figEl'), caption = $('caption');
+  Object.assign(caption.style,{left:origFig.x+'px',top:(origFig.y+172)+'px'});
+  const sourceNodes = [...sourceBody.children];
+  const stage = document.createElement('div');
+  stage.className = 'repair-stage';
+  poster.insertBefore(stage, figure);
+
+  // Source-child indices deliberately preserve the original text and its order.
+  const specs = [
+    {name:'intro', ids:[0,1,2,3,4], x:36, y:176, limit:690},
+    {name:'methods', ids:[5,6], x:351.5, y:176, limit:224},
+    {name:'protocol', ids:[7,8,9], x:351.5, y:410, limit:456},
+    {name:'results', ids:[11,12,13,14,15,16,17], x:667, y:176, limit:690},
+    {name:'conclusion', ids:[18,19,20,21,22,23], x:982.5, y:176, limit:456}
+  ];
+  function removeIds(node) {
+    node.removeAttribute('id');
+    node.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+    return node;
+  }
+  function bounds(rects) {
+    const x=Math.min(...rects.map(r=>r.x)), y=Math.min(...rects.map(r=>r.y));
+    return {x,y,w:Math.max(...rects.map(r=>r.x+r.w))-x,h:Math.max(...rects.map(r=>r.y+r.h))-y};
+  }
+  const groups = {};
+  for (const spec of specs) {
+    const fixed = document.createElement('div');
+    fixed.className='fixed-group';
+    Object.assign(fixed.style,{left:spec.x+'px',top:spec.y+'px',visibility:'hidden'});
+    if(spec.name==='protocol') fixed.innerHTML='<div class="protocol-title">Measurement protocol</div>';
+    const targets = new Map();
+    for(const id of spec.ids) {
+      const copy=removeIds(sourceNodes[id].cloneNode(true));
+      copy.classList.remove('brk');
+      fixed.appendChild(copy); targets.set(id,copy);
+    }
+    stage.appendChild(fixed);
+    // Increase body size within each column's available space; never clip text.
+    let fullSize=15.4;
+    fixed.style.fontSize=fullSize+'px';
+    while(fixed.offsetHeight>spec.limit && fullSize>13.4) {
+      fullSize=Math.max(13.4, +(fullSize-.1).toFixed(1));
+      fixed.style.fontSize=fullSize+'px';
+    }
+    const fullHeight=fixed.offsetHeight;
+    fixed.style.fontSize='13.4px';
+    const smallHeight=fixed.offsetHeight;
+    const fragments=[];
+    for(const id of spec.ids) {
+      // getClientRects retains column fragments instead of a giant union rectangle.
+      for(const r of sourceNodes[id].getClientRects()) {
+        if(r.width<1 || r.height<1) continue;
+        const start=local(r);
+        const fragment=document.createElement('div');
+        fragment.className='fragment';
+        Object.assign(fragment.style,{left:start.x+'px',top:start.y+'px',width:start.w+'px',height:start.h+'px'});
+        const copy=removeIds(sourceBody.cloneNode(true));
+        copy.classList.add('body-copy');
+        Object.assign(copy.style,{left:(36-start.x)+'px',top:(176-start.y)+'px'});
+        fragment.appendChild(copy); stage.appendChild(fragment);
+        const end=local(targets.get(id).getBoundingClientRect());
+        fragments.push({el:fragment,start,end});
+      }
+    }
+    const anchor=fragments[0].start;
+    const firstColumn=fragments.filter(f=>Math.abs(f.start.x-anchor.x)<3).map(f=>f.start);
+    groups[spec.name]={...spec,fixed,targets,fragments,anchor,initial:bounds(firstColumn),fullSize,fullHeight,smallHeight};
+    fixed.style.visibility='visible';
+  }
+
+  // A compact optical illustration, with no external images, fonts or clocks.
+  const liveSVG = `<svg class="live-figure" viewBox="0 0 280 176" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="glass" cx="32%" cy="25%" r="75%"><stop stop-color="#ffffff"/><stop offset=".30" stop-color="#e2f7f7"/><stop offset=".67" stop-color="#9bc6d0" stop-opacity=".65"/><stop offset=".90" stop-color="#468995" stop-opacity=".9"/><stop offset="1" stop-color="#e1f5ef"/></radialGradient>
+      <filter id="light-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2.8"/></filter>
+    </defs>
+    <rect x=".75" y=".75" width="278.5" height="174.5" rx="7" fill="#f0f7f7" stroke="#c9dddf"/>
+    <circle cx="17" cy="17" r="3" fill="#219d8b"/>
+    <text x="28" y="21" font-family="Segoe UI,sans-serif" font-size="12" font-weight="600" fill="#0f4c5c">Animated figure</text>
+    <text x="262" y="21" text-anchor="end" font-family="Calibri,sans-serif" font-size="10" fill="#597b80">WGM</text>
+    <ellipse cx="140" cy="137" rx="52" ry="5" fill="#0f4c5c" opacity=".08"/>
+    <path d="M17 126H263" fill="none" stroke="#0f4c5c" stroke-width="3"/>
+    <path d="M17 126H263" fill="none" stroke="#6ec4c1" stroke-width="1"/>
+    <ellipse cx="140" cy="86" rx="58" ry="19" transform="rotate(-24 140 86)" fill="none" stroke="#65adaf" stroke-width="1" opacity=".5"/>
+    <circle cx="140" cy="83" r="43" fill="url(#glass)" stroke="#528b97" stroke-width="1.2"/>
+    <path d="M111 66Q118 45 144 47" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".85"/>
+    <ellipse cx="140" cy="86" rx="58" ry="19" transform="rotate(-24 140 86)" fill="none" stroke="#e7a13a" stroke-width="1.5" stroke-dasharray="105 153"/>
+    <g class="orbit-trail" fill="none" stroke="#ffd579" stroke-width="3" stroke-linecap="round"></g>
+    <circle class="orbit-halo" r="8" fill="#ffc76a" filter="url(#light-glow)"/>
+    <circle class="orbit-dot" r="3.7" fill="#fff6d8" stroke="#e7a13a" stroke-width="1.5"/>
+    <circle class="fibre-pulse" cy="126" r="3" fill="#e7a13a"/>
+    <text x="140" y="160" text-anchor="middle" font-family="Calibri,sans-serif" font-size="11" fill="#325861">Light circulating in a glass microsphere</text>
+  </svg>`;
+  const chart=groups.results.targets.get(13);
+  const liveWrap=document.createElement('div'); liveWrap.className='live-wrap';
+  chart.replaceWith(liveWrap); liveWrap.appendChild(chart);
+  liveWrap.insertAdjacentHTML('beforeend',liveSVG);
+  const live=liveWrap.querySelector('.live-figure');
+  const figEnd={x:992.25,y:650,w:262,h:168};
+
+  // Curved, eased motion; a 2px overtravel resolves exactly at the snap time.
+  function travel(a,b,u,bend=22,settle=false) {
+    const k=ease(u), dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1;
+    const arc=Math.sin(Math.PI*k)*bend;
+    const over=settle && u>.75 && u<1 ? Math.sin((u-.75)/.25*Math.PI)*2 : 0;
+    return {x:mix(a.x,b.x,k)-dy/len*arc+dx/len*over,y:mix(a.y,b.y,k)+dx/len*arc+dy/len*over};
+  }
+  function progress(name,t) {
+    const beat=TIMES[name] || TIMES.text;
+    return phase(t,beat.start,beat.snap);
+  }
+  function objectRect(name,t) {
+    const beat=TIMES[name], g=groups[name];
+    const a=name==='figure'?origFig:g.initial;
+    const b=name==='figure'?figEnd:{x:g.x,y:g.y,w:281.5,h:g.smallHeight};
+    const u=clamp((t-beat.start)/(beat.snap-beat.start));
+    const p=travel(a,b,u,name==='figure'?-48:18,true);
+    return {...p,w:mix(a.w,b.w,ease(u)),h:mix(a.h,b.h,ease(u))};
+  }
+  const grabOffsets={figure:{x:122,y:62},results:{x:92,y:14},protocol:{x:112,y:16},conclusion:{x:101,y:14}};
+  function grip(name,t) {
+    const r=objectRect(name,t),o=grabOffsets[name];
+    return screen({x:r.x+o.x,y:r.y+o.y});
+  }
+  const textTarget=screen({x:165,y:459});
+  function chartTarget() {
+    const r=local(liveWrap.getBoundingClientRect());
+    return screen({x:r.x+r.w*.52,y:r.y+r.h*.5});
+  }
+  const originalCursor=screen({x:origFig.x+262*.55,y:origFig.y+168*.42});
+  originalCursor.x+=29; originalCursor.y+=13;
+  function cursorAt(t,chartPoint) {
+    let previous=originalCursor;
+    for(const name of ['figure','results','protocol','conclusion','text','live']) {
+      const beat=TIMES[name];
+      const destination=name==='text'?textTarget:name==='live'?chartPoint:grip(name,beat.start);
+      if(t<beat.reach) return previous;
+      if(t<beat.pick) return travel(previous,destination,(t-beat.reach)/(beat.pick-beat.reach),name==='figure'?20:-28);
+      if(name==='text'||name==='live') {
+        if(t<beat.end) return destination;
+        previous=destination;
+      } else {
+        if(t<beat.end) return grip(name,t);
+        previous=grip(name,beat.end);
+      }
+    }
+    return travel(previous,{x:1640,y:913},(t-4.60)/.65,36);
+  }
+  function selection(r,alpha=1) {
+    let html=`<div class="repair-selection" style="left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;opacity:${alpha}"></div>`;
+    for(const [x,y] of [[0,0],[.5,0],[1,0],[0,.5],[1,.5],[0,1],[.5,1],[1,1]])
+      html+=`<div class="repair-handle" style="left:${r.x+r.w*x}px;top:${r.y+r.h*y}px;opacity:${alpha}"></div>`;
+    return html;
+  }
+  function guides(r,alpha) {
+    const p=screen({x:36,y:176,w:1228,h:690});
+    return `<div class="snap-guide" style="left:${r.x}px;top:${p.y}px;height:${p.h}px;border-left-width:1.5px;opacity:${alpha}"></div>
+      <div class="snap-guide teal" style="left:${p.x}px;top:${r.y}px;width:${p.w}px;border-top-width:1.5px;opacity:${alpha}"></div>
+      <div class="snap-guide teal" style="left:${r.x+r.w}px;top:${p.y}px;height:${p.h}px;border-left-width:1px;opacity:${alpha*.65}"></div>`;
+  }
+  function orbitPoint(theta) {
+    const x=58*Math.cos(theta),y=19*Math.sin(theta),a=-24*Math.PI/180;
+    return {x:140+x*Math.cos(a)-y*Math.sin(a),y:86+x*Math.sin(a)+y*Math.cos(a)};
+  }
+  function drawLive(t) {
+    const angle=(t-4.30)*Math.PI*2/1.05;
+    const point=orbitPoint(angle);
+    for(const n of live.querySelectorAll('.orbit-dot,.orbit-halo')) {n.setAttribute('cx',point.x);n.setAttribute('cy',point.y);}
+    const tail=Array.from({length:16},(_,i)=>orbitPoint(angle-.70+i*.70/15));
+    live.querySelector('.orbit-trail').innerHTML='<path d="'+tail.map((p,i)=>(i?'L':'M')+p.x.toFixed(3)+' '+p.y.toFixed(3)).join(' ')+'"/>';
+    live.querySelector('.fibre-pulse').setAttribute('cx',17+246*((t*.85)%1));
+  }
+  function mirrorThumbnail() {
+    const clone=poster.cloneNode(true);
+    removeIds(clone);
+    Object.assign(clone.style,{left:'0px',top:'0px',width:'1300px',height:'919px',position:'absolute',background:'#fff',fontFamily:'Calibri,Carlito,"Segoe UI",sans-serif',color:'#222',boxShadow:'none',transform:'none'});
+    // ID-specific source-body styles also apply in the tiny slide preview.
+    const originalBody=clone.children[1]; originalBody.classList.add('body-copy');
+    const cap=clone.children[2];
+    Object.assign(cap.style,{position:'absolute',fontSize:'11.6px',lineHeight:'1.25',color:'#333',fontStyle:'italic',textAlign:'left',width:'262px'});
+    // Local gradient references receive unique IDs so the preview cannot capture main SVG state.
+    clone.querySelectorAll('[fill="url(#glass)"]').forEach(n=>n.setAttribute('fill','#b9dfe2'));
+    clone.querySelectorAll('[filter]').forEach(n=>n.removeAttribute('filter'));
+    $('thumbclip').replaceChildren(clone);
+    $('thumbclip').style.transform='scale('+162/1300+')';
+  }
+
+  function render(rawTime) {
+    const t=Math.max(0,Math.min(6,Number.isFinite(rawTime)?rawTime:0));
+    const fontK=progress('text',t);
+    sourceBody.style.visibility=t<.5?'visible':'hidden';
+    stage.style.visibility=t<.5?'hidden':'visible';
+    for(const g of Object.values(groups)) {
+      const beat=TIMES[g.name]||TIMES.text;
+      const u=clamp((t-beat.start)/(beat.snap-beat.start));
+      const k=ease(u), blend=phase(u,.56,.94);
+      g.fixed.style.fontSize=mix(13.4,g.fullSize,fontK)+'px';
+      const moving=travel(g.anchor,{x:g.x,y:g.y},u,g.name==='figure'?-48:18,true);
+      g.fixed.style.transform=`translate(${moving.x-g.x}px,${moving.y-g.y}px)`;
+      g.fixed.style.opacity=blend;
+      // Explicit visibility overrides are necessary because fragments inherit stage visibility.
+      g.fixed.style.visibility=t<.5?'hidden':'visible';
+      for(const f of g.fragments) {
+        const delta={x:moving.x-g.anchor.x,y:moving.y-g.anchor.y};
+        const reflow=phase(u,.55,1);
+        const x=mix(f.start.x+delta.x,f.end.x,reflow);
+        const y=mix(f.start.y+delta.y,f.end.y,reflow);
+        f.el.style.transform=`translate(${x-f.start.x}px,${y-f.start.y}px)`;
+        f.el.style.opacity=1-blend;
+      }
+    }
+    const fr=objectRect('figure',t);
+    Object.assign(figure.style,{left:fr.x+'px',top:fr.y+'px'});
+    caption.style.left=fr.x+'px'; caption.style.top=(fr.y+172)+'px';
+    const liveK=progress('live',t);
+    chart.style.opacity=1-liveK; live.style.opacity=liveK;
+    live.style.transform=`scale(${mix(.96,1,liveK)})`;
+    drawLive(t);
+    const cp=chartTarget(),point=cursorAt(t,cp);
+    let ui='';
+    if(t<TIMES.figure.pick) ui+=selection(screen(origFig));
+    for(const name of ['figure','results','protocol','conclusion']) {
+      const beat=TIMES[name];
+      if(t>=beat.pick && t<beat.end) {
+        const rect=screen(objectRect(name,t));
+        ui+=selection(rect);
+        if(t>beat.snap-.11) ui+=guides(screen(objectRect(name,beat.snap)),phase(t,beat.snap-.11,beat.snap-.025)*(1-phase(t,beat.snap+.04,beat.end)));
+      }
+    }
+    if(t>=TIMES.text.pick&&t<TIMES.text.end) ui+=selection(screen({x:36,y:176,w:281.5,h:groups.intro.fixed.offsetHeight}));
+    if(t>=TIMES.live.pick&&t<4.6) ui+=selection(screen(local(liveWrap.getBoundingClientRect())));
+    for(const beat of Object.values(TIMES)) {
+      const elapsed=t-beat.pick;
+      if(elapsed>=0 && elapsed<.20) {
+        const hit=cursorAt(beat.pick,cp), k=elapsed/.20, size=12+34*k;
+        ui+=`<div class="click-ring" style="left:${hit.x}px;top:${hit.y}px;width:${size}px;height:${size}px;opacity:${(1-k)*.8}"></div>`;
+      }
+    }
+    // Three delayed pointer silhouettes form a short, time-derived motion trail.
+    for(let i=3;i>=1;i--) {
+      const past=cursorAt(Math.max(0,t-i*.018),cp);
+      const speed=Math.min(1,Math.hypot(point.x-past.x,point.y-past.y)/32);
+      ui+=`<svg class="trail" viewBox="0 0 32 32" style="left:${past.x-40}px;top:${past.y-40}px;width:80px;height:80px;opacity:${speed*(.12-i*.023)}">${ARROW}</svg>`;
+    }
+    overlay.innerHTML=ui;
+    cursor.innerHTML=ARROW;
+    cursor.style.transform=`translate(${point.x-40}px,${point.y-40}px)`;
+    const done=t>=4.60,pulse=(1+Math.sin(t*Math.PI*4))*.5;
+    $('agent-chip').style.opacity=phase(t,0,.18);
+    $('agent-symbol').innerHTML=done?'<svg viewBox="0 0 20 20" width="18" height="18"><path d="m4 10 4 4 8-9" fill="none" stroke="#168671" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>':`<i style="opacity:${.65+.35*pulse};box-shadow:0 0 0 ${2+3*pulse}px #249b8817"></i>`;
+    $('agent-label').textContent=done?'Layout fixed':'AI agent · fixing layout';
+    $('ctxtab').style.display='';
+    $('ctxtab').textContent=t>=TIMES.results.pick&&t<TIMES.live.pick?'Shape Format':'Picture Format';
+    $('keys').style.display='none'; $('undo').classList.remove('on');
+    $('savestate').textContent=t>.64&&t<4.6?'• Saving…':'• Saved to this PC';
+    mirrorThumbnail();
+    document.documentElement.dataset.time=t.toFixed(4);
+    document.title='ready';
+  }
+  // Useful for capture harnesses; seeking in any order never depends on a previous frame.
+  window.renderFrame=render;
+  window.REPAIR_TIMES=TIMES;
+  window.REPAIR_LAYOUT=Object.fromEntries(Object.values(groups).map(g=>[g.name,{fontSize:g.fullSize,height:g.fullHeight,available:g.limit}]));
+  const params=new URLSearchParams(location.search);
+  if(params.has('t')) render(Number(params.get('t')));
+  else {
+    render(0);
+    const start=performance.now();
+    const tick=now=>{render(((now-start)/1000)%6);requestAnimationFrame(tick);};
+    requestAnimationFrame(tick);
+  }
+
+})();
+</script>
+</body>
+</html>

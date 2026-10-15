@@ -1,0 +1,338 @@
+﻿<!--
+PAPER: Hamzah, Jalaluddin & Tinggom (2025), scanned abstract pp.167–168 and
+conclusion pp.188–189: Langkawi and Satun Malay dialects mix through community
+mobility and have high mutual intelligibility. The four studied lexical items
+are air, bantal, kelapa and tajam. Historical, migration, educational and border
+factors influence their distribution. Printed p.172 describes transcription and
+GIS mapping; Figures 1–2 (pp.173–174) show dialect-location distributions.
+ARTISTIC LICENCE: simplified coastlines, paper relief, decorative topography,
+border placement, ink colours, connection endpoints and animated raised ink
+bridges. Late dashed isoglosses illustrate the GIS method, informed by those
+distributions; their paths are schematic, NOT digitised survey boundaries.
+The figures' administrative boundaries are not treated as isoglosses.
+These are NOT field sites, measured isoglosses, migration routes,
+phonetic waveforms or quantitative flows. Word labels are lexical categories,
+not regional pronunciation transcriptions. Distinct colours remain distinct.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Different dialects. Still understood. — Langkawi &amp; Satun</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#e9dfc6}
+#frame{position:absolute;width:1920px;height:1080px;left:50%;top:50%;transform:translate(-50%,-50%) scale(var(--fit,1));overflow:hidden;background:#e9dfc6}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(241,232,209,.97),rgba(241,232,209,.82) 12%,rgba(241,232,209,0) 37%)}
+#title{position:absolute;left:102px;bottom:86px;color:#213f41;pointer-events:none}
+h1{font:normal 82px/.99 Georgia,'Times New Roman',serif;letter-spacing:-3.2px;margin:0;text-shadow:0 1px 0 #fff8}
+h1 em{font-weight:normal;color:#986037}
+#vignette{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 150px #5a3f1820}
+#fallback{display:none;position:absolute;top:40%;left:15%;right:15%;font:26px Georgia;color:#213f41}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<main id="frame" aria-label="A hand-drawn relief map of Langkawi and Satun. Word bridges connect the shores; dashed schematic dialect boundaries then trace across the land to illustrate GIS mapping.">
+<div id="scrim"></div>
+<div id="title"><h1>Different dialects.<br><em>Still understood.</em></h1></div>
+<div id="vignette"></div><div id="fallback">This animated map needs WebGL and access to jsDelivr.</div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+
+const frame=document.getElementById('frame');
+function fit(){frame.style.setProperty('--fit',Math.min(innerWidth/1920,innerHeight/1080));}
+fit();addEventListener('resize',fit);
+const W=1920,H=1080,TAU=Math.PI*2;
+const clamp=x=>Math.max(0,Math.min(1,x));
+const smooth=(a,b,t)=>{const u=clamp((t-a)/(b-a));return u*u*(3-2*u);};
+let seed=130;
+function rand(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;}
+const ink='#28494a',teal='#286d70',ochre='#ad6736';
+const scene=new THREE.Scene();scene.background=new THREE.Color('#e9dfc6');
+const camera=new THREE.OrthographicCamera(-10.6667,10.6667,6,-6,.1,100);
+camera.position.set(0,-8,25);camera.up.set(0,1,0);camera.lookAt(0,.4,0);
+let renderer;
+try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});}
+catch(e){document.getElementById('fallback').style.display='block';throw e;}
+renderer.setSize(W,H);renderer.setPixelRatio(1);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.85;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+frame.prepend(renderer.domElement);
+scene.add(new THREE.AmbientLight('#fff4db',2.1));
+const sun=new THREE.DirectionalLight('#fff6e2',3.0);sun.position.set(-8,4,15);
+sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-13;sun.shadow.camera.right=13;sun.shadow.camera.top=10;sun.shadow.camera.bottom=-10;sun.shadow.normalBias=.035;sun.shadow.bias=-.00015;sun.shadow.radius=3;scene.add(sun);
+
+// All textures are drawn here: paper fibres, dry-brush pigment, pen hatching.
+function paperTexture(sea=false){
+ const c=document.createElement('canvas');c.width=2048;c.height=1536;const x=c.getContext('2d');
+ x.fillStyle='#e8dec3';x.fillRect(0,0,c.width,c.height);
+ if(sea){
+  // Overlapping pigment blooms, feathered edges and irregular pooling.
+  for(let i=0;i<85;i++){
+   const px=250+rand()*1380,py=230+rand()*800,r=90+rand()*250;
+   const grad=x.createRadialGradient(px,py,r*.08,px,py,r);
+   grad.addColorStop(0,'rgba(53,126,132,.065)');grad.addColorStop(.62,'rgba(71,136,137,.045)');grad.addColorStop(1,'rgba(92,149,147,0)');
+   x.fillStyle=grad;x.beginPath();x.ellipse(px,py,r,r*(.6+rand()*.4),rand()*.5,0,TAU);x.fill();
+  }
+  for(let i=0;i<1500;i++){
+   const px=rand()*2048,py=rand()*1536;x.fillStyle='rgba(41,103,115,.025)';
+   x.beginPath();x.ellipse(px,py,1+rand()*12,.4+rand()*4,rand()*TAU,0,TAU);x.fill();
+  }
+ }
+ for(let i=0;i<80000;i++){
+  const px=rand()*c.width,py=rand()*c.height;
+  x.fillStyle=i%3?'rgba(94,69,38,.105)':'rgba(255,255,240,.28)';
+  x.fillRect(px,py,.6+rand()*2.3,.5+rand()*1.8);
+ }
+ for(let i=0;i<1500;i++){
+  x.strokeStyle='rgba(95,72,44,.075)';x.lineWidth=.7;x.beginPath();const px=rand()*2048,py=rand()*1536;x.moveTo(px,py);x.lineTo(px+rand()*14,py+rand()*2);x.stroke();
+ }
+ const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t;
+}
+const paper=paperTexture();
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(28,18),new THREE.MeshStandardMaterial({map:paperTexture(true),roughness:1,color:'#f9f0d7'}));ground.position.z=-.1;ground.receiveShadow=true;scene.add(ground);
+
+// Flat pen strokes use actual ribbon geometry: WebGL lineWidth is unreliable.
+function inkStroke(points,color,opacity=.75,width=.012,dashed=false){
+ const positions=[],indices=[];let distance=0;
+ for(let i=0;i<points.length;i++){
+  const p=points[i],prev=points[Math.max(0,i-1)],next=points[Math.min(points.length-1,i+1)];
+  if(i)distance+=Math.hypot(p[0]-prev[0],p[1]-prev[1]);
+  const dx=next[0]-prev[0],dy=next[1]-prev[1],len=Math.hypot(dx,dy)||1;
+  const pressure=width*(.7+.22*Math.sin(distance*9)+.16*Math.sin(distance*27+1));
+  positions.push(p[0]-dy/len*pressure,p[1]+dx/len*pressure,p[2],p[0]+dy/len*pressure,p[1]-dx/len*pressure,p[2]);
+  if(i&&(!dashed||distance%.21<.135)){const n=i*2;indices.push(n-2,n-1,n,n-1,n+1,n);}
+ }
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);
+ const mesh=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color,transparent:true,opacity,side:THREE.DoubleSide,depthWrite:false}));scene.add(mesh);return mesh;
+}
+
+function pen(points,color=ink,opacity=.65,width=1){
+ const geom=new THREE.BufferGeometry().setFromPoints(points.map(p=>new THREE.Vector3(...p)));
+ const l=new THREE.Line(geom,new THREE.LineBasicMaterial({color,transparent:true,opacity,linewidth:width}));scene.add(l);return l;
+}
+function sketch(points,color=ink,opacity=.7){
+ const main=pen(points,color,opacity);
+ pen(points.map(([x,y,z],i)=>[x+Math.sin(i*2.7)*.014,y+Math.cos(i*1.9)*.014,z+.003]),color,opacity*.28);
+ return main;
+}
+function closed(points,z){return [...points,points[0]].map(p=>[p[0],p[1],z]);}
+function soften(points,detail=240){
+ const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(p[0],p[1],0)),true,'centripetal');
+ return curve.getPoints(detail).slice(0,-1).map(p=>[p.x,p.y]);
+}
+const landShapes=[];
+function land(points,z=.19,color='#eee3c0'){
+ landShapes.push({points,z});
+ const shape=new THREE.Shape();shape.moveTo(...points[0]);points.slice(1).forEach(p=>shape.lineTo(...p));shape.closePath();
+ const geom=new THREE.ExtrudeGeometry(shape,{depth:z,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.025,bevelThickness:.025,curveSegments:1});
+ const m=new THREE.Mesh(geom,[new THREE.MeshStandardMaterial({color,map:paper,roughness:1}),new THREE.MeshStandardMaterial({color:'#b8a888',roughness:1})]);
+ m.castShadow=true;m.receiveShadow=true;scene.add(m);
+ sketch(closed(points,z+.03),ink,.48);
+ inkStroke(closed(points,z+.034),ink,.75,.010);
+ for(const k of [1,2,3])sketch(closed(points,-.005).map(([x,y,z])=>{const cx=points.reduce((s,p)=>s+p[0],0)/points.length,cy=points.reduce((s,p)=>s+p[1],0)/points.length;return [cx+(x-cx)*(1+k*.025),cy+(y-cy)*(1+k*.025),z];}),teal,.14/(k*.4));
+ return m;
+}
+// Schematic north-up coastal geography: Langkawi SW; Satun mainland NE.
+const lang=soften([[-6.35,.15],[-6.5,.65],[-6.05,1.02],[-5.97,1.48],[-5.45,1.75],[-4.98,1.62],[-4.55,2.0],[-4.0,1.79],[-3.68,1.9],[-3.26,1.57],[-2.9,1.64],[-2.45,1.2],[-2.5,.78],[-2.11,.35],[-2.24,-.05],[-2.8,-.12],[-3.1,-.54],[-3.9,-.61],[-4.31,-.38],[-4.86,-.59],[-5.11,-.23],[-5.67,-.27],[-5.87,.1]]);
+land(lang,.21);
+const main=soften([[2.4,7.8],[11.8,7.8],[11.8,-2.6],[9.1,-2.6],[8.1,-1.52],[7.67,-.87],[7.13,-.43],[7.23,.06],[6.4,.15],[5.94,.64],[5.7,.99],[5.32,.93],[5.16,1.28],[4.72,1.36],[4.5,1.76],[4.05,1.66],[3.88,2.04],[3.25,2.4],[3.1,2.78],[2.82,2.9],[3.06,3.4],[2.75,3.88],[2.85,4.31],[2.44,4.95],[2.65,5.6],[2.38,6.44]]);
+land(main,.26,'#e5dab5');
+function islet(cx,cy,rx,ry,phase){const a=[];for(let i=0;i<24;i++){const t=i/24*TAU,r=1+.13*Math.sin(t*5+phase)+.11*Math.sin(t*3);a.push([cx+Math.cos(t)*rx*r,cy+Math.sin(t)*ry*r]);}land(soften(a,70),.12);}
+islet(-3.3,-1.35,.61,.54,1);islet(-2.47,-1.2,.31,.35,3);islet(-5.6,-.86,.24,.29,5);islet(-6.73,.86,.33,.57,3);
+islet(.68,2.09,.42,1.05,2);islet(1.25,1.65,.22,.36,4);islet(1.7,3.3,.18,.31,1);
+
+// Loose maritime strokes, gently doubled to mimic a cartographer's pen.
+for(let row=0;row<18;row++){
+ const yy=-3.0+row*.46;
+ for(let col=0;col<5;col++){
+  const xx=-9.7+col*2.7+rand()*.6;
+  if((xx>-7&&xx<-1.7&&yy>-.9&&yy<2.3)||(xx>2.2&&yy>1.1)||(xx>5.8))continue;
+  const pts=[];for(let j=0;j<26;j++)pts.push([xx+j*.054,yy+.024*Math.sin(j*.47),-.025]);
+  pen(pts,teal,.11);
+ }
+}
+// Decorative relief/hachures are deliberately not elevation measurements.
+const hills=[];
+function hill(cx,cy,rx,ry,levels){
+ hills.push({cx,cy,rx,ry,levels});
+ for(let k=0;k<levels;k++){
+  const r=1-k/(levels+1),z=.25+k*.045;
+  const pts=[];for(let j=0;j<=90;j++){const a=j/90*TAU,rough=1+.075*Math.sin(a*5+cx)+.045*Math.cos(a*9);pts.push([cx+Math.cos(a)*rx*r*rough,cy+Math.sin(a)*ry*r*rough,z]);}
+  if(k===0){for(let j=0;j<20;j++){const a=j/20*TAU;pen([[cx+Math.cos(a)*rx,cy+Math.sin(a)*ry,z],[cx+Math.cos(a)*(rx+.085),cy+Math.sin(a)*(ry+.085),z-.025]],ink,.24);}}
+  const sh=new THREE.Shape(pts.map(p=>new THREE.Vector2(p[0],p[1])));
+  const m=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshStandardMaterial({color:k%2?'#d3ccac':'#ded4b4',roughness:1,side:THREE.DoubleSide}));m.position.z=z-.01;m.receiveShadow=true;scene.add(m);
+  sketch(pts,ink,.29);
+ }
+}
+hill(-4.28,1.13,.83,.52,6);hill(-5.62,.62,.35,.47,4);hill(-3.1,.62,.38,.44,4);
+hill(5.88,4.05,1.05,1.6,7);hill(8.27,3.9,.56,1.3,6);hill(7.5,1.03,.75,.5,5);
+
+function label(text,size,color=ink,italic=false,hand=false){
+ const c=document.createElement('canvas');const x=c.getContext('2d');
+ x.font=`${italic?'italic ':''}80px Georgia, serif`;c.width=Math.ceil(x.measureText(text).width)+100;c.height=160;
+ x.font=`${italic?'italic ':''}80px Georgia, serif`;x.textAlign='center';x.textBaseline='middle';x.fillStyle=color;
+ if(hand){
+  // Letter-by-letter pen setting: slight baseline, angle and pressure variation.
+  const widths=[...text].map(ch=>x.measureText(ch).width);let cursor=(c.width-widths.reduce((a,b)=>a+b,0))/2;
+  [...text].forEach((ch,i)=>{x.save();x.translate(cursor+widths[i]/2,80+Math.sin(i*2.1)*2.5);x.rotate(Math.sin(i*1.7)*.027);x.scale(1,1+Math.sin(i*2.7)*.025);x.fillText(ch,0,0);x.globalAlpha=.2;x.fillText(ch,.7,.3);x.restore();cursor+=widths[i];});
+ }else{x.fillText(text,c.width/2,80);}
+ const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
+ const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+ const sprite=new THREE.Sprite(mat);sprite.scale.set(size,size*160/c.width,1);sprite.userData.text=text;scene.add(sprite);return sprite;
+}
+const langName=label('Langkawi',2.9,ink,true,true);langName.position.set(-4.52,-1.05,.75);
+const langCountry=label('M A L A Y S I A',2.0,'#6b715f');langCountry.position.set(-4.52,-1.55,.71);
+const satunName=label('Satun',2.05,ink,true,true);satunName.position.set(5.35,3.0,.9);
+const satunCountry=label('T H A I L A N D',2.0,'#6b715f');satunCountry.position.set(5.35,2.50,.8);
+const sea=label('Andaman Sea',3.1,'#6e9690',true);sea.material.opacity=.66;sea.position.set(-6.8,4.1,.04);
+
+// The border remains in place throughout; no political change is implied.
+const borderPts=[[-1.85,5.0,.02],[-.7,3.8,.02],[.03,2.8,.02],[1.01,1.07,.02],[2.8,-.62,.02],[5.9,-1.43,.02],[8,-1.9,.29]];
+const bg=new THREE.BufferGeometry().setFromPoints(borderPts.map(p=>new THREE.Vector3(...p)));
+const border=new THREE.Line(bg,new THREE.LineDashedMaterial({color:'#8c795d',dashSize:.09,gapSize:.1,transparent:true,opacity:.47}));border.computeLineDistances();scene.add(border);
+
+// Ink compass, not a dashboard element.
+const cx=-8.3,cy=2.25;
+for(let i=0;i<8;i++){const a=i*TAU/8,len=i%2?.24:.46;sketch([[cx,cy,.02],[cx+Math.sin(a)*len,cy+Math.cos(a)*len,.02]],ink,.5);}
+const north=label('N',.45,ink);north.position.set(cx,cy+.74,.03);
+
+// Late GIS payoff. Schematic paths illustrate the method, not recovered data.
+function contains(points,x,y){
+ let inside=false;
+ for(let i=0,j=points.length-1;i<points.length;j=i++){
+  const a=points[i],b=points[j];
+  if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])inside=!inside;
+ }
+ return inside;
+}
+function surfaceHeight(x,y){
+ const surfaces=landShapes.filter(s=>contains(s.points,x,y));
+ if(!surfaces.length)return null;
+ let z=Math.max(...surfaces.map(s=>s.z))+.05;
+ for(const h of hills){
+  const a=Math.atan2((y-h.cy)/h.ry,(x-h.cx)/h.rx),rough=1+.075*Math.sin(a*5+h.cx)+.045*Math.cos(a*9);
+  const r=Math.hypot((x-h.cx)/h.rx,(y-h.cy)/h.ry)/rough;
+  if(r<1)z=Math.max(z,.29+Math.min(h.levels-1,Math.floor((1-r)*(h.levels+1)))*.045);
+ }
+ return z;
+}
+const isoglosses=[];
+function isogloss(coords,delay){
+ const curve=new THREE.CatmullRomCurve3(coords.map(p=>new THREE.Vector3(p[0],p[1],0)),false,'centripetal');
+ let section=[];const sections=[];
+ for(const p of curve.getPoints(240)){
+  const z=surfaceHeight(p.x,p.y);
+  if(z===null){if(section.length>2)sections.push(section);section=[];}
+  else section.push([p.x,p.y,z+.007*Math.sin(section.length*.9)]);
+ }
+ if(section.length>2)sections.push(section);
+ for(const points of sections){
+  const mesh=inkStroke(points,'#783e49',.89,.021,true);
+  const count=mesh.geometry.index.count;mesh.geometry.setDrawRange(0,0);
+  isoglosses.push({mesh,count,delay,points});
+ }
+}
+// Generalised transition strokes: main island, southern islets, coastal Satun.
+// No curve is assigned to a measured phonetic variant or a surveyed village.
+isogloss([[-5.95,1.2],[-5.35,1.23],[-5.06,.98],[-4.88,.65],[-4.93,.17],[-4.60,-.6]],0);
+isogloss([[-4.45,2.02],[-4.15,1.53],[-4.38,1.16],[-4.15,.79],[-3.57,.54],[-3.14,-.51]],.12);
+isogloss([[-3.9,-1.16],[-3.55,-1.23],[-3.28,-1.41],[-2.99,-1.36],[-2.25,-1.21]],.25);
+isogloss([[3.16,4.73],[3.77,4.24],[4.20,3.78],[4.0,3.23],[4.29,2.72],[4.06,1.78]],.08);
+isogloss([[6.36,4.82],[6.55,4.06],[6.23,3.40],[6.62,2.93],[6.49,2.22],[6.9,1.54],[6.44,.17]],.20);
+const methodLabel=label('Dialect boundaries',3.20,'#783e49',true,true);methodLabel.position.set(-5.42,3.28,.12);
+const methodNote=label('schematic GIS mapping',2.6,'#715b55',true);methodNote.position.set(-5.42,2.87,.12);
+
+const tracks=[];
+const anchorA=new THREE.Vector3(-3.58,.14,.28),anchorB=new THREE.Vector3(5.15,1.62,.34);
+function makeTrack(index){
+ const fromB=index%2===1;
+ const start=(fromB?anchorB:anchorA).clone(),end=(fromB?anchorA:anchorB).clone();
+ start.y+=(index-1.5)*.12;end.y+=(index-1.5)*.12;
+ const arch=1.5+index*.4;
+ const curve=new THREE.CubicBezierCurve3(start,new THREE.Vector3(start.x*.7,start.y+.9+index*.16,arch),new THREE.Vector3(end.x*.65,end.y+1.2+index*.16,arch+.7),end);
+ const color=index%2?ochre:teal,segments=180,parts=[];
+ // Multiple rough pen filaments provide a dry-ink edge around each major stroke.
+ for(let k=0;k<3;k++){
+  const pts=curve.getPoints(segments).map((p,j)=>p.add(new THREE.Vector3(0,(k-1)*.035+Math.sin(j*.47+index)*.007,Math.sin(j*.38)*.006)));
+  const path=new THREE.CatmullRomCurve3(pts);
+  const geom=new THREE.TubeGeometry(path,segments,k===1?.029:.009,5,false);
+  const mesh=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1,transparent:true,opacity:k===1?.94:.48}));
+  mesh.castShadow=true;scene.add(mesh);parts.push(mesh);
+ }
+ // Narrow translucent coloured ribbon gives the rising stroke tangible width.
+ const positions=[],indices=[];
+ for(let i=0;i<=segments;i++){
+  const t=i/segments,p=curve.getPoint(t),wide=.07+.10*Math.sin(Math.PI*t);
+  positions.push(p.x,p.y-wide,p.z-.014,p.x,p.y+wide,p.z-.014);
+  if(i<segments){const n=i*2;indices.push(n,n+1,n+2,n+1,n+3,n+2);}
+ }
+ const ribbonGeom=new THREE.BufferGeometry();ribbonGeom.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));ribbonGeom.setIndex(indices);ribbonGeom.computeVertexNormals();
+ const ribbon=new THREE.Mesh(ribbonGeom,new THREE.MeshStandardMaterial({color,transparent:true,opacity:.20,roughness:1,side:THREE.DoubleSide,depthWrite:false}));scene.add(ribbon);
+ const bead=new THREE.Mesh(new THREE.SphereGeometry(.055,10,8),new THREE.MeshStandardMaterial({color,roughness:1}));bead.castShadow=true;scene.add(bead);
+ const text=['air','bantal','kelapa','tajam'][index];
+ const word=label(text,[.95,1.38,1.48,1.25][index],color,true);const p=curve.getPoint([.23,.23,.5,.73][index]);word.position.copy(p);word.position.z+=.30;word.position.y+=[-.13,.08,.26,.48][index];
+ // Each ending mark is an answering wash of ink, not a measured geographic area.
+ const rings=[];for(let k=0;k<3;k++){
+  const pts=[];for(let j=0;j<=80;j++){const a=j/80*TAU,r=.31+k*.14+.012*Math.sin(a*7);pts.push([Math.cos(a)*r,Math.sin(a)*r,0]);}
+  const ring=pen(pts,color,0);ring.position.copy(end);ring.position.z+=.032;rings.push(ring);
+ }
+ tracks.push({parts,ribbon,bead,word,curve,rings,index,start,end,fromB,segments,wordAt:[.23,.23,.5,.73][index]});
+}
+for(let i=0;i<4;i++)makeTrack(i);
+
+// Small ink wells establish the two communities before the bridge is drawn.
+for(const [p,color] of [[anchorA,teal],[anchorB,ochre]]){
+ const dot=new THREE.Mesh(new THREE.CircleGeometry(.09,32),new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide}));dot.position.copy(p);dot.position.z+=.025;scene.add(dot);
+ for(let i=0;i<2;i++){const pts=[];for(let j=0;j<=80;j++){const a=j/80*TAU,r=.17+i*.07;pts.push([p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,p.z+.022]);}sketch(pts,color,.6-i*.2);}
+}
+
+function update(t){
+ // A six-percent push and slight lateral drift, independent of the text overlay.
+ const drift=smooth(0,3,t);
+ camera.zoom=1+drift*.06;camera.position.set(.16*drift,-8+.10*drift,25);
+ camera.lookAt(.16*drift,.4+.10*drift,0);camera.updateProjectionMatrix();
+ const mapping=smooth(1.70,2.12,t);
+ methodLabel.material.opacity=mapping;methodNote.material.opacity=mapping*.85;
+ for(const iso of isoglosses){
+  const q=smooth(1.72+iso.delay,2.67+iso.delay,t);
+  iso.mesh.geometry.setDrawRange(0,Math.floor(q*iso.count/6)*6);
+ }
+ for(const tr of tracks){
+  const delay=tr.index*.13;
+  const progress=1-Math.pow(1-clamp((t-.02-delay)/1.25),2);
+  for(const m of tr.parts)m.geometry.setDrawRange(0,Math.floor(progress*tr.segments)*5*6);
+  tr.ribbon.geometry.setDrawRange(0,Math.floor(progress*tr.segments)*6);
+  tr.bead.visible=progress>.002&&progress<.999;tr.bead.position.copy(tr.curve.getPoint(progress));
+  tr.word.material.opacity=smooth(tr.wordAt-.1,tr.wordAt+.08,progress)*(1-.25*mapping);
+  for(const m of tr.parts)m.material.opacity=(m===tr.parts[1]?.94:.48)*(1-.30*mapping);
+  tr.ribbon.material.opacity=.20*(1-.30*mapping);
+  for(let k=0;k<tr.rings.length;k++){
+   const q=smooth(1.3+delay+k*.09,2.35+delay+k*.09,t);
+   tr.rings[k].scale.setScalar(.65+q*.85);
+   tr.rings[k].material.opacity=q*(.38-k*.075);
+  }
+ }
+ renderer.render(scene,camera);
+}
+const params=new URLSearchParams(location.search);
+const raw=params.get('t'),parsed=raw===null?NaN:Number(raw);
+const frozen=raw!==null&&Number.isFinite(parsed);
+// Frozen states bypass the animation clock; no time-dependent randomness.
+if(frozen){update(Math.max(0,parsed));}
+else{
+ const began=performance.now();
+ function animate(now){const t=((now-began)/1000)%4.6;update(Math.min(t,3));requestAnimationFrame(animate);}
+ requestAnimationFrame(animate);
+}
+// Read-only hooks for static mathematical QA, without running a browser.
+export {camera,tracks,isoglosses,update,scene};
+</script>
+</body>
+</html>

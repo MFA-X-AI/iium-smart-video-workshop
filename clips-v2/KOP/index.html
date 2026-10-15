@@ -1,0 +1,368 @@
+<!doctype html>
+<!--
+PAPER: abstract p.341; p.346, Fig. 2: extract-loaded 10% PCL core fibres are
+smooth, bead-free, 120.3–284.2 nm; extract-free 20% PCL fibres are 374–857 nm.
+Higher polymer concentration explains the larger comparison fibres. The loaded
+PCL core contains 1% (w/w) Curcuma xanthorrhiza extract; shell is gelatine/chitosan.
+Table 1 p.349; p.350, Fig. 5: S. aureus free extract gives weak 7.7–8.7 mm
+inhibition; loaded nanofibre discs give 0 mm. Zone = clear diameter minus the
+5 mm disc. Here the illustrative midpoint gives outer radius/disc radius 2.64.
+ARTISTIC LICENCE: colours, optical properties, core/shell thickness, segment
+length, lighting, lawn texture, temporal reveal and quarter-wedge cutaways.
+The paper does not directly image the core–shell structure. Width ratio ~3:1
+illustrates the reported ranges, not a measured matched fibre pair. Two discs
+on one dish are a composite of Fig. 5A and 5C. No diffusion/retention mechanism
+is claimed or animated. The lawn never clears around the white nanofibre disc.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Java turmeric sealed in nanofibres, but no bacteria-free ring</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #fff; }
+    #stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; overflow: hidden; transform-origin: center; background: #fff; }
+    canvas, #annotations { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+    #annotations { pointer-events: none; overflow: visible; }
+    .label { font-family: Arial, Helvetica, sans-serif; font-size: 32px; font-weight: 400; fill: #333b3d; font-variant-numeric: tabular-nums; }
+    .result { font-size: 34px; font-weight: 600; fill: #263237; }
+    .leader { fill: none; stroke: #7d898b; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .dot { fill: #758486; }
+    .annotation { opacity: 0; }
+    #title { position: absolute; left: 76px; top: 804px; width: 840px; margin: 0; color: #273337; font: 500 68px/1.085 Arial, Helvetica, sans-serif; letter-spacing: -2.3px; opacity: 0; background: linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,.65) 85%, transparent); }
+    #title span { display: block; }
+  </style>
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <main id="stage">
+    <svg id="annotations" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+      <g id="magnifier" class="annotation">
+        <path id="zoom-lines" class="leader" style="stroke:#aab5b4;stroke-width:1.3"/>
+        <circle cx="653" cy="349" r="89" class="leader" style="stroke:#aab5b4;stroke-width:1.3"/>
+      </g>
+      <g id="shell-label" class="annotation">
+        <path class="leader" d="M 239 134 L 239 166 L 394 257" pathLength="1"/>
+        <circle class="dot" cx="394" cy="257" r="3.2"/>
+        <text class="label" x="82" y="111">gelatine/chitosan shell</text>
+      </g>
+      <g id="core-label" class="annotation">
+        <path class="leader" d="M 725 164 L 725 235 L 650 345" pathLength="1"/>
+        <circle class="dot" cx="650" cy="345" r="3.2"/>
+        <text class="label" x="492" y="142">PCL core + 1% Curcuma extract</text>
+      </g>
+      <g id="diameter-label" class="annotation">
+        <path class="leader" d="M 663 317 L 757 351 M 640 381 L 734 415 M 750 349 L 727 413 M 744 347 L 756 351 M 721 411 L 733 415" pathLength="1"/>
+        <text class="label" x="770" y="394">120.3–284.2 nm</text>
+      </g>
+      <g id="comparison-label" class="annotation">
+        <path class="leader" d="M 481 693 L 481 677 L 562 626" pathLength="1"/>
+        <circle class="dot" cx="562" cy="626" r="3.2"/>
+        <text class="label" x="105" y="735">20% PCL, no extract: 374–857 nm</text>
+      </g>
+      <g id="plate-label" class="annotation">
+        <text class="label" x="1748" y="108" style="font-size:28px;font-style:italic">S. aureus</text>
+      </g>
+      <g id="free-label" class="annotation">
+        <path class="leader" d="M 1581 236 L 1581 321" pathLength="1"/>
+        <circle class="dot" cx="1581" cy="321" r="3.2"/>
+        <text class="label result" x="1210" y="212">free extract: 7.7–8.7 mm (weak)</text>
+      </g>
+      <g id="nano-label" class="annotation">
+        <path class="leader" d="M 1304 446 L 1180 627 L 1040 709" pathLength="1"/>
+        <circle class="dot" cx="1304" cy="446" r="3.2"/>
+        <text class="label result" x="963" y="759">nanofibre disc: 0 mm</text>
+      </g>
+    </svg>
+    <h1 id="title"><span>Java turmeric sealed </span><span>in nanofibres, but no </span><span>bacteria-free ring</span></h1>
+  </main>
+  <script type="module">
+    import * as THREE from 'three';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const W = 1920, H = 1080;
+    const stage = document.getElementById('stage');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setSize(W, H);
+    renderer.setClearColor(0xffffff, 1);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = .86;
+    stage.prepend(renderer.domElement);
+    const scene = new THREE.Scene();
+    const camera = new THREE.OrthographicCamera(-W/2, W/2, H/2, -H/2, 1, 4000);
+    camera.position.set(0, 0, 1800);
+    camera.lookAt(0, 0, 0);
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    scene.environment = pmrem.fromScene(room, 0.04).texture;
+    scene.environmentIntensity = .55;
+    room.dispose();
+    pmrem.dispose();
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x9da7aa, .72));
+    function light(color, intensity, x, y, z) {
+      const l = new THREE.DirectionalLight(color, intensity);
+      l.position.set(x, y, z); scene.add(l); return l;
+    }
+    light(0xfff3dc, 3.8, -600, 760, 650);
+    light(0xe5f0f7, .65, 850, 200, 600);
+    const rimLight = light(0xffffff, 1.25, 50, -550, 500);
+    const screen = (x, y, z = 0) => new THREE.Vector3(x-W/2, H/2-y, z);
+    const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+    const ease = (t, a, b) => { const q = clamp((t-a)/(b-a)); return q*q*(3-2*q); };
+    function seeded(seed) {
+      return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let v = Math.imul(seed ^ seed >>> 15, 1 | seed); v ^= v + Math.imul(v ^ v >>> 7, 61 | v); return ((v ^ v >>> 14) >>> 0) / 4294967296; };
+    }
+    const rnd = seeded(4197);
+    function canvasTexture(size, draw) {
+      const c = document.createElement('canvas'); c.width = c.height = size;
+      draw(c.getContext('2d'), size);
+      const texture = new THREE.CanvasTexture(c); texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy()); return texture;
+    }
+    const shadowTexture = canvasTexture(256, (ctx, s) => {
+      const g = ctx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+      g.addColorStop(0,'rgba(41,53,61,.36)'); g.addColorStop(.42,'rgba(51,65,72,.22)'); g.addColorStop(.75,'rgba(61,74,79,.07)'); g.addColorStop(1,'rgba(61,74,79,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
+    });
+    function shadow(parent, x, y, sx, sy, z) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(sx,sy), new THREE.MeshBasicMaterial({map:shadowTexture, transparent:true, depthWrite:false, toneMapped:false}));
+      m.position.set(x,y,z); parent.add(m); return m;
+    }
+    const shellMat = new THREE.MeshPhysicalMaterial({color:0xd6e3e6, roughness:.14, metalness:.04, transmission:.43, thickness:14, ior:1.42, clearcoat:1, clearcoatRoughness:.09, side:THREE.DoubleSide});
+    const cutMat = new THREE.MeshPhysicalMaterial({color:0xa9bfc2, roughness:.28, metalness:.02, transmission:.10, thickness:5, clearcoat:.6, side:THREE.DoubleSide});
+    const goldMat = new THREE.MeshPhysicalMaterial({color:0xc17b08, roughness:.27, metalness:.20, clearcoat:.65, emissive:0x7d3600, emissiveIntensity:.045});
+    const ivoryMat = new THREE.MeshPhysicalMaterial({color:0xf6f1e4, roughness:.35, clearcoat:.65});
+    const edgeMat = new THREE.LineBasicMaterial({color:0x526f75, transparent:true, opacity:.83, toneMapped:false});
+
+    function surface(parent, radius, z0, z1, start, end, material) {
+      const verts=[], normals=[], indices=[], steps=112;
+      for (let i=0;i<=steps;i++) {
+        const a=start+(end-start)*i/steps, x=Math.cos(a), y=Math.sin(a);
+        verts.push(radius*x,radius*y,z0, radius*x,radius*y,z1);
+        normals.push(x,y,0,x,y,0);
+        if(i<steps) { const k=i*2; indices.push(k,k+2,k+1,k+2,k+3,k+1); }
+      }
+      const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(verts,3)); g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3)); g.setIndex(indices);
+      parent.add(new THREE.Mesh(g,material));
+    }
+    function annulus(parent, inner, outer, z, start, span, mat) {
+      const m=new THREE.Mesh(new THREE.RingGeometry(inner,outer,112,1,start,span),mat); m.position.z=z; parent.add(m);
+    }
+    function arc(parent, radius, z, start, end) {
+      const pts=[]; for(let i=0;i<=100;i++){const a=start+(end-start)*i/100;pts.push(new THREE.Vector3(radius*Math.cos(a),radius*Math.sin(a),z));}
+      parent.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),edgeMat));
+    }
+    function cylinder(radius, height, material) {
+      const m=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,height,96,1),material);
+      m.rotation.x=Math.PI/2; return m;
+    }
+    const axis = new THREE.Vector3(.78,-.29,.55).normalize();
+    function fibre(radius, endX, endY, length, coreMaterial) {
+      const root=new THREE.Group(); scene.add(root);
+      const body=new THREE.Group(); root.add(body);
+      const orient=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),axis);
+      body.quaternion.copy(orient);
+      // Both specimens retain their actual radius throughout their entry motion.
+      const center=screen(endX,endY,75).addScaledVector(axis,-length/2);
+      root.position.copy(center);
+      const r=radius*.61, lo=-length/2, hi=length/2, seam=-length*.04;
+      const wedgeStart=1.92, wedgeEnd=wedgeStart+Math.PI/2;
+      surface(body,radius,lo,seam,0,Math.PI*2,shellMat);
+      surface(body,radius,seam,hi,wedgeEnd,wedgeStart+Math.PI*2,shellMat);
+      surface(body,r,seam,hi,wedgeEnd,wedgeStart+Math.PI*2,cutMat);
+      annulus(body,r,radius,hi,wedgeEnd,Math.PI*1.5,cutMat);
+      annulus(body,r,radius,seam,wedgeStart,Math.PI/2,cutMat);
+      annulus(body,r,radius,lo,0,Math.PI*2,cutMat);
+      for(const a of [wedgeStart,wedgeEnd]) {
+        const cs=Math.cos(a),sn=Math.sin(a);
+        const g=new THREE.BufferGeometry();
+        g.setAttribute('position',new THREE.Float32BufferAttribute([r*cs,r*sn,seam,radius*cs,radius*sn,seam,radius*cs,radius*sn,hi,r*cs,r*sn,hi],3));
+        g.setIndex([0,1,2,0,2,3]);g.computeVertexNormals();body.add(new THREE.Mesh(g,cutMat));
+        body.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(radius*cs,radius*sn,seam),new THREE.Vector3(radius*cs,radius*sn,hi)]),edgeMat));
+      }
+      const core=cylinder(r-.5,length+.6,coreMaterial);body.add(core);
+      arc(body,radius,hi,wedgeEnd,wedgeStart+Math.PI*2);
+      arc(body,r,hi,0,Math.PI*2);
+      // Thin highlight along the undisturbed outer surface.
+      const gleam=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(radius*.44,radius*.897,lo+8),new THREE.Vector3(radius*.44,radius*.897,hi-5)]),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.55}));
+      body.add(gleam);
+      const sh=shadow(root,18,-radius*.9, length*.97,radius*2.6,-240);
+      sh.rotation.z=-.355;
+      const contact=shadow(root,9,-radius*.64,length*.87,radius*1.40,-239);
+      contact.rotation.z=-.355;contact.material.opacity=.42;
+      return {root,center};
+    }
+    const loaded=fibre(34,653,349,568,goldMat);
+    const comparison=fibre(102,627,579,550,ivoryMat);
+
+    // The dish surface is modelled in millimetre-proportional local coordinates.
+    const discRadius=33, zoneRatio=(5+8.2)/5, dishScale=1.17;
+    const plate=new THREE.Group();scene.add(plate);
+    const plateCenter=screen(1470,409,-5);plate.position.copy(plateCenter);
+    const dish=new THREE.Group();dish.rotation.x=.64;plate.add(dish);
+    shadow(plate,9,-28,775,550,-150);
+    const dishContact=shadow(plate,4,-20,713,490,-149);dishContact.material.opacity=.46;
+    const glass=new THREE.MeshPhysicalMaterial({color:0xc6d8d9, metalness:.06, roughness:.07, transmission:.82, thickness:7, ior:1.46, clearcoat:1, transparent:true, opacity:.62, side:THREE.DoubleSide, depthWrite:false});
+    // Actual transmissive agar over a softly reflected studio sweep. No coloured
+    // ring is drawn: removing lawn reveals this SAME continuous glassy surface.
+    const transmittedSweep=canvasTexture(1024,(ctx,s)=>{
+      const wash=ctx.createLinearGradient(0,s,s,0);
+      wash.addColorStop(0,'#807557');wash.addColorStop(.45,'#b2a580');wash.addColorStop(1,'#ded6bd');
+      ctx.fillStyle=wash;ctx.fillRect(0,0,s,s);
+      ctx.save();ctx.translate(s*.65,s*.49);ctx.rotate(-.38);
+      const reflection=ctx.createLinearGradient(0,-s*.17,0,s*.17);
+      reflection.addColorStop(0,'rgba(255,255,246,0)');reflection.addColorStop(.44,'rgba(255,255,246,.04)');reflection.addColorStop(.5,'rgba(255,255,246,.52)');reflection.addColorStop(.57,'rgba(255,255,246,.16)');reflection.addColorStop(1,'rgba(255,255,246,0)');
+      ctx.fillStyle=reflection;ctx.fillRect(-s,-s*.17,s*2,s*.34);ctx.restore();
+    });
+    const transmittedBase=new THREE.Mesh(new THREE.CircleGeometry(336,192),new THREE.MeshBasicMaterial({map:transmittedSweep,toneMapped:false}));
+    transmittedBase.position.z=-26;dish.add(transmittedBase);
+    const amber=new THREE.MeshPhysicalMaterial({color:0xe1d6ad, roughness:.065, transmission:.90, thickness:20, attenuationColor:0xa59463, attenuationDistance:85, ior:1.36, clearcoat:1, clearcoatRoughness:.055, envMapIntensity:1.2});
+    const agar=cylinder(337,20,amber);agar.position.z=-15;dish.add(agar);
+    const base=cylinder(351,5,glass);base.position.z=-29;dish.add(base);
+    // Open vessel: a partial front wall exposes the agar thickness as a cutaway.
+    surface(dish,350,-29,11,-.28,Math.PI+.28,glass);
+    surface(dish,343,-28,10,-.28,Math.PI+.28,glass);
+    annulus(dish,343,350,11,0,Math.PI*2,glass);
+    function torus(r,t,z,material) {
+      const m=new THREE.Mesh(new THREE.TorusGeometry(r,t,12,192),material);m.position.z=z;dish.add(m);return m;
+    }
+    torus(348,3.1,11,glass);torus(350,2.1,-27,glass);
+    const rim=new THREE.MeshPhysicalMaterial({color:0x748e91,metalness:.22,roughness:.16,transparent:true,opacity:.62,clearcoat:1,depthWrite:false});
+    torus(342,1.0,-3,rim);torus(350,.8,-26,rim);
+    const rimHighlight=new THREE.Mesh(new THREE.TorusGeometry(348,1.1,8,112,Math.PI*.70),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.92,toneMapped:false,depthWrite:false}));
+    rimHighlight.position.z=13;rimHighlight.rotation.z=.26;dish.add(rimHighlight);
+
+    const lawnTexture=canvasTexture(1024,(ctx,s)=>{
+      ctx.fillStyle='#efe6cc';ctx.fillRect(0,0,s,s);
+      for(let i=0;i<59000;i++){
+        const x=rnd()*s,y=rnd()*s,r=.325+rnd()*.9;
+        ctx.fillStyle='rgba(151,143,117,.19)';ctx.beginPath();ctx.ellipse(x+.25,y+.35,r,r*.78,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=i%4===0?'#e8dfc7':'#f3ecd6';
+        ctx.beginPath();ctx.ellipse(x,y,r*.83,r*.67,0,0,Math.PI*2);ctx.fill();
+        if(i%3===0){ctx.fillStyle='rgba(255,249,225,.41)';ctx.fillRect(x-.25,y-.35,.4,.35);}
+      }
+    });
+    const lawnRelief=lawnTexture.clone();lawnRelief.colorSpace=THREE.NoColorSpace;lawnRelief.needsUpdate=true;
+    const lawnUniforms={uRadius:{value:discRadius},uClear:{value:0}};
+    const lawnMat=new THREE.MeshPhysicalMaterial({color:0xffffff,map:lawnTexture,bumpMap:lawnRelief,bumpScale:.18,roughness:1,clearcoat:0,envMapIntensity:.20,emissive:0xefe6cc,emissiveIntensity:.10,transparent:true,depthWrite:false});
+    lawnMat.onBeforeCompile=shader=>{
+      shader.uniforms.uRadius=lawnUniforms.uRadius;shader.uniforms.uClear=lawnUniforms.uClear;
+      shader.vertexShader='varying vec2 vPlatePoint;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvPlatePoint = position.xy;');
+      shader.fragmentShader='varying vec2 vPlatePoint;\nuniform float uRadius;\nuniform float uClear;\n'+shader.fragmentShader;
+      shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+        float distanceToFree = length(vPlatePoint - vec2(95.0, 0.0));
+        float cleared = (1.0 - smoothstep(uRadius - 3.0, uRadius + 3.0, distanceToFree)) * uClear;
+        diffuseColor.a *= 1.0 - cleared;
+      `);
+    };
+    const lawn=new THREE.Mesh(new THREE.CircleGeometry(337,192),lawnMat);lawn.position.z=-4.7;dish.add(lawn);
+    const paperTexture=canvasTexture(256,(ctx,s)=>{
+      ctx.fillStyle='#fffefa';ctx.fillRect(0,0,s,s);
+      for(let i=0;i<1050;i++){
+        const x=rnd()*s,y=rnd()*s;ctx.strokeStyle=i%3?'rgba(202,199,184,.18)':'rgba(255,255,255,.95)';ctx.lineWidth=.5+rnd()*.5;
+        ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+(rnd()-.5)*46,y+(rnd()-.5)*46);ctx.stroke();
+      }
+    });
+    const paperRelief=paperTexture.clone();paperRelief.colorSpace=THREE.NoColorSpace;paperRelief.needsUpdate=true;
+    const whitePaper=new THREE.MeshPhysicalMaterial({color:0xffffff,map:paperTexture,bumpMap:paperRelief,bumpScale:.17,roughness:.9,clearcoat:0,emissive:0xffffff,emissiveIntensity:.18});
+    const goldPaper=new THREE.MeshPhysicalMaterial({color:0xe7b526,map:paperTexture,bumpMap:paperRelief,bumpScale:.15,roughness:.79,clearcoat:.08});
+    // Identical raised 5 mm discs. Shadow falls ON the lawn, not in a cleared halo.
+    const nanodisc=cylinder(discRadius,6.4,whitePaper);nanodisc.position.set(-142,-5,-.9);dish.add(nanodisc);
+    const freeDisc=cylinder(discRadius,6.4,goldPaper);freeDisc.position.set(95,0,-.9);dish.add(freeDisc);
+    const discContactTexture=canvasTexture(256,(ctx,s)=>{
+      const g=ctx.createRadialGradient(s/2,s/2,s*.34,s/2,s/2,s*.5);
+      g.addColorStop(0,'rgba(49,44,31,.27)');g.addColorStop(.6,'rgba(49,44,31,.19)');g.addColorStop(1,'rgba(49,44,31,0)');
+      ctx.fillStyle=g;ctx.fillRect(0,0,s,s);
+    });
+    for(const [x,y] of [[-142,-5],[95,0]]){
+      const contact=new THREE.Mesh(new THREE.PlaneGeometry(74,74),new THREE.MeshBasicMaterial({map:discContactTexture,transparent:true,depthWrite:false,toneMapped:false}));
+      contact.position.set(x+1,y-1.4,-4.45);contact.renderOrder=2;dish.add(contact);
+      const edge=new THREE.Mesh(new THREE.TorusGeometry(discRadius-.4,.42,8,96),new THREE.MeshBasicMaterial({color:x<0?0xffffff:0xffe796,toneMapped:false}));
+      edge.position.set(x,y,2.32);dish.add(edge);
+    }
+    // White fibres on the white disc give the otherwise null result a tactile subject.
+    const threads=[];
+    for(let i=0;i<75;i++){
+      const a=rnd()*Math.PI*2,b=a+1.4+rnd()*3.5;
+      const ra=(.75+rnd()*.22)*discRadius,rb=(.75+rnd()*.22)*discRadius;
+      threads.push(-142+Math.cos(a)*ra,-5+Math.sin(a)*ra,2.38,-142+Math.cos(b)*rb,-5+Math.sin(b)*rb,2.38);
+    }
+    const threadGeom=new THREE.BufferGeometry();threadGeom.setAttribute('position',new THREE.Float32BufferAttribute(threads,3));
+    dish.add(new THREE.LineSegments(threadGeom,new THREE.LineBasicMaterial({color:0xdcded4,transparent:true,opacity:.16})));
+
+    // Early composition preview: just a faint glass outline and contact shadow.
+    // A white compositing veil fades the complete dish in without changing any
+    // of its materials, transmission, or the scientific clearing mask.
+    const dishVeil=new THREE.Mesh(new THREE.PlaneGeometry(890,744),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,depthTest:false,depthWrite:false,toneMapped:false}));
+    dishVeil.position.copy(screen(1465,402,500));dishVeil.renderOrder=100;scene.add(dishVeil);
+    const ghostPlate=new THREE.Group();scene.add(ghostPlate);
+    const ghostDish=new THREE.Group();ghostDish.rotation.x=.64;ghostPlate.add(ghostDish);
+    const ghostRimMaterial=new THREE.MeshBasicMaterial({color:0x82999d,transparent:true,opacity:0,depthTest:false,depthWrite:false,toneMapped:false});
+    const ghostRim=new THREE.Mesh(new THREE.TorusGeometry(348,3.1,10,192),ghostRimMaterial);
+    ghostRim.position.z=11;ghostRim.renderOrder=102;ghostDish.add(ghostRim);
+    const ghostLowerMaterial=ghostRimMaterial.clone();
+    const ghostLower=new THREE.Mesh(new THREE.TorusGeometry(350,1.7,8,192),ghostLowerMaterial);
+    ghostLower.position.z=-27;ghostLower.renderOrder=102;ghostDish.add(ghostLower);
+    const ghostShadow=shadow(ghostPlate,9,-28,775,550,-150);
+    ghostShadow.material.depthTest=false;ghostShadow.renderOrder=101;
+
+    // External tangents visually connect the magnified fibre to its specimen disc.
+    const big={x:653,y:349,r:89},small={x:1470-142*dishScale,y:409+dishScale*(5*Math.cos(.64)+2.3*Math.sin(.64)),r:30*dishScale};
+    const dx=small.x-big.x,dy=small.y-big.y,dist=Math.hypot(dx,dy);
+    const direction=Math.atan2(dy,dx),offset=Math.acos((big.r-small.r)/dist);
+    document.getElementById('zoom-lines').setAttribute('d',[-1,1].map(sign=>{
+      const a=direction+sign*offset,c=Math.cos(a),s=Math.sin(a);
+      return `M ${big.x+big.r*c} ${big.y+big.r*s} L ${small.x+small.r*c} ${small.y+small.r*s}`;
+    }).join(' '));
+    const annotations=[
+      ['shell-label',.10,.34],['core-label',.15,.40],['diameter-label',.36,.62],
+      ['comparison-label',1.02,1.35],['magnifier',1.04,1.30],['plate-label',1.07,1.30],
+      ['free-label',1.32,1.82],['nano-label',1.34,1.84]
+    ].map(([id,a,b])=>({el:document.getElementById(id),a,b}));
+    function enter(f,t,a,b) {
+      const q=ease(t,a,b);f.root.visible=t>=a;
+      f.root.position.copy(f.center).add(new THREE.Vector3(-115*(1-q),45*(1-q),-60*(1-q)));
+    }
+    function render(t) {
+      t=clamp(t,0,3);
+      enter(loaded,t,0,.40);enter(comparison,t,.90,1.35);
+      const p=ease(t,.95,1.30);plate.visible=t>=.95;
+      plate.position.copy(plateCenter).add(new THREE.Vector3(48*(1-p),-16*(1-p),-50*(1-p)));
+      plate.scale.setScalar(dishScale*(.94+.06*p));
+      dishVeil.visible=t>=.95&&t<1.30;dishVeil.material.opacity=1-p;
+      const ghost=ease(t,.40,.64)*(1-p);
+      ghostPlate.visible=ghost>0;ghostPlate.position.copy(plate.position);ghostPlate.scale.copy(plate.scale);
+      ghostRimMaterial.opacity=.44*ghost;ghostLowerMaterial.opacity=.22*ghost;ghostShadow.material.opacity=.34*ghost;
+      const clear=ease(t,1.30,1.75);
+      lawnUniforms.uRadius.value=discRadius*(1+(zoneRatio-1)*clear);
+      lawnUniforms.uClear.value=ease(t,1.30,1.40);
+      rimLight.intensity=1.25+.035*Math.sin(t*2.2);
+      for(const {el,a,b} of annotations){
+        const q=ease(t,a,b);el.style.opacity=String(q);
+        for(const line of el.querySelectorAll('[pathLength]')){line.style.strokeDasharray='1';line.style.strokeDashoffset=String(1-q);}
+      }
+      const title=document.getElementById('title'),q=ease(t,.48,1.12);
+      title.style.opacity=String(q);title.style.transform=`translateY(${12*(1-q)}px)`;
+      renderer.render(scene,camera);
+      document.documentElement.dataset.time=t.toFixed(4);
+    }
+    function resize(){stage.style.transform=`translate(-50%,-50%) scale(${Math.min(innerWidth/W,innerHeight/H)})`;}
+    window.addEventListener('resize',resize);resize();
+    const params=new URLSearchParams(location.search);
+    const requested=Number(params.get('t'));
+    const frozen=params.has('t')&&Number.isFinite(requested);
+    if(frozen){render(requested);document.documentElement.dataset.ready='true';}
+    else{
+      const start=performance.now();
+      function frame(now){const t=Math.min(3,(now-start)/1000);render(t);document.documentElement.dataset.ready='true';if(t<3)requestAnimationFrame(frame);}
+      requestAnimationFrame(frame);
+    }
+  </script>
+</body>
+</html>

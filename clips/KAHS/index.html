@@ -1,0 +1,297 @@
+﻿<!--
+KAHS / Paper: Hamid et al., Frontiers in Endocrinology (2025), 10.3389/fendo.2025.1590716.
+Evidence: RT-qPCR of endometrial tissue during the implantation window showed lower
+alpha-v-beta-3 integrin mRNA in PCOS with obesity than normal-weight PCOS and
+normal-weight controls. Mucin-1 and E-cadherin had no significant group differences.
+Artistic licence: reconstructed endometrium and hatched blastocysts, docking,
+enlarged anchor symbols, luminous connections, color and optical depth. The
+different number of lit symbols illustrates lower gene expression; it is NOT a
+measured receptor count or effect size. Both embryos descend and settle identically
+as biological context. This is NOT a measured docking event, embryo-induced gene
+activation, implantation success/failure, or pregnancy outcome. The paper measured
+expression by RT-qPCR. No tissue invasion or subsequent outcome is depicted.
+The two views have identical tissue and embryo geometry; only the illuminated
+anchor-symbol density differs. Attribution is absent from the visible clip.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KAHS — PCOS, obesity and attachment signals</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#211c2a}
+body{display:grid;place-items:center;color:#fff3e7}
+#frame{position:relative;width:1920px;height:1080px;flex:none;overflow:hidden;transform:scale(var(--fit,1));transform-origin:center;background:#302331}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scrim{position:absolute;inset:0;background:linear-gradient(90deg,transparent 48%,rgba(32,25,39,.14) 59%,rgba(32,25,39,.80) 77%,rgba(32,25,39,.90));pointer-events:none}
+.title{position:absolute;left:1190px;top:390px;width:650px}
+h1{font:normal 76px/1.06 Georgia,'Times New Roman',serif;letter-spacing:-2.7px;margin:0;text-wrap:balance}
+h1 em{font-weight:normal;color:#ffcf8c}
+.subtitle{margin:29px 0 0;font:400 24px/1.43 'Segoe UI',Arial,sans-serif;color:#d6c5d3;white-space:nowrap}
+#error{position:absolute;inset:0;display:none;place-items:center;font:28px 'Segoe UI',sans-serif;background:#302331;padding:150px}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<main id="frame" aria-label="Two blastocysts descend and settle against womb-lining surfaces. Normal-weight PCOS on the left has more illuminated anchor symbols; PCOS with obesity on the right has fewer. Docking is illustrative; the study measured integrin gene expression.">
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="scrim"></div>
+<div class="title"><h1>Fewer signals<br>for embryo<br><em>attachment.</em></h1><p class="subtitle">PCOS: normal weight (left), obesity (right)</p></div>
+<div id="error" role="status"></div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const frame = document.getElementById('frame');
+function fit(){frame.style.setProperty('--fit',Math.min(innerWidth/1920,innerHeight/1080));}
+fit(); addEventListener('resize',fit);
+const query = new URLSearchParams(location.search);
+const requestedTime = Number(query.get('t'));
+const frozen = query.has('t') && Number.isFinite(requestedTime);
+const PI = Math.PI;
+const smooth = (a,b,v) => {const x=THREE.MathUtils.clamp((v-a)/(b-a),0,1); return x*x*(3-2*x);};
+let seed=81621;
+function random(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;}
+const uniforms = {time:{value:0}};
+
+try {
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('scene'),antialias:false,alpha:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(1); renderer.setSize(1920,1080,false);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.12;
+const scene=new THREE.Scene();
+scene.background=new THREE.Color('#302332');
+const camera=new THREE.OrthographicCamera(-9.6,9.6,5.4,-5.4,.1,80);
+camera.position.set(0,0,22); camera.lookAt(0,0,0);
+
+// An optical field, not an interface: broad unfocused pools of transmitted light.
+const backdrop=new THREE.Mesh(new THREE.PlaneGeometry(36,22),new THREE.ShaderMaterial({
+ uniforms:{time:uniforms.time},depthWrite:false,
+ vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+ fragmentShader:`varying vec2 vUv;uniform float time;
+ float g(vec2 p,vec2 c,vec2 s){vec2 q=(p-c)/s;return exp(-dot(q,q));}
+ void main(){vec2 p=vUv;vec3 c=vec3(.061,.042,.075);
+ c+=vec3(.15,.078,.11)*g(p,vec2(.30,.57),vec2(.31,.42));
+ c+=vec3(.07,.11,.13)*g(p,vec2(.38,.65),vec2(.24,.21));
+ c+=vec3(.085,.04,.055)*g(p,vec2(.2,.32),vec2(.24,.24));
+ float n=sin(p.x*28.+sin(p.y*17.))*sin(p.y*31.+p.x*3.);
+ c+=n*.004;gl_FragColor=vec4(c,1.);}`
+}));backdrop.position.z=-7;scene.add(backdrop);
+
+const cellVertex=`
+ varying vec3 vNormal;varying vec3 vLocal;
+ void main(){vLocal=position;
+ vec3 p=position*(1.+.028*sin(position.y*9.)*sin(position.x*8.+position.z*5.));
+ vec3 n=normal;
+ #ifdef USE_INSTANCING
+ p=(instanceMatrix*vec4(p,1.)).xyz;n=mat3(instanceMatrix)*n;
+ #endif
+ vNormal=normalize(normalMatrix*n);
+ gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);
+ }`;
+function membrane(color,opacity=.50){return new THREE.ShaderMaterial({
+ uniforms:{color:{value:new THREE.Color(color)},opacity:{value:opacity}},
+ vertexShader:cellVertex,
+ fragmentShader:`uniform vec3 color;uniform float opacity;varying vec3 vNormal;varying vec3 vLocal;
+ void main(){vec3 n=normalize(vNormal);float rim=pow(1.-abs(n.z),2.3);
+ float lit=pow(max(0.,dot(n,normalize(vec3(-.6,.8,1.)))),1.8);
+ float grain=sin(vLocal.y*25.+sin(vLocal.x*19.))*sin(vLocal.x*23.+vLocal.z*13.);
+ vec3 c=color+vec3(.14,.15,.16)*lit+vec3(.45,.29,.32)*rim+grain*.011;
+ gl_FragColor=vec4(c,opacity+rim*(1.-opacity)*.65);}`,
+ transparent:true,depthWrite:false,side:THREE.FrontSide
+});}
+const shellBase=new THREE.SphereGeometry(1,28,20);
+const nucleusBase=new THREE.SphereGeometry(1,18,14);
+const tissueMat=membrane('#926077',.37);
+const embryoMat=membrane('#ba9292',.50);
+const innerMat=membrane('#a18cab',.64);
+const cavityMat=membrane('#80788d',.13);
+const nucleusMat=new THREE.ShaderMaterial({
+ vertexShader:cellVertex,
+ fragmentShader:`varying vec3 vNormal;varying vec3 vLocal;void main(){float rim=pow(1.-abs(normalize(vNormal).z),2.);float grain=sin(vLocal.x*34.+sin(vLocal.y*25.))*sin(vLocal.z*31.+vLocal.y*23.);float light=max(0.,dot(normalize(vNormal),normalize(vec3(-1.,1.,2.))));vec3 c=vec3(.13,.071,.18)+vec3(.11,.073,.11)*light+vec3(.13,.10,.19)*rim+grain*.013;gl_FragColor=vec4(c,1.);}`
+});
+const dummy=new THREE.Object3D();
+function instanced(geometry,material,transforms,order){
+ const mesh=new THREE.InstancedMesh(geometry,material,transforms.length);
+ transforms.forEach((v,i)=>{dummy.position.set(...v.p);dummy.scale.set(...v.s);dummy.rotation.set(...(v.r||[0,0,0]));dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);});
+ mesh.renderOrder=order;return mesh;
+}
+
+// Matched, curved endometrial surfaces extend out of frame, rather than floating rows.
+const tissueCells=[],tissueNuclei=[];
+for(let row=0;row<6;row++)for(let col=0;col<5;col++){
+ const x=-1.93+col*.95+(row%2)*.15;
+ const y=-2.60-row*1.03+.10*Math.cos(x*1.2)+(.5-random())*.08;
+ const z=-.25+random()*.30;
+ const sx=.55+random()*.05,sy=.72+random()*.06;
+ tissueCells.push({p:[x,y,z],s:[sx,sy,.64],r:[0,0,(random()-.5)*.14]});
+ tissueNuclei.push({p:[x+.05,y-.11,z+.20],s:[.23,.31,.24]});
+}
+
+// A hatched blastocyst: outer trophoblast cells, a visible fluid cavity,
+// and an eccentric inner cell mass. There is no intact zona blocking contact.
+const outerCells=[],outerNuclei=[],innerCells=[];
+const sphereCount=76;
+for(let i=0;i<sphereCount;i++){
+ const y=1.-2.*(i+.5)/sphereCount;
+ const r=Math.sqrt(1.-y*y),a=i*PI*(3.-Math.sqrt(5));
+ const v=new THREE.Vector3(Math.cos(a)*r,y,Math.sin(a)*r);
+ const p=v.clone().multiplyScalar(1.17);
+ const radius=.245+.018*Math.sin(i*2.1);
+ outerCells.push({p:p.toArray(),s:[radius,radius*.93,radius],r:[i*.21,i*.37,i*.11]});
+ const n=p.clone().multiplyScalar(1.055);
+ outerNuclei.push({p:n.toArray(),s:[.095,.105,.085]});
+}
+for(let i=0;i<13;i++){
+ const a=i*2.399,r=.12+.25*Math.sqrt(i/13);
+ innerCells.push({p:[-.48+Math.cos(a)*r,.46+Math.sin(a)*r,.30+Math.sin(i*1.7)*.19],s:[.23,.24,.23]});
+}
+const glowCanvas=document.createElement('canvas');glowCanvas.width=64;glowCanvas.height=64;
+const gc=glowCanvas.getContext('2d');
+const gradient=gc.createRadialGradient(32,32,0,32,32,32);
+gradient.addColorStop(0,'rgba(255,249,220,1)');gradient.addColorStop(.15,'rgba(255,213,145,.95)');gradient.addColorStop(.40,'rgba(255,170,80,.35)');gradient.addColorStop(1,'rgba(255,147,70,0)');
+gc.fillStyle=gradient;gc.fillRect(0,0,64,64);
+const glowMap=new THREE.CanvasTexture(glowCanvas);
+const glowMaterial=new THREE.SpriteMaterial({map:glowMap,color:0xffd295,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+const stemGeometry=new THREE.CylinderGeometry(.019,.024,1,8);
+const headGeometry=new THREE.SphereGeometry(.045,12,8);
+const goldMaterial=new THREE.MeshBasicMaterial({color:new THREE.Color(1.7,.77,.24)});
+const tetherMaterial=new THREE.MeshBasicMaterial({color:new THREE.Color(1.1,.50,.16),transparent:true,opacity:.66,depthWrite:false});
+const tetherGeometry=new THREE.CylinderGeometry(.012,.022,1,7);
+const Y=new THREE.Vector3(0,1,0),delta=new THREE.Vector3();
+function segment(mesh,a,b){delta.subVectors(b,a);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.scale.set(1,delta.length(),1);mesh.quaternion.setFromUnitVectors(Y,delta.normalize());}
+const samples=[];
+function sample(x,obesity){
+ const field=new THREE.Group();field.position.x=x;scene.add(field);
+ field.add(instanced(shellBase,tissueMat,tissueCells,3));
+ field.add(instanced(nucleusBase,nucleusMat,tissueNuclei,1));
+ const embryo=new THREE.Group();field.add(embryo);
+ const cavity=new THREE.Mesh(shellBase,cavityMat);cavity.scale.setScalar(1.28);cavity.renderOrder=2;embryo.add(cavity);
+ embryo.add(instanced(shellBase,embryoMat,outerCells,4));
+ embryo.add(instanced(nucleusBase,nucleusMat,outerNuclei,1));
+ embryo.add(instanced(shellBase,innerMat,innerCells,3));
+ const anchors=[];
+ for(let i=0;i<19;i++){
+  // Display counts are artistic, deliberately not labelled or calibrated.
+  if(obesity && ![1,5,9,13,17].includes(i))continue;
+  const ax=-.97+i*(1.94/18);
+  const az=1.20+(i%3)*.13;
+  const ay=-1.90+.045*Math.cos(ax*2.);
+  const root=new THREE.Vector3(ax,ay,az);
+  const anchor=new THREE.Group();anchor.position.copy(root);field.add(anchor);
+  const stalk=new THREE.Mesh(stemGeometry,goldMaterial);stalk.position.y=.085;stalk.scale.y=.17;anchor.add(stalk);
+  for(const side of [-1,1]){
+   const arm=new THREE.Mesh(stemGeometry,goldMaterial);
+   segment(arm,new THREE.Vector3(0,.14,0),new THREE.Vector3(side*.045,.20,0));anchor.add(arm);
+   const head=new THREE.Mesh(headGeometry,goldMaterial);head.position.set(side*.045,.20,0);anchor.add(head);
+  }
+  const halo=new THREE.Sprite(glowMaterial);halo.position.set(0,.18,.05);halo.scale.set(.42,.42,1);halo.renderOrder=6;anchor.add(halo);
+  const tether=new THREE.Mesh(tetherGeometry,tetherMaterial);tether.renderOrder=5;field.add(tether);
+  const pulse=new THREE.Sprite(glowMaterial);pulse.renderOrder=7;field.add(pulse);
+  anchors.push({anchor,tether,pulse,root,index:i,from:new THREE.Vector3(),to:new THREE.Vector3(),tip:new THREE.Vector3()});
+ }
+ samples.push({field,embryo,anchors});
+}
+sample(-6.75,false);sample(-1.60,true);
+
+function pose(t){
+ const fall=smooth(.02,2.08,t),settle=smooth(1.85,2.55,t);
+ const y=THREE.MathUtils.lerp(2.45,-.43,fall);
+ const drift=THREE.MathUtils.lerp(-.22,0,fall);
+ const tilt=THREE.MathUtils.lerp(-.20,0,fall);
+ for(const specimen of samples){
+  specimen.embryo.position.set(drift,y,1.0);
+  specimen.embryo.rotation.set(0,.19*(1.-fall),tilt);
+  // A very small shared contact deformation, illustrative in both views.
+  specimen.embryo.scale.set(1.+settle*.022,1.-settle*.015,1.);
+  for(const site of specimen.anchors){
+   const distance=Math.abs(site.root.x);
+   const reveal=smooth(.52+distance*.20,1.22+distance*.20,t);
+   site.anchor.scale.setScalar(reveal);
+   site.anchor.visible=reveal>.001;
+   const link=smooth(1.57+distance*.12,2.36+distance*.12,t);
+   site.from.copy(site.root);site.from.y+=.20;
+   site.to.set(site.root.x,y-Math.sqrt(1.32*1.32-site.root.x*site.root.x-.38*.38),site.root.z);
+   site.tip.copy(site.from).lerp(site.to,link);
+   site.tether.visible=link>.001;
+   if(site.tether.visible)segment(site.tether,site.from,site.tip);
+   const pulseProgress=smooth(1.66+distance*.13,2.38+distance*.13,t);
+   site.pulse.position.copy(site.from).lerp(site.to,pulseProgress);
+   const pulseScale=(.18+Math.sin(PI*pulseProgress)*.28)*link;
+   site.pulse.scale.set(pulseScale,pulseScale,1);
+   site.pulse.visible=link>.001;
+  }
+ }
+ return {embryoCenterY:y,fall,settle};
+}
+
+// Out-of-focus material at different depths gives a microscope's shallow optical slice.
+const dustPosition=[],dustSize=[],dustPhase=[];
+for(let i=0;i<100;i++){
+ dustPosition.push(-10+random()*21,-6+random()*12,1+random()*4);
+ dustSize.push(8+Math.pow(random(),3)*150);dustPhase.push(random());
+}
+const dg=new THREE.BufferGeometry();dg.setAttribute('position',new THREE.Float32BufferAttribute(dustPosition,3));dg.setAttribute('diameter',new THREE.Float32BufferAttribute(dustSize,1));dg.setAttribute('phase',new THREE.Float32BufferAttribute(dustPhase,1));
+const dust=new THREE.Points(dg,new THREE.ShaderMaterial({
+ uniforms:{time:uniforms.time},transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+ vertexShader:`attribute float diameter;attribute float phase;uniform float time;varying float vPhase;void main(){vPhase=phase;vec3 p=position;p.x+=sin(time*.20+phase*6.28)*.055;p.y+=cos(time*.16+phase*7.)*.05;gl_PointSize=diameter;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.);}`,
+ fragmentShader:`varying float vPhase;void main(){float d=length(gl_PointCoord-.5)*2.;float a=exp(-d*d*4.)*(1.-smoothstep(.7,1.,d));gl_FragColor=vec4(mix(vec3(.45,.25,.30),vec3(.48,.52,.51),vPhase),a*.065);}`
+}));dust.renderOrder=5;scene.add(dust);
+
+const composer=new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(960,540),.48,.65,.60);
+composer.addPass(bloom);
+const optical=new ShaderPass({
+ uniforms:{tDiffuse:{value:null},resolution:{value:new THREE.Vector2(1920,1080)},time:uniforms.time},
+ vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+ fragmentShader:`uniform sampler2D tDiffuse;uniform vec2 resolution;uniform float time;varying vec2 vUv;
+ float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+ void main(){vec2 uv=vUv;
+ // A sharp central optical slice, progressively softer edges; no broad uniform blur.
+ float blur=.38+3.4*smoothstep(.27,.60,abs(uv.y-.55))+2.0*smoothstep(.24,.43,abs(uv.x-.30));
+ vec2 px=blur/resolution;
+ vec3 c=texture2D(tDiffuse,uv).rgb*.28;
+ c+=texture2D(tDiffuse,uv+vec2(px.x,0.)).rgb*.12;
+ c+=texture2D(tDiffuse,uv-vec2(px.x,0.)).rgb*.12;
+ c+=texture2D(tDiffuse,uv+vec2(0.,px.y)).rgb*.12;
+ c+=texture2D(tDiffuse,uv-vec2(0.,px.y)).rgb*.12;
+ c+=texture2D(tDiffuse,uv+px*.75).rgb*.06;
+ c+=texture2D(tDiffuse,uv-px*.75).rgb*.06;
+ c+=texture2D(tDiffuse,uv+vec2(px.x,-px.y)*.75).rgb*.06;
+ c+=texture2D(tDiffuse,uv+vec2(-px.x,px.y)*.75).rgb*.06;
+ float vignette=1.-.28*smoothstep(.2,.8,length((uv-vec2(.43,.52))*vec2(1.,.8)));
+ c*=vignette;c+=(hash(gl_FragCoord.xy+floor(time*24.))-.5)*.006;
+ gl_FragColor=vec4(c,1.);}`
+});composer.addPass(optical);composer.addPass(new OutputPass());
+
+function renderAt(seconds){
+ const t=Math.max(0,seconds);
+ uniforms.time.value=t;
+ pose(t);
+ composer.render();
+}
+renderAt(frozen?Math.max(0,requestedTime):0);
+if(!frozen){
+ const start=performance.now();
+ renderer.setAnimationLoop(()=>renderAt(((performance.now()-start)/1000)%5.2));
+}
+// Useful to an external capture harness; no UI controls are put in the shot.
+window.KAHS={renderAt,duration:3,frozen};
+} catch(error){
+ const message=document.getElementById('error');message.style.display='grid';
+ message.textContent='The microscopy scene could not start. WebGL2 and access to jsDelivr are required.';
+ console.error(error);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{
+  "hours": {
+    "text": "Not every hour in academia goes into the research itself.",
+    "dur": 3.575
+  },
+  "leverage": {
+    "text": "Learn how to leverage artificial intelligence\u2026",
+    "dur": 2.616
+  },
+  "busywork": {
+    "text": "\u2026to automate the busywork, and deliver your best work.",
+    "dur": 2.902
+  },
+  "styles": {
+    "text": "Whatever your field, from blueprints to claymation to 3D, find the style that fits your research.",
+    "dur": 5.786
+  },
+  "teach": {
+    "text": "Make your lectures interactive, with simulations where students see how things work.",
+    "dur": 4.557
+  },
+  "lifting": {
+    "text": "AI can do the heavy lifting. Your expertise keeps it right.",
+    "dur": 3.45
+  },
+  "title": {
+    "text": "Smart Video Creation with Generative AI.",
+    "dur": 2.767
+  },
+  "by": {
+    "text": "A workshop by an engineer with over seven years in the AI industry.",
+    "dur": 4.026
+  },
+  "details": {
+    "text": "Learn AI from the basics to practical applications, hands-on. Friday, the sixteenth of October.",
+    "dur": 6.541
+  },
+  "whatever": {
+    "text": "Whatever your field\u2026",
+    "dur": 1.148
+  },
+  "f-eng": {
+    "text": "Engineering.",
+    "dur": 0.737
+  },
+  "f-med": {
+    "text": "Medicine.",
+    "dur": 0.699
+  },
+  "f-dent": {
+    "text": "Dentistry.",
+    "dur": 0.775
+  },
+  "f-nurs": {
+    "text": "Nursing.",
+    "dur": 0.688
+  },
+  "f-ahs": {
+    "text": "Allied Health.",
+    "dur": 0.837
+  },
+  "f-ict": {
+    "text": "Computing.",
+    "dur": 0.742
+  },
+  "f-arch": {
+    "text": "Architecture.",
+    "dur": 0.84
+  },
+  "f-econ": {
+    "text": "Economics.",
+    "dur": 0.787
+  },
+  "f-law": {
+    "text": "Law.",
+    "dur": 0.498
+  },
+  "f-hum": {
+    "text": "Human Sciences.",
+    "dur": 1.068
+  },
+  "f-edu": {
+    "text": "Education.",
+    "dur": 0.804
+  },
+  "fits": {
+    "text": "\u2026find the style that fits your research.",
+    "dur": 1.838
+  }
+}

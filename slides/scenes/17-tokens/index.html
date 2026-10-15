@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Much Is a Token</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05070c;
+    --panel: #0b0f17;
+    --line: rgba(244,241,234,0.10);
+    --ink: #f4f1ea;
+    --dim: rgba(244,241,234,0.62);
+    --faint: rgba(244,241,234,0.35);
+    --teal: #3fd0c9;
+    --amber: #ffb547;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --serif: "Instrument Serif", Georgia, serif;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans); overflow: hidden; }
+  #wrap { position: fixed; inset: 0; display: grid; place-items: center; }
+  #stage {
+    width: 1600px; height: 900px; position: relative; transform-origin: center center;
+    background: radial-gradient(1200px 700px at 30% 40%, rgba(63,208,201,0.06), transparent 60%), var(--bg);
+  }
+
+  /* header */
+  .kicker { position: absolute; left: 64px; top: 46px; font: 500 15px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+  h1 { position: absolute; left: 64px; top: 66px; margin: 0; font: 400 64px/1 var(--serif); letter-spacing: -0.01em; }
+  h1 em { color: var(--amber); font-style: italic; }
+
+  .picker { position: absolute; right: 64px; top: 50px; display: flex; gap: 14px; align-items: center; }
+  .picker label { font: 500 13px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+  select, .fx input {
+    background: var(--panel); color: var(--ink); border: 1px solid rgba(244,241,234,0.22); border-radius: 10px;
+    font: 500 20px/1 var(--sans); padding: 12px 40px 12px 16px; appearance: none; cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, var(--dim) 50%), linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+    background-position: calc(100% - 20px) 52%, calc(100% - 14px) 52%; background-size: 6px 6px; background-repeat: no-repeat;
+    min-width: 330px;
+  }
+  select:focus, button:focus-visible, .fx input:focus { outline: 2px solid var(--teal); outline-offset: 2px; }
+  optgroup { color: var(--faint); font-style: normal; }
+  option { color: var(--ink); background: var(--panel); }
+  .btn {
+    background: transparent; color: var(--ink); border: 1px solid rgba(244,241,234,0.22); border-radius: 10px;
+    font: 500 16px/1 var(--sans); padding: 13px 16px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* visual panel */
+  #visual {
+    position: absolute; left: 64px; top: 168px; width: 960px; height: 520px;
+    border: 1px solid var(--line); border-radius: 18px; background: rgba(11,15,23,0.7); overflow: hidden;
+  }
+  #visual .cap { position: absolute; left: 24px; bottom: 18px; font: 500 15px/1.3 var(--mono); color: var(--dim); letter-spacing: .02em; }
+  #chips { position: absolute; inset: 28px 28px 56px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 0; }
+  .chip {
+    display: inline-flex; flex-direction: column; align-items: center; white-space: pre;
+    border-radius: 6px; margin: 2px 1px; padding: 0.06em 0.08em; color: #0b0f17; font-family: var(--mono);
+    animation: pop .35s ease-out both;
+  }
+  .chip .id { font-size: 0.42em; opacity: .75; margin-top: .15em; font-weight: 500; }
+  @keyframes pop { from { transform: translateY(6px) scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+  #grid { position: absolute; inset: 28px 28px 56px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; }
+  .page {
+    position: relative; background: #f4f1ea; border-radius: 4px; overflow: hidden; box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+    animation: pop .4s ease-out both;
+  }
+  .page .fill { position: absolute; left: 12%; right: 12%; top: 18%; bottom: 6%;
+    background: repeating-linear-gradient(to bottom, rgba(5,7,12,0.18) 0 3.2%, transparent 3.2% 9.5%); }
+  .page .mask { position: absolute; left: 0; right: 0; bottom: 0; background: #f4f1ea; }
+  .page .head { position: absolute; left: 12%; right: 30%; top: 7%; height: 5%; background: rgba(5,7,12,0.55); border-radius: 2px; }
+  .paper { position: relative; border-radius: 3px; background: #f4f1ea; box-shadow: 2px 2px 0 rgba(244,241,234,0.35), 4px 4px 0 rgba(244,241,234,0.18); animation: pop .4s ease-out both; }
+  .paper .band { position: absolute; left: 0; right: 0; top: 0; height: 22%; border-radius: 3px 3px 0 0; }
+  .paper .lines { position: absolute; left: 14%; right: 14%; top: 34%; bottom: 12%;
+    background: repeating-linear-gradient(to bottom, rgba(5,7,12,0.22) 0 10%, transparent 10% 24%); }
+
+  /* right column */
+  #side { position: absolute; left: 1060px; top: 168px; width: 476px; height: 520px; display: flex; flex-direction: column; gap: 18px; }
+  .count { font: 500 15px/1 var(--mono); color: var(--faint); letter-spacing: .12em; text-transform: uppercase; }
+  #tokNum { font: 400 96px/0.95 var(--serif); letter-spacing: -0.02em; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  #tokNum small { font: 400 34px/1 var(--serif); color: var(--dim); margin-left: 10px; letter-spacing: 0; }
+  #equiv { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 21px; color: var(--dim); }
+  #equiv b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .card { margin-top: auto; border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; background: rgba(11,15,23,0.85); }
+  .card .who { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .card .who span:first-child { font-size: 20px; font-weight: 600; }
+  .card .who span:last-child { font: 400 13px/1 var(--mono); color: var(--faint); white-space: nowrap; }
+  .money { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  .money div { border-radius: 12px; padding: 12px 14px; background: rgba(244,241,234,0.04); cursor: pointer; border: 1px solid transparent; }
+  .money div.on { border-color: var(--amber); background: rgba(255,181,71,0.07); }
+  .money .lbl { font: 500 12px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+  .money .val { font: 400 40px/1.05 var(--serif); margin-top: 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .money .val.long { font-size: 30px; line-height: 1.4; }
+  .money div.on .val { color: var(--amber); }
+  .money .rate { font: 400 12.5px/1.3 var(--mono); color: var(--faint); margin-top: 4px; }
+  .src { margin-top: 10px; font: 400 12.5px/1.35 var(--mono); color: var(--faint); }
+
+  /* slider */
+  #sliderBox { position: absolute; left: 64px; right: 64px; top: 724px; height: 110px; }
+  #slider { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; margin: 0; cursor: pointer; }
+  #slider::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--teal) var(--p,50%), rgba(244,241,234,0.14) var(--p,50%)); }
+  #slider::-moz-range-track { height: 8px; border-radius: 4px; background: rgba(244,241,234,0.14); }
+  #slider::-moz-range-progress { height: 8px; border-radius: 4px; background: var(--teal); }
+  #slider::-webkit-slider-thumb { -webkit-appearance: none; width: 34px; height: 34px; border-radius: 50%; background: var(--ink); margin-top: -13px; box-shadow: 0 0 0 6px rgba(63,208,201,0.25); }
+  #slider::-moz-range-thumb { width: 34px; height: 34px; border-radius: 50%; background: var(--ink); border: 0; box-shadow: 0 0 0 6px rgba(63,208,201,0.25); }
+  #stops { position: relative; height: 54px; margin: 6px 17px 0; }
+  .stop { position: absolute; transform: translateX(-50%); top: 0; text-align: center; cursor: pointer; background: none; border: 0; color: var(--dim); padding: 4px 6px; }
+  .stop b { display: block; font: 400 30px/1 var(--serif); color: var(--ink); }
+  .stop span { font: 400 13px/1.2 var(--mono); color: var(--faint); white-space: nowrap; }
+  .stop.on b { color: var(--teal); }
+
+  .foot { position: absolute; left: 64px; right: 64px; bottom: 22px; font: 400 12.5px/1.4 var(--mono); color: var(--faint); display: flex; justify-content: space-between; gap: 24px; }
+  .fx { display: inline-flex; align-items: center; gap: 6px; }
+  .fx input { min-width: 0; width: 76px; padding: 4px 8px; font: 400 12.5px/1 var(--mono); background-image: none; border-radius: 6px; }
+
+  /* compare overlay */
+  #cmp { position: absolute; inset: 0; background: rgba(5,7,12,0.94); display: none; padding: 48px 64px; }
+  #cmp.open { display: block; animation: fade .25s ease-out; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  #cmp h2 { margin: 0 0 6px; font: 400 44px/1.05 var(--serif); }
+  #cmp .sub { color: var(--dim); font-size: 18px; margin-bottom: 18px; }
+  #cmp .close { position: absolute; right: 64px; top: 52px; }
+  #rows { display: grid; gap: 5px; max-height: 700px; overflow: auto; padding-right: 8px; }
+  .row { display: grid; grid-template-columns: 300px 1fr 150px; align-items: center; gap: 16px; padding: 4px 8px; border-radius: 8px; cursor: pointer; }
+  .row:hover { background: rgba(244,241,234,0.05); }
+  .row.sel { background: rgba(255,181,71,0.09); }
+  .row .n { font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .n i { font-style: normal; color: var(--faint); font-size: 13px; margin-left: 6px; }
+  .row .bar { height: 16px; border-radius: 3px; background: var(--teal); min-width: 3px; transition: width .5s ease; }
+  .row.sel .bar { background: var(--amber); }
+  .row.hist .bar { background: rgba(244,241,234,0.35); }
+  .row .v { font: 400 16px/1 var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+  .hint { position: absolute; right: 64px; top: 112px; font: 400 12.5px/1 var(--mono); color: var(--faint); }
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <div class="kicker">Part 4 · Output</div>
+  <h1>How much is a <em>token</em>?</h1>
+
+  <div class="picker">
+    <label for="model">Model</label>
+    <select id="model"></select>
+    <button class="btn" id="cmpBtn" title="Compare all models (C)">Compare all</button>
+  </div>
+  <div class="hint">← → step · C compare · W read/write</div>
+
+  <div id="visual">
+    <div id="chips"></div>
+    <div id="grid"></div>
+    <div class="cap" id="cap"></div>
+  </div>
+
+  <div id="side">
+    <div>
+      <div class="count">Tokens</div>
+      <div id="tokNum">1</div>
+    </div>
+    <ul id="equiv"></ul>
+    <div class="card">
+      <div class="who"><span id="mName"></span><span id="mMaker"></span></div>
+      <div class="money">
+        <div id="boxOut" class="on" data-mode="out">
+          <div class="lbl">Writing (output)</div>
+          <div class="val" id="vOut"></div>
+          <div class="rate" id="rOut"></div>
+        </div>
+        <div id="boxIn" data-mode="in">
+          <div class="lbl">Reading (input)</div>
+          <div class="val" id="vIn"></div>
+          <div class="rate" id="rIn"></div>
+        </div>
+      </div>
+      <div class="src" id="mSrc"></div>
+    </div>
+  </div>
+
+  <div id="sliderBox">
+    <input id="slider" type="range" min="0" max="6" step="0.001" value="0" aria-label="Number of tokens">
+    <div id="stops"></div>
+  </div>
+
+  <div class="foot">
+    <span>API list prices (US$ per 1M tokens), checked 4 Oct 2026 · token sizes measured with OpenAI's o200k tokenizer on 105 IIUM papers · English text (Malay uses ≈2× the tokens)</span>
+    <span class="fx">RM per US$ <input id="fx" type="number" step="0.01" min="1" value="4.08" aria-label="Ringgit per US dollar"></span>
+  </div>
+
+  <div id="cmp">
+    <h2 id="cmpTitle"></h2>
+    <div class="sub" id="cmpSub"></div>
+    <button class="btn close" id="cmpClose">Close (Esc)</button>
+    <div id="rows"></div>
+  </div>
+</div></div>
+
+<script>
+const TOK = {"tokens": ["Bring", " your", " paper", " to", " the", " workshop", ".", " In", " plain", " words", ",", " describe", " what", " your", " research", " shows", ":", " a", " bridge", " frame", " losing", " a", " column", ",", " a", " tooth", " moving", " under", " steady", " force", ",", " a", " wave", " rolling", " onto", " the", " shore", " at", " Ace", "h", ",", " or", " a", " dialect", " drifting", " across", " the", " str", "ait", " between", " Lang", "k", "awi", " and", " Sat", "un", ".", " The", " AI", " reads", " your", " description", ",", " writes", " the", " code", ",", " and", " builds", " a", " working", " animation", " that", " runs", " in", " any", " web", " browser", ".", " You", " do", " not", " need", " to", " know", " how", " to", " program", ".", " You", " do", " need", " to", " know", " your", " field", ",", " because", " the", " AI", " can", " make", " a", " picture", " that", " looks", " polished", " and", " is", " still", " wrong", ".", " So", " the", " expert", " in", " the", " room", " is", " you", ".", " Check", " every", " number", " against", " your", " own", " figures", " and", " tables", ",", " fix", " what", " is", " off", ",", " and", " ask", " again", ".", " A", " good", " animation", " can", " show", " in", " ten", " seconds", " what", " a", " table", " shows", " in", " ten", " minutes", ":", " the", " moment", " the", " load", " shifts", ",", " the", " day", " the", " bone", " begins", " to", " fill", " the", " gap", ",", " the", " year", " the", " gap", " between", " provinces", " refuses", " to", " close", ".", " Students", " remember", " what", " they", " see", " move", ".", " Review", "ers", " notice", " it", ".", " Your", " colleagues", " in", " other", " kull", "iyy", "ahs", " will", " finally", " understand", " what", " you", " have", " been", " working", " on", " for", " years", ".", " Start", " small", ":", " one", " figure", ",", " one", " idea", ",", " one", " slider", ".", " Then", " build", " from", " there", ",", " one", " question", " at", " a", " time", ",", " until", " the", " animation", " tells", " the", " story", " your", " paper", " already", " tells", ",", " only", " faster", ",", " clearer", ",", " and", " in", " a", " way", " that", " anyone", " can", " play", " with", ".", " That", " is", " the", " whole", " idea", " of", " today", "."], "ids": [90208, 634, 6651, 316, 290, 24834, 13, 730, 21402, 6391, 11, 12886, 1412, 634, 4176, 7398, 25, 261, 23273, 7298, 21159, 261, 6000, 11, 261, 27890, 10067, 1641, 37403, 9578, 11, 261, 20485, 30530, 13291, 290, 47584, 540, 48646, 71, 11, 503, 261, 70267, 161478, 5251, 290, 989, 1271, 2870, 27830, 74, 26680, 326, 22232, 373, 13, 623, 20837, 31523, 634, 6496, 11, 26475, 290, 3490, 11, 326, 40340, 261, 4113, 18833, 484, 13719, 306, 1062, 1880, 10327, 13, 1608, 621, 625, 1309, 316, 1761, 1495, 316, 2193, 13, 1608, 621, 1309, 316, 1761, 634, 3259, 11, 2236, 290, 20837, 665, 1520, 261, 8723, 484, 8224, 63055, 326, 382, 2928, 8201, 13, 2632, 290, 8333, 306, 290, 3435, 382, 481, 13, 6208, 1753, 2086, 4372, 634, 2316, 21793, 326, 16584, 11, 9295, 1412, 382, 1277, 11, 326, 3810, 2418, 13, 355, 1899, 18833, 665, 2356, 306, 4325, 12068, 1412, 261, 3293, 7398, 306, 4325, 5438, 25, 290, 4205, 290, 4700, 50424, 11, 290, 2163, 290, 21235, 18015, 316, 6954, 290, 19953, 11, 290, 1284, 290, 19953, 2870, 76627, 83731, 316, 5263, 13, 23372, 8203, 1412, 1023, 1921, 5275, 13, 12206, 409, 8611, 480, 13, 4886, 29431, 306, 1273, 22996, 35515, 169514, 738, 8486, 4218, 1412, 481, 679, 1339, 4113, 402, 395, 2101, 13, 7972, 3291, 25, 1001, 11310, 11, 1001, 6056, 11, 1001, 39644, 13, 7801, 3024, 591, 1354, 11, 1001, 4928, 540, 261, 1058, 11, 4609, 290, 18833, 18733, 290, 4869, 634, 6651, 4279, 18733, 11, 1606, 16107, 11, 88743, 11, 326, 306, 261, 2006, 484, 7545, 665, 2107, 483, 13, 4569, 382, 290, 6062, 6056, 328, 4044, 13]};
+
+// Prices: US$ per 1M tokens [input, output]. conf: official | multi (several independent sources agree) | tracker (third-party only) | historical
+const MODELS = [
+  { g: "Anthropic", n: "Claude Fable 5.1", i: 10, o: 50, conf: "official", src: "Anthropic API reference" },
+  { g: "Anthropic", n: "Claude Opus 5.5", i: 4, o: 20, conf: "official", src: "Anthropic API reference" },
+  { g: "Anthropic", n: "Claude Sonnet 5.5", i: 2, o: 10, conf: "official", src: "Anthropic API reference" },
+  { g: "Anthropic", n: "Claude Haiku 4.5", i: 1, o: 5, conf: "official", src: "Anthropic API reference" },
+  { g: "OpenAI", n: "GPT-6 Astra", i: 10, o: 50, conf: "multi", src: "OpenRouter, MarkTechPost, Yotta Labs" },
+  { g: "OpenAI", n: "GPT-6 Sol", i: 2, o: 10, conf: "multi", src: "OpenRouter, MarkTechPost, Yotta Labs" },
+  { g: "OpenAI", n: "GPT-6 Luna", i: 0.10, o: 0.50, conf: "multi", src: "OpenRouter, MarkTechPost, Yotta Labs" },
+  { g: "Google", n: "Gemini 3.1 Pro", i: 2, o: 12, conf: "multi", src: "price trackers; prompts ≤ 200K tokens" },
+  { g: "Google", n: "Gemini 3.8 Flash", i: 0.75, o: 3.75, conf: "tracker", src: "price trackers; introductory rate to 31 Dec 2026" },
+  { g: "xAI", n: "Grok 4.3", i: 1.25, o: 2.50, conf: "multi", src: "OpenRouter, price trackers; prompts ≤ 200K tokens" },
+  { g: "Meta", n: "Muse Spark 1.3", i: 1.25, o: 4.25, conf: "multi", src: "OpenRouter, AI Weekly; standard tier" },
+  { g: "Meta", n: "Llama 4 Maverick (hosted)", i: 0.19, o: 0.60, conf: "tracker", src: "typical third-party host price; varies by host" },
+  { g: "DeepSeek", n: "DeepSeek V4 Pro (peak hours)", i: 1.32, o: 3.96, conf: "tracker", src: "price trackers; off-peak is cheaper" },
+  { g: "DeepSeek", n: "DeepSeek V3.2", i: 0.28, o: 0.42, conf: "tracker", src: "price trackers" },
+  { g: "Alibaba", n: "Qwen 3.7 Max", i: 1.77, o: 5.32, conf: "tracker", src: "price trackers" },
+  { g: "Moonshot", n: "Kimi K2.6", i: 0.95, o: 4.00, conf: "tracker", src: "price trackers" },
+  { g: "Zhipu (Z.ai)", n: "GLM-5.1", i: 0.89, o: 3.55, conf: "tracker", src: "price trackers" },
+  { g: "MiniMax", n: "MiniMax M3", i: 0.30, o: 1.20, conf: "tracker", src: "price trackers" },
+  { g: "Mistral", n: "Mistral Medium 3.5", i: 1.50, o: 7.50, conf: "tracker", src: "price trackers" },
+  { g: "Mistral", n: "Mistral Large 3", i: 0.50, o: 1.50, conf: "tracker", src: "price trackers" },
+  { g: "For comparison", n: "GPT-4 at launch (2023)", i: 30, o: 60, conf: "historical", src: "OpenAI launch price, Mar 2023 (8K context)" },
+];
+const CONF = { official: "official price", multi: "several sources agree", tracker: "third-party trackers", historical: "historical price" };
+
+// measured on 105 IIUM papers (o200k): ~890 tokens/page, ~11,600 tokens/paper
+const PER_PAGE = 890, PER_PAPER = 11600, PER_NOVEL = 100000, WORDS_PER_TOKEN = 0.75;
+const STOPS = [
+  { t: 1, lab: "1", cap: "a word, or part of one" },
+  { t: 10, lab: "10", cap: "a short sentence" },
+  { t: 100, lab: "100", cap: "a paragraph" },
+  { t: 1000, lab: "1K", cap: "a journal page" },
+  { t: 10000, lab: "10K", cap: "a 10-page paper" },
+  { t: 100000, lab: "100K", cap: "a novel" },
+  { t: 1000000, lab: "1M", cap: "≈ 86 papers" },
+];
+const BANDS = ["#3fd0c9", "#ffb547", "#e86f5a", "#8fa7ff", "#9fd36b", "#d58fe0", "#f2d36b"];
+const CHIP_COLORS = ["#3fd0c9", "#ffb547", "#8fa7ff", "#9fd36b", "#f29a86", "#d9b8f0"];
+
+const $ = id => document.getElementById(id);
+const state = { tokens: 1, model: 1, mode: "out", fx: 4.08 };
+
+// ---------- stage scaling ----------
+function fit() {
+  const s = Math.min(innerWidth / 1600, innerHeight / 900);
+  $("stage").style.transform = `scale(${s})`;
+}
+addEventListener("resize", fit); fit();
+
+// ---------- formatting ----------
+const nf = new Intl.NumberFormat("en-MY");
+function fmtTokens(t) { return nf.format(Math.round(t)); }
+function sig(x, d = 2) { if (x === 0) return "0"; const p = Math.max(0, d - 1 - Math.floor(Math.log10(Math.abs(x)))); return x.toFixed(Math.min(p, 6)); }
+function fmtRM(rm) {
+  if (rm >= 1000) return "RM " + nf.format(Math.round(rm));
+  if (rm >= 1) return "RM " + rm.toFixed(2);
+  if (rm >= 0.01) return "RM " + rm.toFixed(2) + "";
+  return sig(rm * 100, 2) + " sen";
+}
+function fmtNum(x) {
+  if (x >= 100) return nf.format(Math.round(x));
+  if (x >= 10) return x.toFixed(0);
+  if (x >= 1) return x.toFixed(1).replace(/\.0$/, "");
+  return sig(x, 1);
+}
+
+// ---------- model picker ----------
+function buildSelect() {
+  const sel = $("model"); let og = null, last = "";
+  MODELS.forEach((m, k) => {
+    if (m.g !== last) { og = document.createElement("optgroup"); og.label = m.g; sel.appendChild(og); last = m.g; }
+    const op = document.createElement("option"); op.value = k; op.textContent = m.n; og.appendChild(op);
+  });
+  sel.value = state.model;
+  sel.addEventListener("change", () => { state.model = +sel.value; renderCost(); sel.blur(); });
+}
+
+// ---------- slider ----------
+const toT = v => Math.pow(10, v);
+const toV = t => Math.log10(t);
+function buildStops() {
+  const box = $("stops");
+  STOPS.forEach((s, k) => {
+    const b = document.createElement("button"); b.className = "stop";
+    b.style.left = (toV(s.t) / 6 * 100) + "%";
+    if (k === 0) b.style.transform = "translateX(-17px)", b.style.textAlign = "left";
+    if (k === STOPS.length - 1) b.style.transform = "translateX(calc(-100% + 17px))", b.style.textAlign = "right";
+    b.innerHTML = `<b>${s.lab}</b><span>${s.cap}</span>`;
+    b.addEventListener("click", () => animateTo(s.t));
+    box.appendChild(b);
+  });
+}
+function setTokens(t, fromSlider) {
+  state.tokens = Math.max(1, Math.min(1e6, t));
+  const v = toV(state.tokens);
+  if (!fromSlider) $("slider").value = v;
+  $("slider").style.setProperty("--p", (v / 6 * 100) + "%");
+  render();
+}
+let anim = null;
+function animateTo(t) {
+  cancelAnimationFrame(anim);
+  const v0 = toV(state.tokens), v1 = toV(t), t0 = performance.now(), dur = 900;
+  const step = now => {
+    const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    const v = v0 + (v1 - v0) * e;
+    // snap to a whole number of tokens while moving
+    setTokens(k < 1 ? Math.round(toT(v)) : t);
+    if (k < 1) anim = requestAnimationFrame(step);
+  };
+  anim = requestAnimationFrame(step);
+}
+function nearestStopIndex(dir) {
+  const v = toV(state.tokens);
+  if (dir > 0) { for (let k = 0; k < STOPS.length; k++) if (toV(STOPS[k].t) > v + 1e-6) return k; return STOPS.length - 1; }
+  for (let k = STOPS.length - 1; k >= 0; k--) if (toV(STOPS[k].t) < v - 1e-6) return k; return 0;
+}
+
+// ---------- visual ----------
+let lastKind = "", lastCount = -1;
+function render() {
+  const t = state.tokens;
+  const r = Math.round(t);
+  $("tokNum").innerHTML = fmtTokens(r) + `<small>${r === 1 ? "token" : "tokens"}</small>`;
+  document.querySelectorAll(".stop").forEach((el, k) => el.classList.toggle("on", Math.abs(toV(STOPS[k].t) - toV(t)) < 0.02));
+
+  // equivalents
+  const eq = [];
+  if (t < 10) eq.push(`≈ a word, or part of one`);
+  else eq.push(`≈ <b>${fmtNum(t * WORDS_PER_TOKEN)}</b> English words`);
+  if (t >= PER_PAGE * 0.3) eq.push(`≈ <b>${fmtNum(t / PER_PAGE)}</b> journal page${t / PER_PAGE >= 1.5 ? "s" : ""}`);
+  if (t >= PER_PAPER * 0.3) eq.push(`≈ <b>${fmtNum(t / PER_PAPER)}</b> IIUM paper${t / PER_PAPER >= 1.5 ? "s" : ""}`);
+  if (t >= PER_NOVEL * 0.3) eq.push(`≈ <b>${fmtNum(t / PER_NOVEL)}</b> novel${t / PER_NOVEL >= 1.5 ? "s" : ""}`);
+  if (t >= 900000) eq.push(`≈ the first <b>five</b> Harry Potter books`);
+  while (eq.length > 3) eq.shift();
+  $("equiv").innerHTML = eq.map(x => `<li>${x}</li>`).join("");
+
+  // which picture
+  const chips = $("chips"), grid = $("grid");
+  if (r <= TOK.tokens.length) {
+    grid.innerHTML = ""; grid.dataset.kind = ""; lastKind = lastKind === "chips" ? "chips" : (chips.innerHTML = "", "chips");
+    drawChips(r);
+    $("cap").textContent = r <= 12 ? "Each coloured chip is one token. The small number is its ID in the tokenizer's dictionary."
+                                   : "Each coloured chip is one token.";
+  } else if (t < PER_PAPER * 1.6) {
+    chips.innerHTML = "";
+    const pages = t / PER_PAGE;
+    drawPages(pages);
+    $("cap").textContent = `One sheet = one journal page (≈ ${PER_PAGE} tokens, measured on our IIUM papers).`;
+  } else {
+    chips.innerHTML = "";
+    drawPapers(t / PER_PAPER);
+    $("cap").textContent = `One card = one IIUM paper (≈ ${nf.format(PER_PAPER)} tokens, the median of the 105 we downloaded).`;
+  }
+  renderCost();
+}
+
+function drawChips(n) {
+  const box = $("chips");
+  const have = box.children.length;
+  if (have === n) return;
+  // font size shrinks as more chips appear
+  const fs = n <= 1 ? 110 : n <= 3 ? 84 : n <= 7 ? 64 : n <= 12 ? 50 : n <= 30 ? 38 : n <= 80 ? 28 : n <= 160 ? 22 : 18.5;
+  box.style.fontSize = fs + "px";
+  box.style.lineHeight = n <= 12 ? "1.15" : "1.25";
+  const showId = n <= 12;
+  if (have > n || box.dataset.showId !== String(showId)) { box.innerHTML = ""; }
+  box.dataset.showId = String(showId);
+  for (let k = box.children.length; k < n; k++) {
+    const c = document.createElement("span"); c.className = "chip";
+    c.style.background = CHIP_COLORS[k % CHIP_COLORS.length];
+    c.style.animationDelay = Math.min(0.25, (k - have) * 0.008) + "s";
+    const text = TOK.tokens[k].replace(/\n/g, "↵");
+    c.innerHTML = `<span>${text.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</span>` + (showId ? `<span class="id">${TOK.ids[k]}</span>` : "");
+    box.appendChild(c);
+  }
+}
+
+function drawPages(pages) {
+  const grid = $("grid");
+  const full = Math.floor(pages), part = pages - full, count = Math.ceil(pages - 1e-9);
+  const key = "p" + count + ":" + part.toFixed(2);
+  if (key === lastKind) return; lastKind = key;
+  // size pages to fit the panel
+  const W = 904, H = 436, ratio = 1.414;
+  let best = 0, bestCols = 1;
+  for (let cols = 1; cols <= count; cols++) {
+    const rows = Math.ceil(count / cols);
+    const w = Math.min((W - (cols - 1) * 16) / cols, ((H - (rows - 1) * 16) / rows) / ratio);
+    if (w > best) { best = w; bestCols = cols; }
+  }
+  const w = Math.min(best - 3, 230), h = w * ratio;
+  grid.style.gap = "16px";
+  if (grid.dataset.kind !== "pages" || grid.children.length !== count) { grid.innerHTML = ""; grid.dataset.kind = "pages"; }
+  for (let k = 0; k < count; k++) {
+    let el = grid.children[k];
+    if (!el) {
+      el = document.createElement("div"); el.className = "page";
+      el.innerHTML = `<div class="head"></div><div class="fill"></div><div class="mask"></div>`;
+      el.style.animationDelay = Math.min(0.3, k * 0.03) + "s";
+      grid.appendChild(el);
+    }
+    el.style.width = w + "px"; el.style.height = h + "px";
+    const f = (k < full) ? 1 : (part || 1);
+    el.querySelector(".mask").style.top = (18 + f * 76) + "%";
+    el.style.opacity = k < full || part > 0.05 ? 1 : 0.4;
+  }
+}
+
+function drawPapers(papers) {
+  const grid = $("grid");
+  const count = Math.max(1, Math.round(papers));
+  const key = "x" + count;
+  if (key === lastKind) return; lastKind = key;
+  const W = 904, H = 436, ratio = 1.3, gap = count > 40 ? 9 : 14;
+  let best = 0;
+  for (let cols = 1; cols <= count; cols++) {
+    const rows = Math.ceil(count / cols);
+    const w = Math.min((W - (cols - 1) * gap) / cols, ((H - (rows - 1) * gap) / rows) / ratio);
+    if (w > best) best = w;
+  }
+  const w = Math.min(best - 3, 150), h = w * ratio;
+  grid.style.gap = gap + "px";
+  grid.innerHTML = ""; grid.dataset.kind = "papers";
+  for (let k = 0; k < count; k++) {
+    const el = document.createElement("div"); el.className = "paper";
+    el.style.width = w + "px"; el.style.height = h + "px";
+    el.style.animationDelay = Math.min(0.5, k * 0.006) + "s";
+    el.innerHTML = `<div class="band" style="background:${BANDS[k % BANDS.length]}"></div><div class="lines"></div>`;
+    grid.appendChild(el);
+  }
+}
+
+// ---------- cost ----------
+function costRM(m, which, t) { return (which === "out" ? m.o : m.i) * t / 1e6 * state.fx; }
+function renderCost() {
+  const m = MODELS[state.model], t = Math.round(state.tokens);
+  $("mName").textContent = m.n;
+  $("mMaker").textContent = m.g;
+  const usd = x => "US$" + (x < 1 ? x.toFixed(2) : String(x));
+  for (const [id, w] of [["vOut", "out"], ["vIn", "in"]]) {
+    const txt = fmtRM(costRM(m, w, t)); $(id).textContent = txt; $(id).classList.toggle("long", txt.length > 9);
+  }
+  $("rOut").textContent = `${usd(m.o)} per 1M tokens`;
+  $("rIn").textContent = `${usd(m.i)} per 1M tokens`;
+  const mult = m.o / m.i;
+  $("mSrc").textContent = `Price: ${CONF[m.conf]} (${m.src}). Writing costs ${mult >= 10 ? Math.round(mult) : mult.toFixed(1).replace(/\.0$/, "")}× reading.`;
+  $("boxOut").classList.toggle("on", state.mode === "out");
+  $("boxIn").classList.toggle("on", state.mode === "in");
+  if ($("cmp").classList.contains("open")) renderCompare();
+}
+
+function renderCompare() {
+  const t = Math.round(state.tokens), which = state.mode;
+  $("cmpTitle").textContent = `${which === "out" ? "Writing" : "Reading"} ${fmtTokens(t)} tokens costs…`;
+  $("cmpSub").textContent = `Click a model to select it. Press W to switch between writing (output) and reading (input).`;
+  const list = MODELS.map((m, k) => ({ m, k, rm: costRM(m, which, t) })).sort((a, b) => b.rm - a.rm);
+  const max = list[0].rm;
+  $("rows").innerHTML = list.map(x => `
+    <div class="row${x.k === state.model ? " sel" : ""}${x.m.conf === "historical" ? " hist" : ""}" data-k="${x.k}">
+      <div class="n">${x.m.n}<i>${x.m.g}</i></div>
+      <div><div class="bar" style="width:${(x.rm / max * 100).toFixed(2)}%"></div></div>
+      <div class="v">${fmtRM(x.rm)}</div>
+    </div>`).join("");
+  $("rows").querySelectorAll(".row").forEach(el => el.addEventListener("click", () => {
+    state.model = +el.dataset.k; $("model").value = state.model; renderCost();
+  }));
+}
+function openCompare(on) { $("cmp").classList.toggle("open", on); if (on) renderCompare(); }
+
+// ---------- events ----------
+$("slider").addEventListener("input", e => { cancelAnimationFrame(anim); setTokens(Math.round(toT(+e.target.value)), true); });
+$("boxOut").addEventListener("click", () => { state.mode = "out"; renderCost(); });
+$("boxIn").addEventListener("click", () => { state.mode = "in"; renderCost(); });
+$("cmpBtn").addEventListener("click", () => openCompare(true));
+$("cmpClose").addEventListener("click", () => openCompare(false));
+$("fx").addEventListener("input", e => { const v = parseFloat(e.target.value); if (v > 0) { state.fx = v; renderCost(); } });
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT" && e.target.type !== "range") return;
+  const k = e.key;
+  if (k === "ArrowRight" || k === "PageDown") { e.preventDefault(); animateTo(STOPS[nearestStopIndex(+1)].t); }
+  else if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); animateTo(STOPS[nearestStopIndex(-1)].t); }
+  else if (k >= "1" && k <= "7") animateTo(STOPS[+k - 1].t);
+  else if (k === "c" || k === "C") openCompare(!$("cmp").classList.contains("open"));
+  else if (k === "w" || k === "W") { state.mode = state.mode === "out" ? "in" : "out"; renderCost(); }
+  else if (k === "Escape") openCompare(false);
+});
+
+// deep link: ?tokens=10000&model=Claude%20Opus%205.5&mode=in
+const q = new URLSearchParams(location.search);
+if (q.get("model")) { const k = MODELS.findIndex(m => m.n.toLowerCase() === q.get("model").toLowerCase()); if (k >= 0) state.model = k; }
+if (q.get("mode") === "in") state.mode = "in";
+buildSelect(); buildStops();
+setTokens(+q.get("tokens") || 1);
+if (q.get("cmp")) openCompare(true);
+</script>
+</body>
+</html>

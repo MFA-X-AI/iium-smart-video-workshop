@@ -1,0 +1,425 @@
+<!doctype html>
+<!--
+PAPER: Md Kassim et al. (2026), IIUM Engineering Journal. A four-storey,
+seven-bay, single-plane RC frame; Case 3 removes the LEFT exterior ground-floor
+column. Adjacent members develop alternate load paths; the first span has the
+largest flexural demand. Earthquake analyses show the largest lateral drift at
+the first storey, with lateral displacement increasing toward the roof.
+ARTISTIC LICENCE: This is a qualitative cinematic illustration, not SAP2000
+output or an engineering simulation. Sway is exaggerated; time is compressed;
+the small cantilever sag, fracture, reinforcement layout, dust, texture and amber
+stress illumination are illustrative. No fire, explosion, or total collapse is
+claimed. The static column-loss and seismic findings are combined into one shot.
+The frame remains ONE structural plane, with physical member thickness only.
+Bay widths follow the symmetric proportions in Fig. 5; height follows that
+figure's storey dimensions (the text gives slightly different overall dimensions).
+The cutaway exposes illustrative steel; it does not depict calculated spalling.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#10181c">
+  <title>KOE · Exterior column loss</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #10181c; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .credit { position: fixed; left: 3.6vw; bottom: 4.6vh; color: #e9e4d9;
+      font-family: Arial, Helvetica, sans-serif; pointer-events: none;
+      text-shadow: 0 2px 14px #000, 0 1px 3px #000; line-height: 1.6; }
+    .credit strong { display: block; font-size: clamp(14px, 1.2vw, 24px);
+      font-weight: 500; letter-spacing: .12em; }
+    .credit span { display: block; font-size: clamp(12px, 1vw, 20px);
+      letter-spacing: .025em; color: #babdbb; }
+  </style>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <div class="credit">
+    <strong>KOE · Engineering</strong>
+    <span>Md Kassim et al. (2026) · IIUM Engineering Journal</span>
+  </div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+    import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+    // Everything is procedural, seeded and evaluated from absolute shot time.
+    const LOOP = 6.4, LOSS = 0.48;
+    const params = new URLSearchParams(location.search);
+    const requested = Number(params.get('t'));
+    const frozen = params.has('t') && Number.isFinite(requested);
+    const stillTime = Math.max(0, requested);
+    let seed = 42027;
+    function random() {
+      seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+      return seed / 4294967296;
+    }
+    const clamp = THREE.MathUtils.clamp;
+    function smooth(a, b, x) { const s = clamp((x-a)/(b-a), 0, 1); return s*s*(3-2*s); }
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#10191e');
+    scene.fog = new THREE.FogExp2('#10191e', .019);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.18;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.prepend(renderer.domElement);
+    const camera = new THREE.PerspectiveCamera(38, innerWidth/innerHeight, .1, 140);
+
+    scene.add(new THREE.HemisphereLight('#c0d7dc', '#29221e', 1.7));
+    const sun = new THREE.DirectionalLight('#ffdfb2', 4.8);
+    sun.position.set(-16, 22, 12);
+    sun.target.position.set(-5, 5, 0);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 20, bottom: -17, near: .5, far: 65 });
+    sun.shadow.normalBias = .025;
+    sun.shadow.bias = -.00015;
+    scene.add(sun, sun.target);
+    const rim = new THREE.DirectionalLight('#9dd6ec', 3.2);
+    rim.position.set(8, 13, -10);
+    scene.add(rim);
+    const fill = new THREE.DirectionalLight('#f3e9d3', .6);
+    fill.position.set(-22, 4, 6);
+    scene.add(fill);
+    const warmBounce = new THREE.PointLight('#ffbc6e', 0, 10, 2);
+    warmBounce.position.set(-10, 3.3, 1.2);
+    scene.add(warmBounce);
+
+    const U = { time: { value: 0 }, loss: { value: 0 }, sway: { value: 0 }, sag: { value: 0 } };
+    const bays = [5.4, 2.7, 4.5, 1.94, 4.5, 2.7, 5.4];
+    const width = bays.reduce((a,b) => a+b, 0);
+    const xs = [-width/2];
+    bays.forEach(b => xs.push(xs.at(-1)+b));
+    const levels = [0, 3.8, 7, 10.2, 13.4];
+    const X0 = xs[0], X1 = xs[1];
+
+    // Shared deformation also drives shadows, steel, cracks and concrete.
+    // Smoothstep within each storey preserves horizontal joint tangents.
+    const deformGLSL = `
+      uniform float uSway, uSag;
+      vec3 bendFrame(vec3 p) {
+        float y=max(p.y,0.0);
+        float shape=0.55*smoothstep(0.0,3.8,y)
+                   +0.24*smoothstep(3.8,7.0,y)
+                   +0.14*smoothstep(7.0,10.2,y)
+                   +0.07*smoothstep(10.2,13.4,y);
+        float cant=1.0-smoothstep(${X0.toFixed(4)},${X1.toFixed(4)},p.x);
+        p.x+=uSway*shape;
+        p.y-=uSag*cant*smoothstep(0.0,3.55,y);
+        return p;
+      }
+    `;
+    const noiseGLSL = `
+      float hash3(vec3 p) {
+        p=fract(p*0.3183099+vec3(.13,.27,.41));
+        p*=19.0; return fract(p.x*p.y*p.z*(p.x+p.y+p.z));
+      }
+      float noise3(vec3 p) {
+        vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+        return mix(mix(mix(hash3(i),hash3(i+vec3(1,0,0)),f.x),
+                       mix(hash3(i+vec3(0,1,0)),hash3(i+vec3(1,1,0)),f.x),f.y),
+                   mix(mix(hash3(i+vec3(0,0,1)),hash3(i+vec3(1,0,1)),f.x),
+                       mix(hash3(i+vec3(0,1,1)),hash3(i+vec3(1,1,1)),f.x),f.y),f.z);
+      }
+    `;
+    const cutawayGLSL = `
+      float cutNoise=noise3(vStone*6.0)*.17+noise3(vStone*21.0)*.055;
+      float cut=1.0-smoothstep(.77,.9,abs(vStone.x-(${X0.toFixed(4)}+1.25)));
+      if(uLoss>.01 && cut>.1 && abs(vStone.y-3.8)<.245
+         && vStone.z>.02+cutNoise-(.16*cut*uLoss)) discard;
+    `;
+
+    function installFrameShader(material, { stone = false, depth = false } = {}) {
+      material.onBeforeCompile = shader => {
+        Object.assign(shader.uniforms, { uSway: U.sway, uSag: U.sag, uLoss: U.loss, uTime: U.time });
+        shader.vertexShader = 'varying vec3 vStone;\n' + deformGLSL + shader.vertexShader;
+        shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
+          'vStone=position; vec3 transformed=bendFrame(position);');
+        if (!depth) {
+          // Finite-difference Jacobian: transform normals with the same bend.
+          shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>', `
+            #include <beginnormal_vertex>
+            vec3 dx=(bendFrame(position+vec3(.002,0,0))-bendFrame(position-vec3(.002,0,0)))/.004;
+            vec3 dy=(bendFrame(position+vec3(0,.002,0))-bendFrame(position-vec3(0,.002,0)))/.004;
+            vec3 dz=vec3(0,0,1);
+            objectNormal=normalize(mat3(cross(dy,dz),cross(dz,dx),cross(dx,dy))*objectNormal);
+          `);
+        }
+        if (stone) {
+          shader.fragmentShader = 'varying vec3 vStone; uniform float uLoss,uTime;\n'+noiseGLSL+shader.fragmentShader;
+          shader.fragmentShader = shader.fragmentShader.replace('#include <clipping_planes_fragment>',
+            '#include <clipping_planes_fragment>\n'+cutawayGLSL);
+          if (!depth) {
+            shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `
+              #include <color_fragment>
+              float coarse=noise3(vStone*3.7);
+              float grain=noise3(vStone*92.0);
+              float pores=smoothstep(.68,.85,noise3(vStone*58.0));
+              float board=pow(.5+.5*sin(vStone.y*34.0+noise3(vStone*.8)*2.0),20.0);
+              diffuseColor.rgb*=.73+coarse*.43+grain*.18-pores*.27-board*.045;
+              float local=(1.0-smoothstep(${(X1-.4).toFixed(4)},${(X1+3).toFixed(4)},vStone.x));
+              float first=exp(-abs(vStone.y-3.8)*1.8);
+              float crackLine=abs(sin((vStone.x+noise3(vStone*vec3(4,19,5))*.16)*19.0));
+              float crack=(1.0-smoothstep(.025,.075,crackLine))*local*first*uLoss;
+              diffuseColor.rgb*=1.0-.68*crack;
+            `);
+            shader.fragmentShader = shader.fragmentShader.replace('#include <emissivemap_fragment>', `
+              #include <emissivemap_fragment>
+              float reach=smoothstep(.0,.6,uTime-(${LOSS}))*(1.0-smoothstep(${(X1+.4).toFixed(4)},${(X1+3.8).toFixed(4)},vStone.x));
+              float beamBand=exp(-pow((vStone.y-3.98)*9.0,2.0));
+              float jointBand=exp(-pow((vStone.x-(${X1.toFixed(4)}))*5.0,2.0))*(1.0-smoothstep(3.8,7.0,vStone.y));
+              float fleck=.25+.75*noise3(vStone*24.0);
+              totalEmissiveRadiance+=vec3(1.0,.39,.085)*reach*(beamBand*.85+jointBand*.24)*fleck;
+            `);
+          }
+        }
+      };
+      material.customProgramCacheKey = () => `frame-${stone}-${depth}`;
+      return material;
+    }
+
+    const concrete = installFrameShader(new THREE.MeshStandardMaterial({
+      color: '#bbb8ac', roughness: .91, metalness: .015
+    }), { stone: true });
+    const depthMat = installFrameShader(new THREE.MeshDepthMaterial({
+      depthPacking: THREE.RGBADepthPacking
+    }), { stone: true, depth: true });
+    const members = [];
+    function box(w,h,d,x,y,z=0) {
+      return new RoundedBoxGeometry(w,h,d,4,.016).translate(x,y,z);
+    }
+    for (let floor=1; floor<levels.length; floor++) {
+      for (let bay=0; bay<bays.length; bay++) {
+        members.push(box(bays[bay], .5, .25, (xs[bay]+xs[bay+1])/2, levels[floor]));
+      }
+      for (let col=0; col<xs.length; col++) {
+        if (floor===1 && col===0) continue;
+        const low=levels[floor-1], high=levels[floor];
+        members.push(box(.25,high-low,.25,xs[col],(low+high)/2));
+      }
+    }
+    const frameGeometry = mergeGeometries(members);
+    members.forEach(g => g.dispose());
+    const frame = new THREE.Mesh(frameGeometry, concrete);
+    frame.castShadow = frame.receiveShadow = true;
+    frame.customDepthMaterial = depthMat;
+    frame.frustumCulled = false;
+    scene.add(frame);
+    const lostColumn = new THREE.Mesh(box(.25,3.55,.25,X0,1.775), concrete);
+    lostColumn.castShadow = true;
+    lostColumn.customDepthMaterial = depthMat;
+    scene.add(lostColumn);
+
+    // Reinforcing cage in the first beam, visible only through a local cutaway.
+    const bars = [];
+    function rod(a,b,r=.012) {
+      const va=new THREE.Vector3(...a), vb=new THREE.Vector3(...b);
+      const g=new THREE.CylinderGeometry(r,r,va.distanceTo(vb),6,16);
+      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),vb.clone().sub(va).normalize()));
+      g.translate(...va.add(vb).multiplyScalar(.5).toArray());
+      bars.push(g);
+    }
+    for(const y of [3.63,3.97]) for(const z of [-.072,.072]) {
+      rod([X0-.04,y,z],[X1+.6,y,z],.017);
+    }
+    for(let x=X0+.12;x<X1+.4;x+=.22) {
+      rod([x,3.60,-.092],[x,4.00,-.092],.007);
+      rod([x,4.00,-.092],[x,4.00,.092],.007);
+      rod([x,4.00,.092],[x,3.60,.092],.007);
+      rod([x,3.60,.092],[x,3.60,-.092],.007);
+    }
+    const steel = installFrameShader(new THREE.MeshStandardMaterial({ color:'#584940',metalness:.8,roughness:.43 }));
+    const steelMesh = new THREE.Mesh(mergeGeometries(bars),steel);
+    bars.forEach(g=>g.dispose());
+    steelMesh.castShadow = true;
+    steelMesh.customDepthMaterial = installFrameShader(new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking}),{depth:true});
+    scene.add(steelMesh);
+
+    // Low, monolithic plinth makes the physical section legible in silhouette.
+    function mineralMaterial(color, roughness=.94) {
+      const m=new THREE.MeshStandardMaterial({ color,roughness });
+      m.onBeforeCompile=shader=>{
+        shader.vertexShader='varying vec3 vRock;\n'+shader.vertexShader;
+        shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvRock=position;');
+        shader.fragmentShader='varying vec3 vRock;\n'+noiseGLSL+shader.fragmentShader;
+        shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+          diffuseColor.rgb*=.68+.35*noise3(vRock*4.0)+.16*noise3(vRock*76.0);`);
+      };
+      return m;
+    }
+    const plinth=new THREE.Mesh(new RoundedBoxGeometry(width+3,.75,4.4,3,.07),mineralMaterial('#494b48'));
+    plinth.position.set(0,-.435,0);
+    plinth.castShadow=plinth.receiveShadow=true;
+    scene.add(plinth);
+    const footMaterial=mineralMaterial('#87887e');
+    for(const x of xs) {
+      const foot=new THREE.Mesh(new RoundedBoxGeometry(.9,.18,.95,2,.025),footMaterial);
+      foot.position.set(x,.025,0); foot.receiveShadow=true; foot.castShadow=true; scene.add(foot);
+    }
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(220,220),mineralMaterial('#252b2d'));
+    floor.rotation.x=-Math.PI/2;
+    floor.position.y=-.82;
+    floor.receiveShadow=true;
+    scene.add(floor);
+
+    // The removal is a small, localized fall of material, with no explosive force.
+    const shards=[], dummy=new THREE.Object3D();
+    const shardGeo=new THREE.IcosahedronGeometry(1,0);
+    const debris=new THREE.InstancedMesh(shardGeo,mineralMaterial('#a7a393'),84);
+    debris.castShadow=debris.receiveShadow=true;
+    debris.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    debris.frustumCulled=false;
+    for(let i=0;i<84;i++) {
+      const h=.04+random()*.15;
+      shards.push({ x:X0+(random()-.5)*.24, y:.2+random()*3.27, z:(random()-.5)*.24,
+        vx:(random()-.5)*1.1, vz:(random()-.5)*1.4, vy:-.2-random()*.7,
+        size:[.035+random()*.1,h,.035+random()*.1], rot:[random()*6,random()*6,random()*6],
+        spin:[random()*3-1.5,random()*3-1.5,random()*3-1.5] });
+    }
+    scene.add(debris);
+
+    // A soft billboard cloud: opacity falls with age, never luminous sparks.
+    const dustCount=360, dustData=[], dustPos=new Float32Array(dustCount*3);
+    const dustLife=new Float32Array(dustCount), dustSize=new Float32Array(dustCount);
+    for(let i=0;i<dustCount;i++) {
+      const ground=i>130;
+      dustData.push({ delay:ground?.28+random()*.5:random()*.18, ground,
+        x:(random()-.5)*.36, y:ground?.2:random()*3.4,
+        vx:(random()-.5)*(ground?2.3:1.2), vz:(random()-.5)*1.8,
+        rise:.2+random()*.75, life:1.7+random()*1.8, phase:random()*6.28 });
+      dustSize[i]=.2+random()*.5;
+    }
+    const dustGeo=new THREE.BufferGeometry();
+    dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3).setUsage(THREE.DynamicDrawUsage));
+    dustGeo.setAttribute('aLife',new THREE.BufferAttribute(dustLife,1).setUsage(THREE.DynamicDrawUsage));
+    dustGeo.setAttribute('aSize',new THREE.BufferAttribute(dustSize,1));
+    const dustMat=new THREE.ShaderMaterial({
+      transparent:true,depthWrite:false,uniforms:{uScale:{value:innerHeight}},
+      vertexShader:`attribute float aLife,aSize; varying float vLife;
+        uniform float uScale; void main(){ vLife=aLife; vec4 p=modelViewMatrix*vec4(position,1.0);
+        gl_Position=projectionMatrix*p; gl_PointSize=clamp(aSize*uScale/max(1.0,-p.z),1.0,110.0); }`,
+      fragmentShader:`varying float vLife; void main(){ vec2 p=gl_PointCoord*2.0-1.0;
+        float d=dot(p,p); if(d>1.0)discard; float a=pow(1.0-d,2.8)*vLife*.16;
+        gl_FragColor=vec4(mix(vec3(.23,.25,.25),vec3(.64,.55,.41),gl_PointCoord.y),a);
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`
+    });
+    const dust=new THREE.Points(dustGeo,dustMat);
+    dust.frustumCulled=false;
+    dust.renderOrder=2;
+    scene.add(dust);
+
+    // Fine suspended mineral specks give depth without adding more architecture.
+    const motesPos=new Float32Array(230*3);
+    for(let i=0;i<230;i++) {
+      motesPos[i*3]=(random()-.5)*43;
+      motesPos[i*3+1]=random()*17;
+      motesPos[i*3+2]=(random()-.5)*15;
+    }
+    const motesGeo=new THREE.BufferGeometry();
+    motesGeo.setAttribute('position',new THREE.BufferAttribute(motesPos,3));
+    const motes=new THREE.Points(motesGeo,new THREE.PointsMaterial({
+      color:'#d7c6a8',size:.024,transparent:true,opacity:.34,depthWrite:false
+    }));
+    scene.add(motes);
+
+    const composer=new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene,camera));
+    const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.22,.45,1.05);
+    composer.addPass(bloom);
+    composer.addPass(new OutputPass());
+    const grade=new ShaderPass({
+      uniforms:{tDiffuse:{value:null},uTime:U.time},
+      vertexShader:`varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+      fragmentShader:`uniform sampler2D tDiffuse; uniform float uTime; varying vec2 vUv;
+        void main(){
+          vec3 c=texture2D(tDiffuse,vUv).rgb;
+          vec2 p=vUv-.5;
+          float vignette=1.0-.30*smoothstep(.12,.69,length(p*vec2(.88,1.0)));
+          float grain=fract(sin(dot(gl_FragCoord.xy+floor(uTime*24.0),vec2(12.9898,78.233)))*43758.5453)-.5;
+          c=pow(max(c,vec3(0.0)),vec3(1.015,.998,.985));
+          gl_FragColor=vec4(c*vignette+grain*.009,1.0);
+        }`
+    });
+    composer.addPass(grade);
+
+    function update(t) {
+      const phase=t%LOOP;
+      const age=Math.max(0,phase-LOSS);
+      const loss=smooth(LOSS,LOSS+.16,phase);
+      U.time.value=phase; U.loss.value=loss;
+      // Qualitative in-plane seismic response, not a replay of the GM5 record.
+      U.sway.value=loss*(.66*Math.sin(age*3.35)*Math.exp(-age*.31)+.12*Math.sin(age*7.1)*Math.exp(-age*.65));
+      U.sag.value=loss*(.22+.11*Math.sin(age*5.2)*Math.exp(-age*.8));
+      lostColumn.visible=phase<LOSS;
+      debris.visible=phase>=LOSS;
+      warmBounce.intensity=loss*6;
+      for(let i=0;i<shards.length;i++) {
+        const s=shards[i];
+        const hit=(s.vy+Math.sqrt(s.vy*s.vy+12*Math.max(0,s.y-s.size[1])))/6;
+        const flight=Math.min(age,hit), after=Math.max(0,age-hit);
+        const travel=flight+(1-Math.exp(-after*4))*.17;
+        dummy.position.set(s.x+s.vx*travel,
+          Math.max(s.size[1]+.12,s.y+s.vy*flight-3*flight*flight)+.06*Math.abs(Math.sin(after*12))*Math.exp(-after*6),
+          s.z+s.vz*travel);
+        dummy.rotation.set(...s.rot.map((r,j)=>r+s.spin[j]*Math.min(age,hit+.25)));
+        dummy.scale.set(...s.size); dummy.updateMatrix(); debris.setMatrixAt(i,dummy.matrix);
+      }
+      debris.instanceMatrix.needsUpdate=true;
+      for(let i=0;i<dustCount;i++) {
+        const d=dustData[i], a=age-d.delay, active=a>0 && phase>=LOSS;
+        const f=Math.max(0,a);
+        dustPos[i*3]=X0+d.x+d.vx*f*.65+Math.sin(d.phase+f*1.3)*f*.1;
+        dustPos[i*3+1]=Math.max(.12,d.y+d.rise*f-(d.ground?.02:.18)*f*f);
+        dustPos[i*3+2]=d.vz*f*.65;
+        dustLife[i]=active?smooth(0,.2,a)*(1-smooth(.35,d.life,a)):0;
+      }
+      dustGeo.attributes.position.needsUpdate=true;
+      dustGeo.attributes.aLife.needsUpdate=true;
+      motes.position.y=Math.sin(phase*.3)*.09;
+
+      // A low oblique dolly puts the failed end nearest the lens; all seven bays
+      // remain in one plane. Wider framing on narrow windows prevents clipping.
+      const move=smooth(0,5.7,phase), aspect=innerWidth/innerHeight;
+      const pull=aspect<1.5?1.5/aspect:1;
+      const target=new THREE.Vector3(-2.8,6.5,0);
+      camera.position.set(-14+move,9.4-move*.5,27-move);
+      camera.position.sub(target).multiplyScalar(pull).add(target);
+      camera.lookAt(target);
+      composer.render();
+    }
+    const start=performance.now();
+    function tick(now) { update((now-start)/1000); requestAnimationFrame(tick); }
+    function resize() {
+      camera.aspect=innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth,innerHeight);
+      composer.setSize(innerWidth,innerHeight);
+      dustMat.uniforms.uScale.value=innerHeight*renderer.getPixelRatio();
+      if(frozen)update(stillTime);
+    }
+    addEventListener('resize',resize);
+    dustMat.uniforms.uScale.value=innerHeight*renderer.getPixelRatio();
+    update(frozen?stillTime:0);
+    if(!frozen)requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

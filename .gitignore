@@ -1,0 +1,29 @@
+# dependencies, caches, build scratch
+node_modules/
+.venv/
+__pycache__/
+_scratch/
+.qa/
+.runs/
+.review/
+qa/
+qa-*/
+chrome-w*/
+*.log
+
+# renders (the finished promo is in video/)
+out/
+
+# third-party papers: not redistributable. papers.csv keeps the metadata, download_papers.py fetches them.
+papers/
+download_report.csv
+
+# third-party clip used live in the deck (linked from the slide instead)
+slides/media/agents-tools.mp4
+slides/media/square-hole.mp4
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/

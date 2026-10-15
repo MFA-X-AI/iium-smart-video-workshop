@@ -1,0 +1,611 @@
+<!doctype html>
+<!--
+SOURCE: the supplied paper, The Contemporary Relevance of Al-Farabi's Musical
+Theory in Interdisciplinary Studies and the Malaysian Educational Context,
+IIUM Journal of Educational Studies 14(1), 144–159 (2026), papers.json[122].
+The journal article is scanned: its pages were read as extracted images.
+SUPPORTED: literature-based argument for music/mathematics education; oud
+discussion on p. 149; mathematical dimension on p. 150; proposed teaching of
+fractions, ratios and patterns on p. 152; geometry among recommendations p. 155.
+ARTISTIC LICENCE: invented illuminated manuscript, oud design, slowed string
+motion, visible gold sound-wave and a rising geometric rosette. The rosette is
+a metaphor for exploring mathematical patterns through music, NOT cymatics,
+a historical reconstruction, a tested intervention or a measured learning gain.
+STANDARD IDEAL-STRING EXAMPLES (not measured results from this paper): at fixed
+tension and linear density, f is proportional to 1/L. Remaining vibrating lengths
+1/2, 2/3 and 3/4 give frequency ratios 2:1 (octave), 3:2 (fifth), 4:3 (fourth).
+The same fractions define the rosette's construction radii: this geometric
+mapping is our educational illustration, not a historical al-Farabi diagram.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#211309">
+  <title>Al-Farabi’s music makes mathematics tangible — KOED</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #160e09; }
+    body { display: grid; place-items: center; }
+    #film { width: min(100vw, 177.777778vh); height: min(100vh, 56.25vw); position: relative; overflow: hidden; isolation: isolate; }
+    #film > canvas { position: absolute; inset: 0; z-index: 0; display: block; width: 100%; height: 100%; }
+    #scrim { position: absolute; z-index: 1; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent 48%, rgba(25,14,8,.04) 55%, rgba(25,14,8,.72) 76%, rgba(25,14,8,.86)); }
+    #title { position: absolute; z-index: 2; left: 63%; right: 4%; top: 37%; color: #f6e6bd; text-shadow: 0 2px 25px #1c1008; }
+    #title::before { content: ''; display: block; width: 3.8vw; max-width: 74px; height: 2px; margin-bottom: 1.8vw; background: linear-gradient(90deg, #d9a754, #d9a75420); }
+    h1 { font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif; font-weight: 400; font-size: clamp(16px, 3.55vw, 6.31vh); line-height: 1.12; letter-spacing: -.035em; margin: 0; }
+    h1 span { display: block; }
+    h1 em { color: #ddaf63; font-weight: 400; }
+    #vignette { position: absolute; z-index: 1; inset: 0; pointer-events: none; box-shadow: inset 0 0 6vw 1vw #160e0955; }
+    #fade { position: absolute; z-index: 3; inset: 0; background: #160e09; opacity: 0; pointer-events: none; }
+    #fallback { position: absolute; z-index: 4; left: 7%; top: 43%; width: 42%; color: #f6e6bd; font: 22px Georgia, serif; display: none; }
+  </style>
+  <script type="importmap">
+    {"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <main id="film" aria-label="An oud string is stopped at half, two-thirds and three-quarters of its length, giving octave, fifth and fourth pitch ratios. Gold traces carry those proportions into a geometric rosette.">
+    <div id="scrim"></div>
+    <div id="title"><h1><span>Al-Farabi’s music</span><span>makes mathematics</span><span><em>tangible.</em></span></h1></div>
+    <div id="vignette"></div>
+    <div id="fade"></div>
+    <div id="fallback">This animated manuscript requires WebGL.</div>
+  </main>
+  <script type="module">
+    import * as THREE from 'three';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+    const film = document.querySelector('#film');
+    const fade = document.querySelector('#fade');
+    const fallback = document.querySelector('#fallback');
+    const parameters = new URLSearchParams(location.search);
+    const requested = Number(parameters.get('t'));
+    const frozen = parameters.has('t') && Number.isFinite(requested);
+    const frozenTime = frozen ? Math.max(0, requested) : 0;
+    let currentTime = frozenTime;
+    let renderCount = 0;
+    window.__KOED_READY__ = false;
+    const TAU = Math.PI * 2;
+    const clamp = THREE.MathUtils.clamp;
+    const smooth = (a, b, t) => { const x = clamp((t-a)/(b-a), 0, 1); return x*x*(3-2*x); };
+    const ease = x => 1-Math.pow(1-clamp(x,0,1),3);
+    let seed = 122;
+    function random() { seed = (Math.imul(1664525,seed)+1013904223)>>>0; return seed/4294967296; }
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#21150c');
+    scene.fog = new THREE.FogExp2('#24170d', .018);
+    const camera = new THREE.PerspectiveCamera(28.5, 16/9, .1, 65);
+    camera.position.set(.3,-8.4,19.8);
+    camera.lookAt(-.1,0,.25);
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance',preserveDrawingBuffer:frozen});
+    } catch (error) {
+      document.querySelector('#fallback').style.display = 'block';
+      throw error;
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5, 1920/film.clientWidth));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.domElement.setAttribute('aria-hidden','true');
+    film.prepend(renderer.domElement);
+
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const room = new RoomEnvironment();
+    // PMREM already filters roughness levels; extra angular blur clipped its kernel.
+    const environment = pmrem.fromScene(room,0);
+    scene.environment = environment.texture;
+    scene.environmentIntensity = .75;
+    room.dispose();
+    pmrem.dispose();
+
+    scene.add(new THREE.HemisphereLight('#ffe7ba','#342119',1.35));
+    const key = new THREE.DirectionalLight('#ffe1a0',3.2);
+    key.position.set(-5,2,9);
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048,2048);
+    Object.assign(key.shadow.camera,{left:-11,right:5,top:8,bottom:-7,near:.5,far:24});
+    key.shadow.bias = -.0003;
+    key.shadow.normalBias = .025;
+    key.shadow.radius = 3;
+    key.target.position.set(-3,0,0);
+    scene.add(key,key.target);
+    const rim = new THREE.DirectionalLight('#edb658',2.3);
+    rim.position.set(3,5,5);
+    scene.add(rim);
+    const travellingLight = new THREE.PointLight('#ffc56a',0,6,2);
+    scene.add(travellingLight);
+
+    function canvasTexture(width,height,paint) {
+      const canvas = document.createElement('canvas'); canvas.width=width; canvas.height=height;
+      const ctx=canvas.getContext('2d'); paint(ctx,width,height);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace=THREE.SRGBColorSpace;
+      texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+      return texture;
+    }
+
+    const parchment = canvasTexture(2048,1536,(ctx,w,h)=>{
+      ctx.fillStyle='#cdaa6c'; ctx.fillRect(0,0,w,h);
+      const wash=ctx.createRadialGradient(w*.46,h*.4,40,w*.5,h*.5,w*.64);
+      wash.addColorStop(0,'#efddb0'); wash.addColorStop(.6,'#d7bc87'); wash.addColorStop(1,'#866039');
+      ctx.fillStyle=wash;ctx.fillRect(0,0,w,h);
+      for(let i=0;i<55000;i++) {
+        ctx.fillStyle=random()>.5?'rgba(85,47,19,.055)':'rgba(255,241,196,.16)';
+        const x=random()*w,y=random()*h;ctx.fillRect(x,y,.6+random()*2.7,.5+random()*1.8);
+      }
+      function star(x,y,r,n,turn=0) {
+        ctx.beginPath();
+        for(let i=0;i<=n*2;i++) {const a=i*Math.PI/n+turn; const d=i%2?r*.42:r;const px=x+Math.cos(a)*d,py=y+Math.sin(a)*d;i?ctx.lineTo(px,py):ctx.moveTo(px,py);}
+        ctx.stroke();
+      }
+      for(const [x0,x1] of [[75,990],[1058,1973]]) {
+        ctx.strokeStyle='#4a716b';ctx.lineWidth=10;ctx.strokeRect(x0,72,x1-x0,h-144);
+        ctx.strokeStyle='#9e702e';ctx.lineWidth=3;ctx.strokeRect(x0-15,57,x1-x0+30,h-114);ctx.strokeRect(x0+15,87,x1-x0-30,h-174);
+        ctx.strokeStyle='#94702e';ctx.lineWidth=2;
+        for(let y=108;y<h-100;y+=48) { star(x0,y,13,4);star(x1,y,13,4); }
+        for(let x=x0+45;x<x1-20;x+=48) {star(x,72,13,4);star(x,h-72,13,4);}
+        for(const x of [x0+55,x1-55]) for(const y of [132,h-132]) {
+          ctx.fillStyle='#365956';ctx.beginPath();ctx.arc(x,y,33,0,TAU);ctx.fill();
+          ctx.strokeStyle='#c89d48';star(x,y,28,8,Math.PI/8);star(x,y,17,8);
+        }
+      }
+      // Decorative geometry and ruled constructions, not fabricated manuscript text.
+      ctx.strokeStyle='rgba(75,43,22,.48)';ctx.lineWidth=2.5;
+      for(let j=0;j<7;j++) {
+        const y=370+j*112;
+        ctx.beginPath();ctx.moveTo(185,y);ctx.lineTo(835,y);ctx.stroke();
+        for(let i=0;i<=10;i++){const x=185+i*65;ctx.beginPath();ctx.moveTo(x,y-8);ctx.lineTo(x,y+8);ctx.stroke();}
+      }
+      // Leave the lower facing page open for the three musical proportions.
+      ctx.strokeStyle='rgba(83,43,23,.38)';
+      for(let j=0;j<5;j++) {ctx.beginPath();for(let i=0;i<100;i++){let x=1150+i*6.5,y=900+j*15+Math.sin(i*.11)*26;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.stroke();}
+      const crease=ctx.createLinearGradient(960,0,1088,0);crease.addColorStop(0,'#61442000');crease.addColorStop(.48,'#4a2a1baa');crease.addColorStop(.55,'#fff2c355');crease.addColorStop(1,'#61442000');ctx.fillStyle=crease;ctx.fillRect(960,0,128,h);
+    });
+
+    const woodTexture = canvasTexture(512,1024,(ctx,w,h)=>{
+      ctx.fillStyle='#986332';ctx.fillRect(0,0,w,h);
+      for(let i=0;i<1100;i++) {
+        let x=random()*w;ctx.strokeStyle=`rgba(${random()>.5?'52,22,8':'226,179,97'},${.025+random()*.09})`;ctx.lineWidth=.5+random()*1.5;ctx.beginPath();
+        for(let j=0;j<=20;j++){let y=j*h/20,px=x+Math.sin(j*.27+x*.04)*4;j?ctx.lineTo(px,y):ctx.moveTo(px,y);}ctx.stroke();
+      }
+    });
+    const leafTexture = canvasTexture(256,256,(ctx,w,h)=>{
+      ctx.fillStyle='#dab766';ctx.fillRect(0,0,w,h);
+      for(let i=0;i<5000;i++){const l=100+random()*120;ctx.fillStyle=`rgba(${l+28},${l},${l*.58},.13)`;ctx.fillRect(random()*w,random()*h,random()*9,random()*4);}
+    });
+    const gold = new THREE.MeshStandardMaterial({color:'#ffe4a3',map:leafTexture,bumpMap:leafTexture,bumpScale:.014,metalness:.88,roughness:.29});
+    const lightGold = new THREE.MeshStandardMaterial({color:'#ffe7a6',metalness:.84,roughness:.23});
+    const darkGold = new THREE.MeshStandardMaterial({color:'#8a5b24',metalness:.75,roughness:.36});
+    const lapis = new THREE.MeshStandardMaterial({color:'#174947',metalness:.35,roughness:.31});
+    const wood = new THREE.MeshStandardMaterial({color:'#e0b470',map:woodTexture,roughness:.48,metalness:0});
+    const walnut = new THREE.MeshStandardMaterial({color:'#452418',map:woodTexture,roughness:.4});
+    const ivory = new THREE.MeshStandardMaterial({color:'#ede0b6',roughness:.42});
+    const ink = new THREE.MeshStandardMaterial({color:'#725735',roughness:.8});
+    const black = new THREE.MeshStandardMaterial({color:'#211610',roughness:.94});
+    const glow = new THREE.MeshStandardMaterial({color:'#ffdb79',emissive:'#ffad37',emissiveIntensity:1.5,metalness:.65,roughness:.3});
+
+    function mesh(geometry,material,parent=scene) {const m=new THREE.Mesh(geometry,material);parent.add(m);m.castShadow=true;m.receiveShadow=true;return m;}
+    function box(w,h,d,material,parent,x=0,y=0,z=0) {const m=mesh(new THREE.BoxGeometry(w,h,d),material,parent);m.position.set(x,y,z);return m;}
+    function tube(points,radius,material,parent=scene,closed=false) {
+      const curve=new THREE.CatmullRomCurve3(points,closed);
+      return mesh(new THREE.TubeGeometry(curve,Math.min(192,Math.max(24,points.length*3)),radius,6,closed),material,parent);
+    }
+    function circle(radius,z,material,parent,thickness=.012) {
+      const ring=mesh(new THREE.TorusGeometry(radius,thickness,6,128),material,parent);ring.position.z=z;return ring;
+    }
+
+    const tableTexture=canvasTexture(512,512,(ctx,w,h)=>{
+      ctx.fillStyle='#3b2718';ctx.fillRect(0,0,w,h);
+      for(let i=0;i<1400;i++){ctx.strokeStyle=`rgba(8,3,1,${random()*.15})`;const y=random()*h;ctx.beginPath();ctx.moveTo(0,y);ctx.bezierCurveTo(160,y+random()*6,380,y-4,w,y);ctx.stroke();}
+    });
+    tableTexture.wrapS=tableTexture.wrapT=THREE.RepeatWrapping;tableTexture.repeat.set(4,3);
+    const table=mesh(new THREE.PlaneGeometry(60,45),new THREE.MeshStandardMaterial({map:tableTexture,roughness:.88}));table.position.z=-.52;
+
+    const book=new THREE.Group();scene.add(book);book.position.set(-3.7,-.1,0);book.rotation.z=-.055;
+    const cover=box(10.3,8.1,.19,new THREE.MeshStandardMaterial({color:'#382d21',roughness:.76}),book,0,0,-.28);
+    box(10.14,7.96,.04,darkGold,book,0,0,-.16);
+    // Thin irregular page signatures make the book read as a real volume in profile.
+    for(let i=0;i<12;i++) {
+      box(9.98-i*.007,7.77+i*.004,.012,new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(.105,.31,.52+i*.009),roughness:.95}),book,0,0,-.125+i*.016);
+    }
+    const pageGeometry=new THREE.PlaneGeometry(10,7.8,100,64);
+    const pagePos=pageGeometry.attributes.position;
+    function pageZ(x,y) { return .125+.24*Math.sin(Math.PI*Math.abs(x)/5)-.075*Math.exp(-x*x*10)+.027*Math.sin(y*1.3+x*.7); }
+    for(let i=0;i<pagePos.count;i++){const x=pagePos.getX(i),y=pagePos.getY(i);pagePos.setZ(i,pageZ(x,y));}
+    pageGeometry.computeVertexNormals();
+    const page=mesh(pageGeometry,new THREE.MeshStandardMaterial({color:'#fff4db',map:parchment,bumpMap:parchment,bumpScale:.012,roughness:.93,side:THREE.DoubleSide}),book);
+    // Sparse raised gold details interrupt the printed ornament with true reflections.
+    for(const x of [-4.62,4.62]) for(let j=0;j<13;j++) {
+      const y=-3.3+j*.55,m=mesh(new THREE.OctahedronGeometry(.039,0),gold,book);m.position.set(x,y,pageZ(x,y)+.025);m.scale.z=.22;
+    }
+
+    const oud=new THREE.Group();book.add(oud);oud.position.set(-1.95,-.45,1.18);oud.rotation.z=-.30;
+    const outline=new THREE.Shape();
+    outline.moveTo(0,1.38);outline.bezierCurveTo(.43,1.23,1.26,.31,1.39,-.61);outline.bezierCurveTo(1.55,-1.66,.83,-2.23,0,-2.25);outline.bezierCurveTo(-.83,-2.23,-1.55,-1.66,-1.39,-.61);outline.bezierCurveTo(-1.26,.31,-.43,1.23,0,1.38);
+    const board=mesh(new THREE.ExtrudeGeometry(outline,{depth:.09,bevelEnabled:true,bevelSize:.035,bevelThickness:.025,bevelSegments:2,curveSegments:48}),wood,oud);board.position.z=.25;
+    const rimPoints=outline.getPoints(120).map(p=>new THREE.Vector3(p.x,p.y,.36));tube(rimPoints,.026,ivory,oud,true);
+    const innerRim=rimPoints.map(p=>new THREE.Vector3(p.x*.963,p.y*.971-.023,.372));tube(innerRim,.012,darkGold,oud,true);
+    const bowlGeometry=new THREE.SphereGeometry(1,48,28);
+    const bowl=mesh(bowlGeometry,walnut,oud);bowl.position.set(0,-.50,.22);bowl.scale.set(1.39,1.69,.54);
+    // Front face entirely covers the bowl; its back bulges beneath the soundboard.
+    bowl.position.z=-.24;
+    for(let rib=0;rib<11;rib++) {
+      const a=(rib/10)*Math.PI;
+      const pts=[];
+      for(let j=1;j<40;j++){const v=j/40*Math.PI;pts.push(new THREE.Vector3(1.39*Math.sin(v)*Math.cos(a),-.5+1.69*Math.cos(v),-.24-.54*Math.sin(v)*Math.sin(a)));}
+      tube(pts,.013,rib%2?ivory:darkGold,oud);
+    }
+    const soundhole=mesh(new THREE.CircleGeometry(.49,64),black,oud);soundhole.position.set(0,-.38,.373);
+    const carving=new THREE.Group();carving.position.set(0,-.38,.387);oud.add(carving);
+    for(const r of [.48,.42,.12])circle(r,0,ivory,carving,.012);
+    for(let i=0;i<12;i++){
+      const a=i*TAU/12,pts=[];
+      for(let j=0;j<=36;j++){const t=j*TAU/36;const x=.165+.20*Math.cos(t),y=.08*Math.sin(t);pts.push(new THREE.Vector3(x*Math.cos(a)-y*Math.sin(a),x*Math.sin(a)+y*Math.cos(a),.006));}
+      tube(pts,.009,ivory,carving,true);
+    }
+    for(const x of [-.69,.69]) {
+      const hole=mesh(new THREE.CircleGeometry(.155,36),black,oud);hole.position.set(x,.13,.374);
+      const r=circle(.152,.388,ivory,oud,.012);r.position.x=x;r.position.y=.13;
+      for(let a=0;a<3;a++){const strut=box(.26,.012,.012,ivory,oud,x,.13,.39);strut.rotation.z=a*Math.PI/3;}
+    }
+    box(.39,2.12,.17,walnut,oud,0,2.18,.25);
+    box(.35,2.02,.025,black,oud,0,2.18,.35);
+    for(const x of [-.196,.196])box(.018,2.12,.025,ivory,oud,x,2.18,.35);
+    const pegbox=new THREE.Group();pegbox.position.set(0,3.23,.28);pegbox.rotation.x=-.64;oud.add(pegbox);
+    box(.44,.80,.20,walnut,pegbox,0,.36,0);box(.24,.67,.015,black,pegbox,0,.36,.109);
+    for(let i=0;i<6;i++){
+      const side=i%2?1:-1;const peg=mesh(new THREE.CylinderGeometry(.047,.045,.30,12),walnut,pegbox);peg.rotation.z=Math.PI/2;peg.position.set(side*.30,.08+i*.105,0);
+      const grip=mesh(new THREE.SphereGeometry(.085,12,8),walnut,pegbox);grip.position.set(side*.46,.08+i*.105,0);grip.scale.set(.5,1,.7);
+    }
+    box(.94,.135,.14,walnut,oud,0,-1.52,.405);box(.68,.039,.045,ivory,oud,0,-1.46,.492);
+    box(.40,.07,.06,ivory,oud,0,3.13,.38);
+    // Stylized doubled courses; no claim of a specific historical oud construction.
+    const stringCount=10, stringSegments=100;
+    const strings=[];
+    for(let i=0;i<stringCount;i++) {
+      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array((stringSegments+1)*3),3));
+      const string=new THREE.Line(geo,new THREE.LineBasicMaterial({color:i%2?'#fff0bd':'#cda66b'}));string.frustumCulled=false;oud.add(string);strings.push(string);
+    }
+    const STRING_LENGTH=4.59,BRIDGE_Y=-1.46,REFERENCE_RADIUS=1.78;
+    const intervals=[
+      {length:1/2,fraction:'½',pitch:'2:1',name:'octave',stop:.34,pluck:.45,arrival:.78},
+      {length:2/3,fraction:'⅔',pitch:'3:2',name:'fifth',stop:1.00,pluck:1.11,arrival:1.44},
+      {length:3/4,fraction:'¾',pitch:'4:3',name:'fourth',stop:1.66,pluck:1.77,arrival:2.10}
+    ];
+    // Ink lettering on transparent planes: part of the manuscript, without UI cards.
+    function manuscriptLabel(text,subtext,width,height,parent) {
+      const map=canvasTexture(Math.round(192*width/height),192,(ctx,w,h)=>{
+        ctx.clearRect(0,0,w,h);ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillStyle='#53341c';ctx.font=`${subtext?70:text.length<=2?132:90}px Georgia, serif`;ctx.fillText(text,w/2,subtext?67:96,w-16);
+        if(subtext){ctx.fillStyle='#75502c';ctx.font='italic 53px Georgia, serif';ctx.fillText(subtext,w/2,147);}
+      });
+      const label=mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({map,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}),parent);
+      label.castShadow=false;label.receiveShadow=false;return label;
+    }
+    const stringMarks=intervals.map(d=>{
+      const group=new THREE.Group();oud.add(group);
+      group.position.set(0,BRIDGE_Y+STRING_LENGTH*d.length,.52-.085*d.length);
+      box(.43,.025,.022,gold,group,-.42,0,.015);
+      const tip=mesh(new THREE.OctahedronGeometry(.045),lightGold,group);tip.position.set(-.20,0,.025);
+      const label=manuscriptLabel(d.fraction,'',.64,.44,group);label.position.set(-.96,0,.02);
+      return {group,label};
+    });
+    const stopper=new THREE.Group();oud.add(stopper);
+    box(.24,.07,.045,gold,stopper,0,0,.01);
+    const stopJewel=mesh(new THREE.SphereGeometry(.044,12,8),lapis,stopper);stopJewel.position.z=.062;
+    const activeStringGeometry=new THREE.BufferGeometry();
+    const activeStringPositions=new Float32Array((stringSegments+1)*6),activeStringIndices=[];
+    for(let i=0;i<stringSegments;i++){const n=i*2;activeStringIndices.push(n,n+1,n+2,n+1,n+3,n+2);}
+    activeStringGeometry.setAttribute('position',new THREE.BufferAttribute(activeStringPositions,3));activeStringGeometry.setIndex(activeStringIndices);
+    const activeString=mesh(activeStringGeometry,new THREE.MeshStandardMaterial({color:'#ffd273',emissive:'#c07818',emissiveIntensity:.35,metalness:.7,roughness:.3,side:THREE.DoubleSide}),oud);
+    activeString.frustumCulled=false;activeString.castShadow=false;
+    const plectrumShape=new THREE.Shape();plectrumShape.moveTo(0,-.22);plectrumShape.quadraticCurveTo(.16,.15,.08,.49);plectrumShape.quadraticCurveTo(-.15,.64,-.14,.31);plectrumShape.closePath();
+    const plectrum=mesh(new THREE.ExtrudeGeometry(plectrumShape,{depth:.035,bevelEnabled:true,bevelSize:.015,bevelThickness:.01,bevelSegments:2}),ivory,oud);
+    plectrum.rotation.z=-.60;
+
+    const rosette=new THREE.Group();book.add(rosette);rosette.position.set(2.05,1.15,.47);rosette.scale.setScalar(1.15);
+    // Ink counterpart remains on the page, making the flat-to-relief change legible.
+    const construction=new THREE.Group();rosette.add(construction);
+    const thinInk=new THREE.MeshStandardMaterial({color:'#69401c',roughness:.96,transparent:true,opacity:.72});
+    for(const r of [.47,REFERENCE_RADIUS,...intervals.map(d=>REFERENCE_RADIUS*d.length)])circle(r,0,thinInk,construction,.009);
+    const proportionRings=intervals.map((d,index)=>{
+      const radius=REFERENCE_RADIUS*d.length;
+      const ring=circle(radius,.035+index*.009,gold,construction,.019);
+      // Reorder torus triangles by major-circle sector for a true arc reveal.
+      const oldIndex=ring.geometry.index.array,ordered=[];
+      for(let sector=0;sector<128;sector++)for(let cross=0;cross<6;cross++)for(let k=0;k<6;k++)ordered.push(oldIndex[(cross*128+sector)*6+k]);
+      ring.geometry.setIndex(ordered);ring.rotation.z=-Math.PI/2;
+      const arm=box(radius,.018,.024,lightGold,construction,radius/2,0,.07);
+      const angle=-Math.PI/2+(index-1)*Math.PI/3;
+      const reference=box(REFERENCE_RADIUS,.009,.009,thinInk,construction,Math.cos(angle)*REFERENCE_RADIUS/2,Math.sin(angle)*REFERENCE_RADIUS/2,.013);
+      reference.rotation.z=angle;
+      const tick=box(.10,.023,.025,gold,construction,Math.cos(angle)*radius,Math.sin(angle)*radius,.075);tick.rotation.z=angle+Math.PI/2;
+      const pen=mesh(new THREE.SphereGeometry(.043,12,8),glow,construction);
+      const label=manuscriptLabel(`${d.fraction} → ${d.pitch}`,d.name,1.32,.76,book);
+      const x=1.20+index*1.36;
+      // Flat label over a curved page: lift it clear of the page's highest point under its width,
+      // or the page occludes the label's ends (it clipped the "1" of 2:1 and the "3" of ¾).
+      const lift=Math.max(pageZ(x-.66,-1.58),pageZ(x,-1.58),pageZ(x+.66,-1.58))+.06;
+      label.position.set(x,-1.58,lift);
+      return {ring,arm,tick,pen,label,radius,angle,totalIndices:ring.geometry.index.count};
+    });
+    const lengthHeading=manuscriptLabel('length → pitch','',3.4,.43,book);
+    lengthHeading.position.set(2.56,-.98,pageZ(2.56,-.98)+.045);
+    const petals=[], rails=[];
+    for(let i=0;i<12;i++) {
+      const a=i*TAU/12;
+      const group=new THREE.Group();group.rotation.z=a;rosette.add(group);
+      const hinge=new THREE.Group();hinge.position.x=.18;group.add(hinge);
+      // Half radius fixes the star's inner corners; two-thirds fixes petal
+      // shoulders; three-quarters fixes the enamel tips. All share outer R.
+      const half=REFERENCE_RADIUS/2,thirds=REFERENCE_RADIUS*2/3,quarters=REFERENCE_RADIUS*3/4;
+      const sx=thirds*Math.cos(.13)-.18,sy=thirds*Math.sin(.13);
+      const shape=new THREE.Shape();shape.moveTo(.12,0);
+      shape.quadraticCurveTo(half-.18,-.035,sx,-sy);
+      shape.quadraticCurveTo(quarters-.18,-.40,REFERENCE_RADIUS-.18,0);
+      shape.quadraticCurveTo(quarters-.18,.40,sx,sy);
+      shape.quadraticCurveTo(half-.18,.035,.12,0);
+      const petal=mesh(new THREE.ExtrudeGeometry(shape,{depth:.034,bevelEnabled:true,bevelThickness:.01,bevelSize:.016,bevelSegments:2,curveSegments:16}),gold,hinge);
+      // An inset translucent enamel centre leaves broad gold-leaf edges.
+      const inset=new THREE.Shape();inset.moveTo(.35,0);inset.quadraticCurveTo(thirds-.18,-.255,quarters-.18,0);inset.quadraticCurveTo(thirds-.18,.255,.35,0);
+      const enamel=mesh(new THREE.ShapeGeometry(inset,24),lapis,hinge);enamel.position.z=.048;
+      const spine=tube([new THREE.Vector3(.24,0,.065),new THREE.Vector3(.9,0,.066),new THREE.Vector3(1.47,0,.05)],.012,lightGold,hinge);
+      const bead=mesh(new THREE.SphereGeometry(.039,10,8),lightGold,hinge);bead.position.set(1.47,0,.075);
+      // Ink leaf on the manuscript precedes the same raised golden leaf.
+      const outlinePts=shape.getPoints(48).map(p=>new THREE.Vector3(p.x+.18,p.y,.012));
+      const traced=tube(outlinePts,.009,thinInk,construction,true);traced.rotation.z=a;
+      petals.push({group,hinge,index:i});
+    }
+    for(let layer=0;layer<2;layer++) {
+      const pts=[];const n=12;
+      for(let i=0;i<n*2;i++) {const a=i*Math.PI/n+layer*Math.PI/12;const r=i%2?REFERENCE_RADIUS/2:REFERENCE_RADIUS;pts.push(new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,.04));}
+      const rail=tube(pts,.018,lightGold,rosette,true);rails.push(rail);
+    }
+    const crown=new THREE.Group();rosette.add(crown);
+    circle(.44,0,gold,crown,.045);circle(.29,.01,lightGold,crown,.018);
+    const centreStone=mesh(new THREE.SphereGeometry(.24,32,16),lapis,crown);centreStone.scale.z=.4;
+    for(let i=0;i<12;i++) {const a=i*TAU/12;const gem=mesh(new THREE.OctahedronGeometry(.055),lightGold,crown);gem.position.set(.365*Math.cos(a),.365*Math.sin(a),.025);}
+
+    // A solid gold ribbon and fine filaments carry the pluck to the pattern.
+    const waveGroup=new THREE.Group();book.add(waveGroup);
+    const waveStart=new THREE.Vector3(-2.14,-1.07,1.70);
+    const waveEnd=new THREE.Vector3(2.05,1.15,.7);
+    function wavePoint(u,t,offset=0) {
+      const p=waveStart.clone().lerp(waveEnd,u);
+      const env=Math.pow(Math.sin(Math.PI*u),.8);
+      p.y+=Math.sin(u*TAU*2.5-t*7+offset)*.20*env;
+      p.z+=Math.sin(Math.PI*u)*(.70+offset*.08)+Math.sin(u*TAU*2.5-t*7+offset)*.23*env;
+      return p;
+    }
+    const waveGeometry=new THREE.BufferGeometry();
+    const waveSegments=160,wavePositions=new Float32Array((waveSegments+1)*2*3),waveIndices=[];
+    for(let i=0;i<waveSegments;i++){const a=i*2;waveIndices.push(a,a+1,a+2,a+1,a+3,a+2);}
+    waveGeometry.setAttribute('position',new THREE.BufferAttribute(wavePositions,3));waveGeometry.setIndex(waveIndices);
+    const waveMaterial=new THREE.MeshStandardMaterial({color:'#ffd477',emissive:'#efa126',emissiveIntensity:.85,metalness:.7,roughness:.3,side:THREE.DoubleSide,transparent:true});
+    const wave=mesh(waveGeometry,waveMaterial,waveGroup);wave.frustumCulled=false;wave.castShadow=false;
+    const filaments=[];
+    for(let j=0;j<3;j++){
+      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(new Float32Array((waveSegments+1)*3),3));
+      const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color:'#ffdda0',transparent:true}));line.frustumCulled=false;waveGroup.add(line);filaments.push(line);
+    }
+    const pulse=mesh(new THREE.SphereGeometry(.064,16,12),glow,book);
+
+    const fleckCount=170;
+    const flecks=new THREE.InstancedMesh(new THREE.PlaneGeometry(.045,.027),gold,fleckCount);flecks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);flecks.frustumCulled=false;book.add(flecks);
+    const fleckData=Array.from({length:fleckCount},()=>({a:random()*TAU,r:.25+random()*1.65,z:random(),delay:random()*.6,spin:random()*TAU}));
+    const dummy=new THREE.Object3D();
+    const dustGeometry=new THREE.BufferGeometry();
+    const dustPositions=new Float32Array(120*3);
+    for(let i=0;i<120;i++){dustPositions[i*3]=-9+random()*11;dustPositions[i*3+1]=-5+random()*10;dustPositions[i*3+2]=.2+random()*4;}
+    dustGeometry.setAttribute('position',new THREE.BufferAttribute(dustPositions,3));
+    const dust= new THREE.Points(dustGeometry,new THREE.PointsMaterial({color:'#dabb7c',size:.021,transparent:true,opacity:.34,depthWrite:false}));scene.add(dust);
+
+    // Present the actual scene directly to the default framebuffer. Gold highlights
+    // come from the materials/lights, without a postprocessing presentation chain.
+    const viewport = {width:0, height:0, ratio:0};
+    function resize() {
+      const w=Math.max(1,film.clientWidth),h=Math.max(1,film.clientHeight);
+      const ratio=Math.min(window.devicePixelRatio||1,1.5,1920/w);
+      if(w!==viewport.width || h!==viewport.height || ratio!==viewport.ratio) {
+        renderer.setPixelRatio(ratio);
+        renderer.setSize(w,h,false); // Resizing clears the drawing buffer, even when frozen.
+        Object.assign(viewport,{width:w,height:h,ratio});
+        camera.aspect=w/h;
+        camera.updateProjectionMatrix();
+      }
+      draw(currentTime,frozen); // Always repaint the selected moment after a resize.
+    }
+
+    function verifyCanvas() {
+      // Read actual DEFAULT-framebuffer pixels, not an offscreen target or a render
+      // counter. This region covers the manuscript and excludes the HTML title.
+      const gl=renderer.getContext();
+      const width=gl.drawingBufferWidth,height=gl.drawingBufferHeight;
+      const x=Math.floor(width*.08),y=Math.floor(height*.20);
+      const w=Math.max(1,Math.floor(width*.49)),h=Math.max(1,Math.floor(height*.62));
+      const pixels=new Uint8Array(w*h*4);
+      gl.readPixels(x,y,w,h,gl.RGBA,gl.UNSIGNED_BYTE,pixels);
+      let minimum=255,maximum=0,lit=0,total=0;
+      for(let i=0;i<pixels.length;i+=4) {
+        const luminance=.2126*pixels[i]+.7152*pixels[i+1]+.0722*pixels[i+2];
+        minimum=Math.min(minimum,luminance);maximum=Math.max(maximum,luminance);
+        total+=luminance;if(luminance>65)lit++;
+      }
+      const rect=renderer.domElement.getBoundingClientRect();
+      const canvasStyle=window.getComputedStyle(renderer.domElement);
+      const layoutVisible=rect.width>0 && rect.height>0 && canvasStyle.display!=='none' && canvasStyle.visibility!=='hidden' && Number(canvasStyle.opacity)>0;
+      const error=gl.getError();
+      const diagnostics={
+        time:currentTime,renderCount,width,height,drawCalls:renderer.info.render.calls,
+        meanLuminance:total/(w*h),contrast:maximum-minimum,litFraction:lit/(w*h),
+        layoutVisible,glError:error,contextLost:gl.isContextLost()
+      };
+      const valid=width>0 && height>0 && diagnostics.drawCalls>0 && layoutVisible &&
+        !diagnostics.contextLost && error===gl.NO_ERROR && diagnostics.contrast>18 && diagnostics.litFraction>.04;
+      window.__KOED_RENDER_CHECK__={...diagnostics,ok:valid};
+      window.__KOED_READY__=valid;
+      film.dataset.renderStatus=valid?'ok':'empty';
+      renderer.domElement.dataset.drawn=valid?'true':'false';
+      fallback.style.display=valid?'none':'block';
+      if(!valid) {
+        fallback.textContent='The manuscript scene could not be drawn.';
+        console.error('KOED: canvas verification failed',window.__KOED_RENDER_CHECK__);
+      }
+      return valid;
+    }
+
+    const PERIOD=4.8;
+    function stringState(t) {
+      let index=-1,length=1;
+      for(let i=0;i<intervals.length;i++) {
+        const d=intervals[i],previous=i?intervals[i-1].length:1;
+        if(t>=d.stop){index=i;length=THREE.MathUtils.lerp(previous,d.length,smooth(d.stop,d.stop+.08,t));}
+      }
+      const pluckTime=index<0?.12:intervals[index].pluck;
+      const age=Math.max(0,t-pluckTime);
+      return {index,length,frequencyRatio:1/length,pluckTime,age,amplitude:t>=pluckTime?.12*Math.exp(-age*2):0};
+    }
+    function stateAt(t) {
+      const string=stringState(t);
+      const d=intervals[Math.max(0,string.index)];
+      const age=t-d.pluck;
+      return {
+        pluck:smooth(string.pluckTime-.08,string.pluckTime,t),
+        release:smooth(string.pluckTime,string.pluckTime+.09,t),
+        front:smooth(d.pluck,d.arrival,t),
+        ribbon:smooth(0,.045,age)*(1-(string.index===2?.55:1)*smooth(.52,.66,age))*(1-smooth(3.25,3.6,t)),
+        assembly:smooth(.78,2.85,t),
+        string,
+        fade:smooth(3.85,4.20,t)*(1-smooth(4.58,4.80,t))
+      };
+    }
+    function draw(t,verify=false) {
+      currentTime=t;
+      const local=t%PERIOD;
+      // Reset beneath the opaque fade, so the autoplay loop has no visible jump.
+      const shotTime=local>4.25?0:local;
+      const s=stateAt(shotTime);
+      film.dataset.time=t.toFixed(3);
+      fade.style.opacity=String(stateAt(local).fade);
+      for(let i=0;i<stringCount;i++) {
+        const p=strings[i].geometry.attributes.position;
+        const base=(i-(stringCount-1)/2)*.035;
+        for(let j=0;j<=stringSegments;j++) {
+          const u=j/stringSegments;
+          p.setXYZ(j,base,BRIDGE_Y+STRING_LENGTH*u,.52-.085*u);
+        }
+        p.needsUpdate=true;
+      }
+      // Only the selected course vibrates, between bridge and the active stop.
+      // One antinode and fixed endpoints; slowed frequencies preserve f/f0=1/(L/L0).
+      const active=s.string;
+      for(let j=0;j<=stringSegments;j++) {
+        const v=j/stringSegments,u=v*active.length;
+        const x=active.amplitude*Math.sin(Math.PI*v)*Math.cos(TAU*3.2*active.frequencyRatio*active.age);
+        const y=BRIDGE_Y+STRING_LENGTH*u,z=.535-.085*u;
+        activeStringPositions.set([x-.018,y,z,x+.018,y,z],j*6);
+      }
+      activeStringGeometry.attributes.position.needsUpdate=true;activeStringGeometry.computeVertexNormals();
+      stopper.visible=active.index>=0;
+      stopper.position.set(0,BRIDGE_Y+STRING_LENGTH*active.length,.535-.085*active.length);
+      stringMarks.forEach(({group,label},i)=>{
+        group.visible=shotTime>=intervals[i].stop;
+        label.material.opacity=i===active.index?1:.75;
+      });
+      // Every pluck transfers to the matching construction radius, then raises
+      // its group of four petals. Earlier gold circles remain for comparison.
+      const selected=Math.max(0,active.index);
+      proportionRings.forEach(({ring,arm,tick,pen,label,radius,angle},i)=>{
+        const d=intervals[i],progress=smooth(d.arrival,d.arrival+.32,shotTime);
+        ring.geometry.setDrawRange(0,Math.floor(progress*128)*36);
+        ring.visible=progress>0;arm.visible=progress>0;tick.visible=progress>0;
+        arm.rotation.z=angle;
+        arm.position.set(Math.cos(angle)*radius/2,Math.sin(angle)*radius/2,.07);
+        pen.visible=progress>0&&progress<1;
+        const theta=-Math.PI/2+TAU*progress;
+        pen.position.set(Math.cos(theta)*radius,Math.sin(theta)*radius,.10);
+        label.material.opacity=smooth(d.stop,d.stop+.08,shotTime);
+        if(i===selected)waveEnd.set(rosette.position.x+Math.cos(theta)*radius*rosette.scale.x,rosette.position.y+Math.sin(theta)*radius*rosette.scale.y,rosette.position.z+.115);
+      });
+      plectrum.position.set(-.30+s.pluck*.31+s.release*.38,-.65,.57+s.release*.28);
+      plectrum.rotation.z=-.60-s.release*.6;
+      plectrum.visible=shotTime>=active.pluckTime-.1&&shotTime<active.pluckTime+.18;
+      wave.visible=s.ribbon>.001;
+      waveMaterial.opacity=s.ribbon*.94;
+      for(let i=0;i<=waveSegments;i++) {
+        const u=i/waveSegments*s.front;
+        const p=wavePoint(u,shotTime);
+        const width=.004+.052*Math.sin(Math.PI*i/waveSegments);
+        wavePositions[i*6]=p.x;wavePositions[i*6+1]=p.y-width;wavePositions[i*6+2]=p.z;
+        wavePositions[i*6+3]=p.x;wavePositions[i*6+4]=p.y+width;wavePositions[i*6+5]=p.z+.02;
+        for(let k=0;k<filaments.length;k++) {const q=wavePoint(u,shotTime,(k-1)*.75);filaments[k].geometry.attributes.position.setXYZ(i,q.x,q.y+(k-1)*.07,q.z+(k-1)*.04);}
+      }
+      waveGeometry.attributes.position.needsUpdate=true;waveGeometry.computeVertexNormals();
+      for(const line of filaments){line.geometry.attributes.position.needsUpdate=true;line.material.opacity=s.ribbon*.7;line.visible=wave.visible;}
+      pulse.visible=s.ribbon>.01&&s.front<1;pulse.position.copy(wavePoint(s.front,shotTime));
+      book.updateMatrixWorld(true);
+      travellingLight.position.copy(pulse.position).applyMatrix4(book.matrixWorld);travellingLight.position.z+=.3;
+      travellingLight.intensity=pulse.visible?6:1.6*s.ribbon;
+      for(const {group,hinge,index} of petals) {
+        const interval=intervals[Math.floor(index/4)];
+        const progress=ease((shotTime-interval.arrival-.12-(index%4)*.035)/.47);
+        const lift=Math.sin(progress*Math.PI)*.50;
+        group.position.z=.008+progress*.85+lift*.25;
+        hinge.rotation.y=-Math.sin(progress*Math.PI)*1.22;
+        hinge.rotation.x=Math.sin(progress*Math.PI)*.13;
+        hinge.scale.setScalar(.90+.1*progress);
+        group.visible=progress>0;
+      }
+      rails.forEach((rail,i)=>{
+        const p=ease((shotTime-intervals[i].arrival-.1)/.55);
+        rail.visible=p>0;
+        rail.scale.setScalar(.78+.22*p);rail.position.z=.025+p*(1.05+i*.15);
+        rail.rotation.z=(1-p)*(.17+i*.04);
+      });
+      crown.position.z=.03+1.30*ease((shotTime-2.1)/.7);
+      crown.rotation.z=.13*(1-smooth(2.1,2.8,shotTime));
+      fleckData.forEach((d,i)=>{
+        const age=shotTime-.92-d.delay;
+        const alive=age>0&&age<1.45;
+        const r=d.r+.28*Math.max(0,age);
+        dummy.position.set(rosette.position.x+Math.cos(d.a)*r,rosette.position.y+Math.sin(d.a)*r,.54+Math.max(0,age)*(.8+d.z*.5)-.31*Math.max(0,age)**2);
+        dummy.rotation.set(d.spin+age*3,d.a+age*2,d.spin);
+        dummy.scale.setScalar(alive?.35+.85*Math.sin(Math.PI*age/1.45):0);
+        dummy.updateMatrix();flecks.setMatrixAt(i,dummy.matrix);
+      });
+      flecks.instanceMatrix.needsUpdate=true;
+      dust.rotation.z=Math.sin(shotTime*.3)*.007;
+      key.position.x=-5+Math.sin(shotTime*.7)*1.1;
+      scene.updateMatrixWorld(true);
+      camera.updateMatrixWorld(true);
+      renderer.setRenderTarget(null);
+      renderer.setScissorTest(false);
+      renderer.setViewport(0,0,viewport.width,viewport.height);
+      renderer.autoClear=true;
+      renderer.render(scene,camera);
+      renderCount++;
+      film.dataset.renderCount=String(renderCount);
+      if(verify)verifyCanvas();
+    }
+
+    window.addEventListener('resize',resize);
+    resize();
+    if(frozen) {
+      // A second, identical presentation after layout settles; never advance time.
+      window.requestAnimationFrame(()=>resize());
+    } else {
+      const start=performance.now();
+      renderer.setAnimationLoop(now=>draw((now-start)/1000));
+    }
+    renderer.domElement.addEventListener('webglcontextlost',event=>{
+      event.preventDefault();window.__KOED_READY__=false;film.dataset.renderStatus='context-lost';
+    });
+    renderer.domElement.addEventListener('webglcontextrestored',()=>resize());
+  </script>
+</body>
+</html>

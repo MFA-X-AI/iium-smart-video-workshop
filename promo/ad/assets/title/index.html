@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>loading</title>
+  <style>
+    @font-face {
+      font-family: 'Instrument Serif'; font-style: normal; font-weight: 400;
+      font-display: block;
+      src: url('https://cdn.jsdelivr.net/npm/@fontsource/instrument-serif@5.2.5/files/instrument-serif-latin-400-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Instrument Serif'; font-style: italic; font-weight: 400;
+      font-display: block;
+      src: url('https://cdn.jsdelivr.net/npm/@fontsource/instrument-serif@5.2.5/files/instrument-serif-latin-400-italic.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Inter'; font-style: normal; font-weight: 400;
+      font-display: block;
+      src: url('https://cdn.jsdelivr.net/npm/@fontsource/inter@5.2.5/files/inter-latin-400-normal.woff2') format('woff2');
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #05070c; }
+    body { display: grid; place-items: center; }
+    #frame { width: 1920px; height: 1080px; position: absolute; overflow: hidden; transform-origin: center; }
+    #camera { position: absolute; inset: 0; transform-origin: 50% 44%; }
+    canvas, svg { position: absolute; inset: 0; display: block; width: 1920px; height: 1080px; }
+    svg { overflow: visible; }
+    .wordmark { font-family: 'Instrument Serif'; font-weight: 400; font-kerning: normal; }
+    .wordmark-italic { font-style: italic; font-synthesis: none; }
+    #subtitle { font-family: 'Inter'; font-size: 34px; font-weight: 400; fill: #f3eee3; opacity: .75; }
+  </style>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <main id="frame" aria-label="Smart Video Creation with Generative AI. AI Research Methodology Workshop Series No. 8/2026.">
+    <div id="camera">
+      <svg id="type" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <filter id="soft-glow" x="-20%" y="-100%" width="140%" height="300%">
+            <feGaussianBlur stdDeviation="18"/>
+          </filter>
+          <filter id="sweep-bloom" x="-30%" y="-100%" width="160%" height="300%">
+            <feGaussianBlur stdDeviation="9"/>
+          </filter>
+          <filter id="horizon-bloom" x="-20%" y="-300%" width="140%" height="700%">
+            <feGaussianBlur stdDeviation="36 8"/>
+          </filter>
+          <filter id="horizon-soft" x="-20%" y="-300%" width="140%" height="700%">
+            <feGaussianBlur stdDeviation="5 1.6"/>
+          </filter>
+          <linearGradient id="horizon-light">
+            <stop offset="0" stop-color="#3fd0c9" stop-opacity="0"/>
+            <stop offset=".22" stop-color="#3fd0c9" stop-opacity=".24"/>
+            <stop offset=".5" stop-color="#fff1d8" stop-opacity="1"/>
+            <stop offset=".78" stop-color="#ffb547" stop-opacity=".24"/>
+            <stop offset="1" stop-color="#ffb547" stop-opacity="0"/>
+          </linearGradient>
+          <rect id="sweep-band" x="0" y="260" width="240" height="320" fill="url(#light-band)"/>
+          <linearGradient id="light-band">
+            <stop offset="0" stop-color="#fff9e9" stop-opacity="0"/>
+            <stop offset=".24" stop-color="#fff9e9" stop-opacity=".15"/>
+            <stop offset=".42" stop-color="#ffffff" stop-opacity=".92"/>
+            <stop offset=".58" stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset=".76" stop-color="#fff9e9" stop-opacity=".15"/>
+            <stop offset="1" stop-color="#fff9e9" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="letter-clip">
+            <text class="wordmark" data-title-line="0" x="960" y="420" text-anchor="middle">Smart Video Creation</text>
+            <text class="wordmark wordmark-italic" data-title-line="1" x="960" y="580" text-anchor="middle">with Generative AI</text>
+          </clipPath>
+        </defs>
+        <g id="resolved" opacity="0">
+          <g id="glow-type" opacity=".13" filter="url(#soft-glow)">
+            <text class="wordmark" data-title-line="0" x="960" y="420" text-anchor="middle" fill="#ede2c8">Smart Video Creation</text>
+            <text class="wordmark wordmark-italic" data-title-line="1" x="960" y="580" text-anchor="middle" fill="#4fb3ff">with Generative AI</text>
+          </g>
+          <g id="solid-type">
+            <text class="wordmark" data-title-line="0" x="960" y="420" text-anchor="middle" fill="#f3eee3">Smart Video Creation</text>
+            <text class="wordmark wordmark-italic" data-title-line="1" x="960" y="580" text-anchor="middle" fill="#4fb3ff">with Generative AI</text>
+          </g>
+        </g>
+        <g id="sweep" opacity="0">
+          <g filter="url(#sweep-bloom)">
+            <g clip-path="url(#letter-clip)"><use href="#sweep-band"/></g>
+          </g>
+          <g clip-path="url(#letter-clip)"><use href="#sweep-band"/></g>
+        </g>
+        <g id="horizon" opacity="0">
+          <ellipse cx="960" cy="550" rx="720" ry="7" fill="url(#horizon-light)" filter="url(#horizon-bloom)"/>
+          <rect x="280" y="549" width="1360" height="2" rx="1" fill="url(#horizon-light)" opacity=".65" filter="url(#horizon-soft)"/>
+        </g>
+        <g id="subtitle"></g>
+      </svg>
+    </div>
+  </main>
+  <script type="module">
+    const W = 1920, H = 1080, DURATION = 6;
+    const TITLE_LINES = [
+      { text: 'Smart Video Creation', style: 'normal', color: '#f3eee3' },
+      { text: 'with Generative AI', style: 'italic', color: '#4fb3ff' }
+    ];
+    const SUBTITLE = 'AI RESEARCH METHODOLOGY WORKSHOP SERIES NO. 8/2026';
+    const COUNT = 12500, TRAIL_SAMPLES = 3, DUST_COUNT = 720;
+    const frame = document.getElementById('frame');
+    const cameraLayer = document.getElementById('camera');
+    const resolved = document.getElementById('resolved');
+    const sweep = document.getElementById('sweep');
+    const sweepBand = document.getElementById('sweep-band');
+    const titleGlow = document.getElementById('glow-type');
+    const solidType = document.getElementById('solid-type');
+    const horizon = document.getElementById('horizon');
+    const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+    const smooth = (a, b, x) => { const q = clamp((x - a) / (b - a)); return q * q * (3 - 2 * q); };
+
+    // All scene randomness is consumed once, in a fixed order.
+    function seeded(seed) {
+      return () => {
+        let z = seed += 0x6D2B79F5;
+        z = Math.imul(z ^ z >>> 15, z | 1);
+        z ^= z + Math.imul(z ^ z >>> 7, z | 61);
+        return ((z ^ z >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    const random = seeded(0x52494D31);
+    const range = (a, b) => a + (b - a) * random();
+    function fit() { frame.style.transform = `scale(${Math.min(innerWidth / W, innerHeight / H)})`; }
+    fit();
+    addEventListener('resize', fit);
+
+    async function main() {
+      const [THREE, { EffectComposer }, { RenderPass }, { UnrealBloomPass }, { OutputPass }] = await Promise.all([
+        import('three'),
+        import('three/addons/postprocessing/EffectComposer.js'),
+        import('three/addons/postprocessing/RenderPass.js'),
+        import('three/addons/postprocessing/UnrealBloomPass.js'),
+        import('three/addons/postprocessing/OutputPass.js'),
+        document.fonts.load('160px "Instrument Serif"', TITLE_LINES[0].text),
+        document.fonts.load('italic 160px "Instrument Serif"', TITLE_LINES[1].text),
+        document.fonts.load('34px "Inter"', SUBTITLE)
+      ]);
+      await document.fonts.ready;
+      if (!TITLE_LINES.every(line => document.fonts.check(`${line.style} 160px "Instrument Serif"`, line.text)) || !document.fonts.check('34px "Inter"', SUBTITLE)) {
+        throw new Error('The pinned fonts could not be loaded.');
+      }
+
+      // Measure the real upright and italic faces together, then share the same
+      // size, centering and alphabetic baselines between Canvas and SVG.
+      const mask = document.createElement('canvas');
+      mask.width = W; mask.height = H;
+      const ctx = mask.getContext('2d', { willReadFrequently: true });
+      ctx.fontKerning = 'normal';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      const titleWidth = W * .64;
+      const referenceWidths = TITLE_LINES.map(line => {
+        ctx.font = `${line.style} 160px "Instrument Serif"`;
+        return ctx.measureText(line.text).width;
+      });
+      const fontSize = 160 * titleWidth / Math.max(...referenceWidths);
+      const metrics = TITLE_LINES.map(line => {
+        ctx.font = `${line.style} ${fontSize}px "Instrument Serif"`;
+        return ctx.measureText(line.text);
+      });
+      const lineHeight = fontSize;
+      const blockCenterY = H * .41;
+      const firstBaseline = blockCenterY - (lineHeight + metrics[1].actualBoundingBoxDescent - metrics[0].actualBoundingBoxAscent) / 2;
+      const baselines = [firstBaseline, firstBaseline + lineHeight];
+      const blockTop = baselines[0] - metrics[0].actualBoundingBoxAscent;
+      const blockBottom = baselines[1] + metrics[1].actualBoundingBoxDescent;
+      const horizonY = blockBottom + 26;
+      const subtitleBaseline = horizonY + 72;
+      horizon.setAttribute('transform', `translate(0 ${horizonY - 550})`);
+      sweepBand.setAttribute('y', blockTop - 30);
+      sweepBand.setAttribute('height', blockBottom - blockTop + 60);
+      const targets = [];
+      TITLE_LINES.forEach((line, lineIndex) => {
+        const baseline = baselines[lineIndex];
+        document.querySelectorAll(`[data-title-line="${lineIndex}"]`).forEach(el => {
+          el.setAttribute('font-size', fontSize);
+          el.setAttribute('y', baseline);
+        });
+        ctx.clearRect(0, 0, W, H);
+        ctx.font = `${line.style} ${fontSize}px "Instrument Serif"`;
+        ctx.fillStyle = '#ffffff'; ctx.fillText(line.text, W / 2, baseline);
+        const pixels = ctx.getImageData(0, 0, W, H).data;
+        const y0 = Math.max(0, Math.floor(baseline - metrics[lineIndex].actualBoundingBoxAscent) - 2);
+        const y1 = Math.min(H, Math.ceil(baseline + metrics[lineIndex].actualBoundingBoxDescent) + 2);
+        for (let y = y0; y < y1; y++) {
+          for (let x = 0; x < W; x++) {
+            // The line index travels with each target, including italic overhangs.
+            if (pixels[(y * W + x) * 4 + 3] > 150) targets.push(x, y, lineIndex);
+          }
+        }
+      });
+      if (targets.length === 0) throw new Error('The text mask is empty.');
+
+      const subtitle = document.getElementById('subtitle');
+      ctx.font = '34px "Inter"';
+      const letters = [...SUBTITLE];
+      const tracking = 34 * .30;
+      const advances = letters.map(c => ctx.measureText(c).width + tracking);
+      let cursor = (W - (advances.reduce((a, b) => a + b, 0) - tracking)) / 2;
+      const subtitleNodes = letters.map((c, i) => {
+        const node = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        node.textContent = c; node.setAttribute('x', cursor); node.setAttribute('y', subtitleBaseline);
+        node.setAttribute('opacity', '0'); subtitle.appendChild(node); cursor += advances[i];
+        return node;
+      });
+
+      const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, preserveDrawingBuffer: true, powerPreference: 'low-power' });
+      renderer.setPixelRatio(1); renderer.setSize(W, H);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1;
+      cameraLayer.prepend(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(2 * Math.atan(H / 2400) * 180 / Math.PI, W / H, 1, 9000);
+      camera.position.z = 1200;
+      const clock = { value: 0 };
+      // Corrections fade out before the approved end-state frames; no simulation state.
+      const flightCorrection = { value: 1 };
+
+      // A full-frame linear-light atmospheric background. No accumulated noise.
+      const atmosphere = new THREE.ShaderMaterial({
+        depthWrite: false, depthTest: false,
+        uniforms: { uTime: clock, uNavy: { value: new THREE.Color('#05070c') } },
+        vertexShader: `varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.999,1.0); }`,
+        fragmentShader: `
+          varying vec2 vUv; uniform float uTime; uniform vec3 uNavy;
+          float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+          float noise(vec2 p){ vec2 i=floor(p),f=fract(p); f=f*f*(3.-2.*f);
+            return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1)),f.x),f.y); }
+          void main(){
+            vec2 p=(vUv-vec2(.5,.56))*vec2(1.7778,1.);
+            float mist=noise(p*3.+vec2(uTime*.013,0.))*.62+noise(p*7.-uTime*.009)*.38;
+            float pool=exp(-dot(p*vec2(1.05,2.6),p*vec2(1.05,2.6))*3.);
+            float veil=exp(-pow(p.y+.055+.08*sin(p.x*3.),2.)*48.)*exp(-p.x*p.x*2.5);
+            vec3 color=uNavy*2.8+vec3(.004,.013,.017)*pool*(.30+.70*mist)+vec3(.004,.005,.006)*veil*.30;
+            color*=1.-.36*smoothstep(.32,1.08,length(p));
+            gl_FragColor=vec4(color,1.);
+          }`
+      });
+      const background = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), atmosphere);
+      background.frustumCulled = false; background.renderOrder = -100; scene.add(background);
+
+      const data = { position: [], aStart: [], aControl: [], aFinish: [], aMeta: [], aStyle: [], aColor: [], aBaseColor: [] };
+      const ivory = new THREE.Color('#fff1d8'), teal = new THREE.Color('#3fd0c9'), amber = new THREE.Color('#ffb547');
+      const skyBlue = new THREE.Color(TITLE_LINES[1].color);
+      // Shared centerlines make legible ribbons. Only a narrow seeded cross-section varies.
+      // First four enter from the edges; the other four approach through deep space.
+      const ribbons = [
+        [[-2400, 260, -950], [-1670, 1020, -420], [-450, -160, 70]],
+        [[-2300, -420, -820], [-1490, -810, -300], [-470, 390, 30]],
+        [[2400, 410, -920], [1540, -620, -360], [470, 330, 60]],
+        [[2320, -340, -850], [1600, 1020, -380], [450, -140, 50]],
+        [[-1850, 1040, -3300], [-1460, 1040, -1450], [-330, 300, -80]],
+        [[1760, -880, -3100], [1400, -680, -1250], [360, -160, -60]],
+        [[430, 800, -3900], [-1030, 700, -1700], [-220, 330, -30]],
+        [[-340, -560, -3700], [1020, -480, -1650], [290, -150, -40]]
+      ];
+      for (let i = 0; i < COUNT; i++) {
+        const sample = Math.floor(random() * targets.length / 3) * 3;
+        const tx = targets[sample] - W / 2 + range(-.45, .45);
+        const ty = H / 2 - targets[sample + 1] + range(-.45, .45);
+        const baseColor = targets[sample + 2] === 1 ? skyBlue : ivory;
+        const ribbon = i % ribbons.length;
+        const [origin, control, finish] = ribbons[ribbon];
+        const phase = range(0, Math.PI * 2);
+        const spread = range(10, 38);
+        const jitterX = Math.cos(phase) * spread;
+        const jitterY = Math.sin(phase) * spread;
+        const sx = origin[0] + jitterX, sy = origin[1] + jitterY, sz = origin[2] + range(-150, 150);
+        const cx = control[0] + jitterX, cy = control[1] + jitterY, cz = control[2] + range(-80, 80);
+        const delay = range(-.26, .38);
+        const arrival = range(2.08, 2.57);
+        const duration = arrival - delay;
+        const size = 3.2 + Math.pow(random(), 2.4) * 8.8;
+        const energy = .80 + Math.pow(random(), 3) * 1.70;
+        // Exactly 15% accents, evenly interleaved through the stream samples.
+        const colorIndex = i % 100;
+        const accent = colorIndex < 15;
+        const color = colorIndex < 8 ? teal : colorIndex < 15 ? amber : baseColor;
+        for (let echo = 0; echo < TRAIL_SAMPLES; echo++) {
+          data.position.push(tx, ty, 0);
+          data.aStart.push(sx, sy, sz);
+          data.aControl.push(cx, cy, cz);
+          data.aFinish.push(finish[0], finish[1], finish[2]);
+          data.aMeta.push(delay, duration, size, echo);
+          data.aStyle.push(energy, phase, ribbon, accent ? 1 : 0);
+          data.aColor.push(color.r, color.g, color.b);
+          data.aBaseColor.push(baseColor.r, baseColor.g, baseColor.b);
+        }
+      }
+      const geometry = new THREE.BufferGeometry();
+      for (const [name, values] of Object.entries(data)) {
+        geometry.setAttribute(name, new THREE.Float32BufferAttribute(values, name === 'aMeta' || name === 'aStyle' ? 4 : 3));
+      }
+      const material = new THREE.ShaderMaterial({
+        uniforms: { uTime: clock, uFlightCorrection: flightCorrection }, transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexShader: `
+          uniform float uTime,uFlightCorrection;
+          attribute vec3 aStart,aControl,aFinish,aColor,aBaseColor; attribute vec4 aMeta,aStyle;
+          varying vec3 vColor; varying float vAlpha;
+          // Analytic curl of a smooth, three-dimensional trigonometric noise potential.
+          // It adds local eddies to the broad Bezier flow, with no stateful integration.
+          vec3 curl(vec3 p){
+            return vec3(-sin(p.x)*sin(p.y)-cos(p.z)*cos(p.x),
+                        -sin(p.y)*sin(p.z)-cos(p.x)*cos(p.y),
+                        -sin(p.z)*sin(p.x)-cos(p.y)*cos(p.z));
+          }
+          void main(){
+            float t=max(0.,uTime-aMeta.w*.008);
+            float q=clamp((t-aMeta.x)/aMeta.y,0.,1.);
+            // Less front-loaded easing preserves visible, traveling ribbons through 2.2 s.
+            float e=1.-pow(1.-q,1.55); float k=1.-e;
+            vec3 c2=mix(aFinish,position,.20);
+            vec3 p=k*k*k*aStart+3.*k*k*e*aControl+3.*k*e*e*c2+e*e*e*position;
+            vec3 field=p*.0038+vec3(t*.42,-t*.28,t*.19);
+            vec3 eddies=curl(field)*.74+curl(field*2.03+vec3(7.1,3.7,5.9))*.26;
+            float flow=pow(max(0.,sin(q*3.14159265)),1.15)*pow(1.-q,.45);
+            p+=eddies*90.*flow;
+            p+=vec3(1.,.35,0.)*sin((q-.76)*26.)*sin(clamp((q-.76)/.24,0.,1.)*3.14159265)*2.1;
+            vec4 mv=modelViewMatrix*vec4(p,1.);
+            gl_Position=projectionMatrix*mv;
+            float lock=smoothstep(.77,1.,q);
+            // Floor projected size in flight so depth does not erase the incoming points.
+            float projected=max(2.8+aMeta.z*.18,aMeta.z*1200./(-mv.z));
+            float settled=2.1+aMeta.z*.13;
+            gl_PointSize=clamp(mix(projected,settled,lock),2.1,12.)*mix(1.,.82,step(.5,aMeta.w));
+            float dissolve=1.-smoothstep(2.60,3.20,uTime);
+            float arrival=smoothstep(0.,.14,uTime);
+            float echo=aMeta.w<.5 ? 1. : pow(.33,aMeta.w)*(1.-smoothstep(.72,1.,q));
+            vAlpha=arrival*dissolve*echo;
+            float energy=aStyle.x*(.90+.10*sin(aStyle.y+t*1.4));
+            float flightLight=mix(3.5,2.6,aStyle.w)*energy;
+            vColor=mix(aColor,aBaseColor,lock*.45)*mix(flightLight,.88,lock);
+            if(uFlightCorrection>0.){
+              // Keep individual emitters below the white shoulder of ACES.
+              // The same 8% teal / 7% amber samples retain chroma during flight.
+              vec3 saturated=mix(aColor,pow(aColor,vec3(1.4)),aStyle.w);
+              float sparkle=min(mix(1.35,1.65,aStyle.w)*energy,mix(2.10,1.85,aStyle.w));
+              vec3 flightColor=mix(saturated,aBaseColor,lock*.08)*mix(sparkle,.88,lock);
+              vColor=mix(vColor,flightColor,uFlightCorrection);
+              float softEcho=aMeta.w<.5 ? 1. : pow(.18,aMeta.w)*(1.-smoothstep(.72,1.,q));
+              vAlpha=mix(vAlpha,arrival*dissolve*softEcho,uFlightCorrection);
+            }
+          }`,
+        fragmentShader: `
+          uniform float uFlightCorrection;
+          varying vec3 vColor; varying float vAlpha;
+          void main(){
+            float r=length(gl_PointCoord-.5)*2.; if(r>1.) discard;
+            float core=exp(-r*r*10.);
+            float halo=exp(-r*r*2.8)*.20;
+            float profile=(core+halo)*(1.-smoothstep(.78,1.,r));
+            if(uFlightCorrection>0.){
+              // Compact radial support: both value and slope vanish at the circle edge.
+              // No flat quad contribution or wide pedestal can build up between sparks.
+              if(r>=1.) discard;
+              float edge=max(0.,1.-r*r);
+              float softRadial=exp(-r*r*10.)*edge*edge;
+              profile=mix(profile,softRadial,uFlightCorrection);
+            }
+            gl_FragColor=vec4(vColor,profile*vAlpha);
+          }`
+      });
+      const particles = new THREE.Points(geometry, material);
+      particles.frustumCulled = false; scene.add(particles);
+
+      const dustPositions = [], dustMeta = [], dustColors = [];
+      for (let i = 0; i < DUST_COUNT; i++) {
+        dustPositions.push(range(-1900, 1900), range(-900, 1100), range(-2300, 300));
+        dustMeta.push(range(0, Math.PI * 2), range(.8, 2.3), range(.08, .34));
+        const color = i % 19 === 0 ? teal : i % 29 === 0 ? amber : ivory;
+        dustColors.push(color.r, color.g, color.b);
+      }
+      const dustGeometry = new THREE.BufferGeometry();
+      dustGeometry.setAttribute('position', new THREE.Float32BufferAttribute(dustPositions, 3));
+      dustGeometry.setAttribute('aMeta', new THREE.Float32BufferAttribute(dustMeta, 3));
+      dustGeometry.setAttribute('aColor', new THREE.Float32BufferAttribute(dustColors, 3));
+      const dustMaterial = new THREE.ShaderMaterial({
+        uniforms: { uTime: clock }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        vertexShader: `
+          uniform float uTime; attribute vec3 aMeta,aColor; varying float vAlpha; varying vec3 vColor;
+          void main(){
+            vec3 p=position+vec3(sin(aMeta.x+uTime*.13)*18.,cos(aMeta.x*.7+uTime*.11)*13.,sin(uTime*.1+aMeta.x)*22.);
+            vec4 mv=modelViewMatrix*vec4(p,1.); gl_Position=projectionMatrix*mv;
+            gl_PointSize=clamp(aMeta.y*1200./(-mv.z),.7,3.);
+            // Quiet lower third; dust is primarily suspended around and above the title.
+            vAlpha=aMeta.z*(.7+.3*sin(aMeta.x+uTime*.35))*smoothstep(-350.,-60.,p.y);
+            vColor=aColor;
+          }`,
+        fragmentShader: `varying float vAlpha; varying vec3 vColor;
+          void main(){float r=length(gl_PointCoord-.5)*2.;if(r>1.)discard;
+            gl_FragColor=vec4(vColor,exp(-r*r*5.)*(1.-smoothstep(.7,1.,r))*vAlpha);}`
+      });
+      const dust = new THREE.Points(dustGeometry, dustMaterial); dust.frustumCulled = false; scene.add(dust);
+
+      const composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+      const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), .195, .25, 1.10);
+      composer.addPass(bloom);
+      composer.addPass(new OutputPass());
+
+      function renderAt(seconds) {
+        const t = clamp(seconds, 0, DURATION);
+        clock.value = t;
+        flightCorrection.value = 1 - smooth(2.05, 2.40, t);
+        particles.visible = t < 3.20;
+        const resolve = smooth(2.60, 3.20, t);
+        resolved.setAttribute('opacity', resolve);
+        const light = clamp((t - 2.60) / .60);
+        const pulse = smooth(2.60, 2.75, t) * (1 - smooth(3.02, 3.20, t));
+        sweepBand.setAttribute('x', (W - titleWidth) / 2 - 240 + light * (titleWidth + 480));
+        // The masked sweep has its own envelope, independent of the type crossfade.
+        sweep.setAttribute('opacity', smooth(2.60, 2.66, t) * (1 - smooth(3.14, 3.20, t)));
+        solidType.setAttribute('opacity', .78 + .22 * smooth(3.04, 3.20, t));
+        titleGlow.setAttribute('opacity', .13 + .42 * pulse);
+        horizon.setAttribute('opacity', .18 * resolve + .52 * pulse);
+        // Gentle flight halo; exactly the Round 2 settings from 2.4 s onward.
+        bloom.strength = (.78 + .24 * pulse) * (1 - .75 * flightCorrection.value);
+        bloom.radius = .68 + (.25 - .68) * flightCorrection.value;
+        bloom.threshold = .38 + (1.10 - .38) * flightCorrection.value;
+        subtitleNodes.forEach((node, i) => {
+          const start = 3.20 + i / (subtitleNodes.length - 1) * .57;
+          const reveal = smooth(start, start + .40, t);
+          node.setAttribute('opacity', reveal);
+          node.setAttribute('transform', `translate(0 ${(1 - reveal) * 11})`);
+        });
+        cameraLayer.style.transform = `scale(${1 + .04 * smooth(4.2, 6, t)})`;
+        composer.render(0);
+        frame.dataset.time = t.toFixed(6);
+      }
+
+      // Useful to a capture harness; every call is independent of previously rendered frames.
+      window.renderAt = renderAt;
+      window.sceneInfo = Object.freeze({ width: W, height: H, duration: DURATION, points: COUNT * TRAIL_SAMPLES + DUST_COUNT, seed: '0x52494D31', titleWidth, titleFontSize: fontSize, titleLineHeight: lineHeight, titleBaselines: Object.freeze([...baselines]), titleBlockCenterY: blockCenterY, subtitleFontSize: 34, subtitleBaseline, accentFraction: .15 });
+      const params = new URLSearchParams(location.search);
+      if (params.has('t')) {
+        const seconds = Number(params.get('t'));
+        if (!Number.isFinite(seconds)) throw new Error('t must be a finite number of seconds.');
+        renderAt(seconds);
+        // Let SVG/font layout settle, flush the preserved GL buffer, then signal capture readiness.
+        await new Promise(requestAnimationFrame);
+        renderAt(seconds);
+        renderer.getContext().finish();
+        await new Promise(requestAnimationFrame);
+        document.title = 'ready';
+      } else {
+        let epoch;
+        function tick(timestamp) {
+          if (epoch === undefined) epoch = timestamp;
+          renderAt(((timestamp - epoch) / 1000) % DURATION);
+          document.title = 'ready';
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+    }
+    main().catch(error => {
+      document.title = 'error';
+      frame.dataset.error = error.message;
+      console.error('Title reveal initialization failed:', error);
+    });
+  </script>
+</body>
+</html>

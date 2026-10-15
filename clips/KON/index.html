@@ -1,0 +1,300 @@
+<!--
+PAPER: Kartikasari et al., Jurnal Respirasi 12(2), 97–103 (2026), supplied KON PDF.
+60-person quasi-experiment: asthma exercise plus medication produced a greater increase
+in peak expiratory flow than medication alone. Three sessions over one week. No numerical
+outcome is displayed. This is a before/after illustration of the group finding.
+ARTISTIC LICENCE: stylized anatomy, breathing amplitude, air ribbons, particle velocity,
+colour and a week compressed into seconds. No measured airway dilation, cure, oxygenation
+or individual benefit is claimed. Branch centrelines move with illustrative breathing, while tube radii stay fixed. Stream bulk and compression are artistic emphasis on peak flow, not measurements of lung volume.
+The external plume continues from a cropped upper airway; its bend is a compositional
+flow visualization, not a literal mouth or a measured flow field.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KON — Asthma exercises help air flow out</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f3f3ec}
+body{display:grid;place-items:center;color:#355958}
+#film{position:absolute;left:50%;top:50%;width:1920px;height:1080px;overflow:hidden;transform:translate(-50%,-50%) scale(var(--scale,1));background:radial-gradient(ellipse at 39% 58%,#f8e3e0 0%,#f2f2e9 49%,#e5eeea 100%)}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scrim{position:absolute;inset:0 0 auto;height:235px;background:linear-gradient(180deg,rgba(247,247,240,.95),rgba(247,247,240,.73) 55%,rgba(247,247,240,0));pointer-events:none}
+h1{position:absolute;top:74px;left:120px;right:120px;margin:0;text-align:center;font-family:Georgia,'Times New Roman',serif;font-size:76px;line-height:1.13;letter-spacing:-2.7px;font-weight:400;color:#345958;text-wrap:balance}
+#caption{position:absolute;left:1180px;top:640px;width:570px}
+#phase{margin:0;font-family:Georgia,'Times New Roman',serif;font-size:46px;font-style:italic;letter-spacing:-.8px;line-height:1.2}
+.context{font-family:'Segoe UI',Arial,sans-serif;font-size:24px;line-height:1.5;letter-spacing:.15px;color:#627d78;margin:16px 0 0}
+#veil{position:absolute;inset:0;background:#f3f3ec;opacity:0;pointer-events:none}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<main id="film" aria-label="Pastel lungs illustrate stronger outward airflow after one week of asthma exercise alongside medication.">
+<div class="scrim"></div>
+<h1>Asthma exercises help air flow out</h1>
+<div id="caption"><p id="phase">Before</p><p class="context">Alongside usual medication</p></div>
+<div id="veil"></div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+
+const W=1920,H=1080,PERIOD=3.6;
+const film=document.querySelector('#film'),phase=document.querySelector('#phase'),veil=document.querySelector('#veil');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(W,H);renderer.setClearColor(0xf3f3ec,0);
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.98;
+renderer.domElement.setAttribute('aria-hidden','true');film.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const camera=new THREE.OrthographicCamera(-8,8,4.5,-4.5,.1,80);camera.position.set(.15,.12,20);camera.lookAt(0,0,0);
+scene.add(new THREE.HemisphereLight(0xfff5e9,0x718d8d,1.5));
+const key=new THREE.DirectionalLight(0xffe5d7,2.4);key.position.set(-6,5,7);scene.add(key);
+const rim=new THREE.DirectionalLight(0xc1f6df,2.8);rim.position.set(5,1,-4);scene.add(rim);
+const fill=new THREE.DirectionalLight(0xfbfaff,.7);fill.position.set(3,-3,7);scene.add(fill);
+const anatomy=new THREE.Group();anatomy.position.set(-2.65,-.18,0);anatomy.rotation.set(.055,-.32,-.015);scene.add(anatomy);
+const V=(x,y,z=0)=>new THREE.Vector3(x,y,z),clamp=THREE.MathUtils.clamp;
+const smooth=(a,b,x)=>{const k=clamp((x-a)/(b-a),0,1);return k*k*(3-2*k)};
+function integralSmooth(a,b,x){if(x<=a)return 0;if(x>=b)return x-b+(b-a)/2;const u=(x-a)/(b-a);return (b-a)*(u*u*u-.5*u*u*u*u)}
+let seed=72;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
+const breathUniform={value:V(1,1,1)};
+const breathGLSL=`uniform vec3 uBreath;
+vec3 breathe(vec3 p){float w=1.0-smoothstep(.7,1.6,p.y);return p+vec3(p.x*(uBreath.x-1.0),(p.y-.85)*(uBreath.y-1.0),p.z*(uBreath.z-1.0))*w;}`;
+function breatheCPU(p,out=new THREE.Vector3()){
+ const w=1-smooth(.7,1.6,p.y),b=breathUniform.value;
+ return out.set(p.x*(1+(b.x-1)*w),p.y+(p.y-.85)*(b.y-1)*w,p.z*(1+(b.z-1)*w));
+}
+
+// Broad basal volume, tapered apex, medial surface and anterior left cardiac notch.
+function lungPoint(side,h,phi,rho=1){
+ const radial=Math.pow(Math.max(0,Math.sin(Math.PI*h)),.38)*(1.30-.65*h);
+ const c=Math.cos(phi),s=Math.sin(phi),centre=1.05-.25*h;
+ let x=centre+rho*radial*c*(c<0?.74:1.08);
+ if(side>0)x+=.29*Math.exp(-Math.pow((h-.56)/.20,2))*Math.pow(Math.max(0,-c),4)*rho;
+ return V(side*x,-2.45+4.1*h,.98*rho*radial*s-.12);
+}
+function wholeLung(side){
+ const positions=[],uv=[],index=[],rows=72,cols=96;
+ for(let j=0;j<=rows;j++)for(let i=0;i<=cols;i++){
+  const p=lungPoint(side,j/rows,i/cols*Math.PI*2);positions.push(p.x,p.y,p.z);uv.push(i/cols,j/rows);
+ }
+ for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){
+  const a=j*(cols+1)+i,b=a+cols+1;
+  if(side>0)index.push(a,b,a+1,b,b+1,a+1);else index.push(a,a+1,b,b,a+1,b+1);
+ }
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(index);g.computeVertexNormals();return g;
+}
+// Each clipping plane keeps its positive side. Oblique fissure descends anteriorly.
+const oblique=side=>new THREE.Plane(V(-.17*side,1,.80).normalize(),.91/Math.sqrt(1+.17*.17+.8*.8));
+const horizontal=new THREE.Plane(V(0,1,.13).normalize(),0);
+function shifted(plane,sign){const p=plane.clone();if(sign<0)p.negate();p.constant-=.018;return p}
+function clippedLobe(source,planes){
+ let triangles=[];const p=source.attributes.position,n=source.attributes.normal,idx=source.index;
+ for(let i=0;i<idx.count;i+=3)triangles.push([0,1,2].map(k=>{const j=idx.getX(i+k);return {p:new THREE.Vector3().fromBufferAttribute(p,j),n:new THREE.Vector3().fromBufferAttribute(n,j),cut:0}}));
+ for(const plane of planes){
+  const next=[],boundary=[];
+  for(const tri of triangles){
+   const out=[];
+   for(let i=0;i<tri.length;i++){
+    const a=tri[i],b=tri[(i+1)%tri.length],da=plane.distanceToPoint(a.p),db=plane.distanceToPoint(b.p);
+    if(da>=0)out.push(a);
+    if((da>=0)!==(db>=0)){
+     const t=da/(da-db),v={p:a.p.clone().lerp(b.p,t),n:a.n.clone().lerp(b.n,t).normalize(),cut:a.cut};out.push(v);boundary.push(v.p);
+    }
+   }
+   for(let i=1;i+1<out.length;i++)next.push([out[0],out[i],out[i+1]]);
+  }
+  const unique=[...new Map(boundary.map(p=>[p.toArray().map(v=>v.toFixed(4)).join(','),p])).values()];
+  if(unique.length>2){
+   const centre=unique.reduce((a,p)=>a.add(p),V(0,0)).multiplyScalar(1/unique.length),normal=plane.normal.clone().negate();
+   const axis=V(1,0,0).cross(normal).normalize(),other=normal.clone().cross(axis);
+   unique.sort((a,b)=>Math.atan2(a.clone().sub(centre).dot(other),a.clone().sub(centre).dot(axis))-Math.atan2(b.clone().sub(centre).dot(other),b.clone().sub(centre).dot(axis)));
+   for(let i=0;i<unique.length;i++)next.push([centre,unique[i],unique[(i+1)%unique.length]].map(p=>({p:p.clone(),n:normal.clone(),cut:1})));
+  }
+  triangles=next;
+ }
+ const positions=[],normals=[],cuts=[];
+ for(const tri of triangles)for(const v of tri){positions.push(...v.p.toArray());normals.push(...v.n.toArray());cuts.push(v.cut)}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));g.setAttribute('aCut',new THREE.Float32BufferAttribute(cuts,1));return g;
+}
+const shellVertex=`${breathGLSL}
+attribute float aCut;varying vec3 vN;varying vec3 vP;varying float vCut;varying vec3 vLocal;
+void main(){vec3 p=breathe(position);vLocal=p;vCut=aCut;vN=normalize(normalMatrix*(normal/uBreath));vec4 vp=modelViewMatrix*vec4(p,1.0);vP=vp.xyz;gl_Position=projectionMatrix*vp;}`;
+const shellFragment=`uniform vec3 uBlush;uniform float uBack;varying vec3 vN;varying vec3 vP;varying float vCut;varying vec3 vLocal;
+void main(){vec3 n=normalize(vN);if(uBack>.5)n=-n;vec3 eye=normalize(-vP);float facing=abs(dot(n,eye));float rim=pow(1.-facing,2.2);
+vec3 light=normalize(vec3(-.8,1.1,1.0));float diffuse=max(dot(n,light),0.);float sideShade=pow(max(dot(n,normalize(vec3(.8,-.1,-.6))),0.),1.4);
+vec3 pearl=vec3(1.,.89,.77);vec3 col=uBlush*(.35+.61*diffuse);col=mix(col,vec3(.25,.46,.43),sideShade*.30);
+float spec=pow(max(dot(n,normalize(light+eye)),0.),42.);float broad=pow(max(dot(n,normalize(vec3(-.7,.6,1.4)+eye)),0.),9.);
+col+=pearl*(spec*.75+broad*.14);col=mix(col,pearl,rim*.40);
+float micro=sin(vLocal.x*74.+sin(vLocal.y*48.))*sin(vLocal.z*63.-vLocal.y*23.);col+=micro*.005;
+float alpha=.24+rim*.39+sideShade*.13;alpha=mix(alpha,.105,vCut);alpha*=mix(1.,.24,uBack);
+gl_FragColor=vec4(col,alpha);
+#include <tonemapping_fragment>
+#include <colorspace_fragment>
+}`;
+const lungs=[],lobeDefs=[],shellMaterials=[];
+for(const side of [-1,1]){
+ const full=wholeLung(side),ob=oblique(side);
+ const definitions=side<0?[
+  {name:'right upper',planes:[shifted(ob,1),shifted(horizontal,1)]},
+  {name:'right middle',planes:[shifted(ob,1),shifted(horizontal,-1)]},
+  {name:'right lower',planes:[shifted(ob,-1)]}
+ ]:[{name:'left upper',planes:[shifted(ob,1)]},{name:'left lower',planes:[shifted(ob,-1)]}];
+ for(let i=0;i<definitions.length;i++){
+  const def=definitions[i],geometry=clippedLobe(full,def.planes);
+  const material=new THREE.ShaderMaterial({uniforms:{uBreath:breathUniform,uBlush:{value:new THREE.Color(i===1?'#e6a3aa':'#eeb0ad')},uBack:{value:0}},vertexShader:shellVertex,fragmentShader:shellFragment,transparent:true,depthWrite:false,side:THREE.FrontSide});
+  const back=material.clone();back.uniforms.uBreath=breathUniform;back.uniforms.uBack.value=1;back.side=THREE.BackSide;
+  const backMesh=new THREE.Mesh(geometry,back);backMesh.renderOrder=0;anatomy.add(backMesh);
+  const mesh=new THREE.Mesh(geometry,material);mesh.name=def.name;mesh.renderOrder=4;anatomy.add(mesh);lungs.push(mesh);shellMaterials.push(material);
+  lobeDefs.push({...def,side,points:[]});
+ }
+ full.dispose();
+}
+
+// A volume-filling binary tree, 8 generations beyond each lobar bronchus.
+const treeParts=[],airPaths=[],branchRecords=[];
+function tube(points,r0,r1=r0,segments=7,radial=7){
+ const curve=new THREE.CatmullRomCurve3(points),g=new THREE.TubeGeometry(curve,segments,r0,radial,false),p=g.attributes.position,centres=new Float32Array(p.count*3);
+ for(let j=0;j<=segments;j++){
+  const c=curve.getPointAt(j/segments),ratio=THREE.MathUtils.lerp(r0,r1,j/segments)/r0;
+  for(let k=0;k<=radial;k++){const i=j*(radial+1)+k;centres.set(c.toArray(),i*3);p.setXYZ(i,c.x+(p.getX(i)-c.x)*ratio,c.y+(p.getY(i)-c.y)*ratio,c.z+(p.getZ(i)-c.z)*ratio)}
+ }
+ g.setAttribute('aCentre',new THREE.BufferAttribute(centres,3));treeParts.push(g);branchRecords.push({points:points.map(p=>p.clone()),r0,r1});return curve;
+}
+function mergeParts(parts){
+ const g=new THREE.BufferGeometry();
+ for(const name of ['position','normal','uv','aCentre']){const count=parts.reduce((a,p)=>a+p.attributes[name].array.length,0),values=new Float32Array(count);let offset=0;for(const p of parts){values.set(p.attributes[name].array,offset);offset+=p.attributes[name].array.length}g.setAttribute(name,new THREE.BufferAttribute(values,parts[0].attributes[name].itemSize))}
+ const indices=[];let base=0;for(const p of parts){for(const i of p.index.array)indices.push(base+i);base+=p.attributes.position.count}g.setIndex(indices);return g;
+}
+const top=V(0,2.2,-.03),fork=V(0,.67,-.03);
+tube([top,V(0,1.4,-.035),fork],.15,.142,20,12);
+const hubs=new Map();
+for(const side of [-1,1]){
+ const hub=V(side*.52,.24,-.08);hubs.set(side,hub);tube([fork,V(side*.23,.44,-.065),hub],.128,.102,12,10);
+}
+for(const def of lobeDefs){
+ let attempts=0;
+ while(def.points.length<256&&attempts++<50000){const p=lungPoint(def.side,.055+random()*.89,random()*Math.PI*2,Math.sqrt(random())*.84);if(def.planes.every(plane=>plane.distanceToPoint(p)>.055))def.points.push(p)}
+ if(def.points.length!==256)throw new Error('Lobar volume sampling failed');
+}
+function centroid(points){return points.reduce((sum,p)=>sum.add(p),V(0,0)).multiplyScalar(1/points.length)}
+function grow(points,start,route,depth,parentRadius){
+ const end=centroid(points),direction=end.clone().sub(start);
+ if(depth<7)end.copy(start).addScaledVector(direction,.78);
+ const oldDir=route.length>1?start.clone().sub(route[route.length-2]).normalize():direction.clone().normalize();
+ const mid=start.clone().lerp(end,.48).addScaledVector(oldDir,Math.min(.07,start.distanceTo(end)*.13));
+ const radius=Math.max(.0045,.078*Math.pow(points.length/256,.49));
+ tube([start,mid,end],Math.min(parentRadius,radius*1.26),radius,depth<3?7:4,depth<3?7:5);
+ const next=[...route,mid,end];
+ if(points.length<=1||depth>=8){
+  const path=new THREE.CatmullRomCurve3([...next].reverse().concat([V(0,1.36,-.035),top]));
+  // Cached, uniformly spaced samples make particle speed independent of branch length.
+  const sample=path.getSpacedPoints(96),array=new Float32Array(sample.length*3);sample.forEach((p,i)=>array.set(p.toArray(),i*3));airPaths.push(array);return;
+ }
+ const c=centroid(points),variance=[0,0,0];for(const p of points){variance[0]+=(p.x-c.x)**2;variance[1]+=(p.y-c.y)**2;variance[2]+=(p.z-c.z)**2}
+ const axis=['x','y','z'][variance.indexOf(Math.max(...variance))];points.sort((a,b)=>a[axis]-b[axis]);const cut=points.length>>1;
+ grow(points.slice(0,cut),end,next,depth+1,radius);grow(points.slice(cut),end,next,depth+1,radius);
+}
+for(const def of lobeDefs){const hub=hubs.get(def.side);grow(def.points,hub,[fork,hub],0,.105)}
+const airwayMaterial=new THREE.MeshPhysicalMaterial({color:0xc97880,roughness:.32,clearcoat:.5,clearcoatRoughness:.22,metalness:0});
+airwayMaterial.onBeforeCompile=shader=>{shader.uniforms.uBreath=breathUniform;shader.vertexShader=breathGLSL+'\nattribute vec3 aCentre;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','vec3 transformed = breathe(aCentre) + (position - aCentre);')};
+const airway=new THREE.Mesh(mergeParts(treeParts),airwayMaterial);airway.renderOrder=1;anatomy.add(airway);treeParts.forEach(g=>g.dispose());
+const ringMat=new THREE.MeshPhysicalMaterial({color:0xf1c4bc,roughness:.38,clearcoat:.35});
+for(let i=0;i<12;i++){const m=new THREE.Mesh(new THREE.TorusGeometry(.152,.014,5,30,Math.PI*1.72),ringMat);m.rotation.x=Math.PI/2;m.rotation.z=.44;m.position.set(0,.84+i*.112,-.033);anatomy.add(m)}
+
+// Grounding light, deliberately soft enough to keep the specimen floating.
+const shadowCanvas=document.createElement('canvas');shadowCanvas.width=128;shadowCanvas.height=128;
+const ctx=shadowCanvas.getContext('2d'),gradient=ctx.createRadialGradient(64,64,3,64,64,64);gradient.addColorStop(0,'rgba(88,106,99,.15)');gradient.addColorStop(1,'rgba(88,106,99,0)');ctx.fillStyle=gradient;ctx.fillRect(0,0,128,128);
+const shadow=new THREE.Mesh(new THREE.PlaneGeometry(5.5,.75),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false}));shadow.position.set(-2.65,-3.15,-2.5);scene.add(shadow);
+
+// Luminous flow travels from peripheral bronchi to the carina and up the trachea.
+const AIR_COUNT=2600,airPositions=new Float32Array(AIR_COUNT*3),airSizes=new Float32Array(AIR_COUNT);
+const dust=Array.from({length:AIR_COUNT},(_,i)=>{airSizes[i]=.6+random()*.8;return {phase:random(),path:Math.floor(random()*airPaths.length),offset:random()}});
+const airGeometry=new THREE.BufferGeometry();airGeometry.setAttribute('position',new THREE.BufferAttribute(airPositions,3).setUsage(THREE.DynamicDrawUsage));airGeometry.setAttribute('aSize',new THREE.BufferAttribute(airSizes,1));
+const airMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,depthTest:false,
+ uniforms:{uPower:{value:0},uPixelRatio:{value:Math.min(window.devicePixelRatio||1,1.5)}},
+ vertexShader:`uniform float uPower;uniform float uPixelRatio;attribute float aSize;varying float vSize;void main(){vSize=aSize;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_PointSize=(3.0+uPower*2.8)*aSize*uPixelRatio;}`,
+ fragmentShader:`uniform float uPower;varying float vSize;void main(){float r=length(gl_PointCoord-.5)*2.;if(r>1.)discard;float core=exp(-r*r*12.);vec3 col=mix(vec3(.13,.56,.44),vec3(1.,.99,.82),core);float a=(.42+uPower*.4)*pow(1.-r,1.3);gl_FragColor=vec4(col,a);}`});
+const airParticles=new THREE.Points(airGeometry,airMaterial);airParticles.frustumCulled=false;airParticles.renderOrder=5;anatomy.add(airParticles);
+const temp=V(0,0);
+function pathPoint(array,u,out){const f=clamp(u,0,.99999)*(array.length/3-1),i=Math.floor(f),a=f-i;out.set(THREE.MathUtils.lerp(array[i*3],array[(i+1)*3],a),THREE.MathUtils.lerp(array[i*3+1],array[(i+1)*3+1],a),THREE.MathUtils.lerp(array[i*3+2],array[(i+1)*3+2],a));return out}
+
+// Twisting sheets of air: wide after-pulse, pearl cores, saturated mint edges.
+const plume=new THREE.Group();scene.add(plume);
+const outlet=V(0,0),ribbons=[],ribbonUniforms={uClock:{value:0},uReach:{value:.2},uPower:{value:0},uAlpha:{value:1}};
+const ribbonMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,uniforms:ribbonUniforms,
+ vertexShader:`attribute float lane;varying vec2 vUv;varying float vLane;void main(){vUv=uv;vLane=lane;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+ fragmentShader:`uniform float uClock;uniform float uReach;uniform float uPower;uniform float uAlpha;varying vec2 vUv;varying float vLane;
+ void main(){float u=vUv.x;float across=sin(vUv.y*3.14159265);float head=1.-smoothstep(uReach-.10,uReach,u);float end=1.-smoothstep(.91,1.,u);
+ float streak=pow(.5+.5*sin(u*41.-uClock*28.+vLane*.77),6.);float core=pow(across,8.);
+ vec3 col=mix(vec3(.025,.31,.25),vec3(.46,.81,.60),core*.5+streak*.5);col+=vec3(.49,.39,.29)*streak*core;
+ float alpha=pow(max(0.,across),.65)*head*end*smoothstep(0.,.018,u)*(.42+.40*uPower)*(.52+.48*streak)*uAlpha;
+ gl_FragColor=vec4(col,alpha);
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+ }`});
+function plumePoint(u,lane,clock,power,out=new THREE.Vector3()){
+ const spread=(.20+.80*power)*Math.pow(u,.76),angle=lane*2.39996+u*6.2-clock*.28;
+ const fan=(.19+.044*Math.abs(lane))*spread;
+ return out.set(outlet.x+9.18*Math.pow(u,1.18),outlet.y+.31*Math.sin(Math.PI*Math.min(u*1.6,1))-1.46*u+Math.sin(angle)*fan,outlet.z+.15*u+Math.cos(angle)*fan*.92);
+}
+for(let lane=-11;lane<=11;lane++){
+ const count=180,geo=new THREE.BufferGeometry(),p=new Float32Array((count+1)*6),uv=new Float32Array((count+1)*4),lanes=new Float32Array((count+1)*2),idx=[];
+ for(let j=0;j<=count;j++){for(let e=0;e<2;e++){const i=j*2+e;uv[i*2]=j/count;uv[i*2+1]=e;lanes[i]=lane}if(j<count){const i=j*2;idx.push(i,i+1,i+2,i+1,i+3,i+2)}}
+ geo.setAttribute('position',new THREE.BufferAttribute(p,3).setUsage(THREE.DynamicDrawUsage));geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));geo.setAttribute('lane',new THREE.BufferAttribute(lanes,1));geo.setIndex(idx);
+ const mesh=new THREE.Mesh(geo,ribbonMaterial);mesh.frustumCulled=false;mesh.renderOrder=6;plume.add(mesh);ribbons.push({mesh,lane,count});
+}
+const OUT_COUNT=1050,outerMaterial=new THREE.MeshBasicMaterial({color:0xcaffdb,transparent:true,opacity:.9,depthWrite:false});
+const outerParticles=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),outerMaterial,OUT_COUNT);outerParticles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);outerParticles.frustumCulled=false;outerParticles.renderOrder=7;scene.add(outerParticles);
+const dummy=new THREE.Object3D(),X=V(1,0),p0=V(0,0),p1=V(0,0);
+
+function stateAt(t){
+ const s=((t%PERIOD)+PERIOD)%PERIOD,after=smooth(.78,1.16,s);
+ const weak=smooth(.05,.68,s),inhale=smooth(.76,1.19,s);
+ // Forced expiration recoils rapidly at its start, then settles toward the end.
+ const release=1-Math.pow(1-clamp((s-1.20)/1.42,0,1),3);
+ const compression=1-.055*weak+.19*inhale-.285*release;
+ const power=smooth(1.20,1.53,s)*(1-.18*smooth(2.65,3.15,s));
+ const clock=.19*s+1.6*integralSmooth(1.20,1.53,s)-.60*(integralSmooth(.76,.88,s)-integralSmooth(1.05,1.19,s));
+ return {s,after,compression,power,reach:.22+.78*smooth(1.18,2.32,s),clock,alpha:1-smooth(3.10,3.55,s),fade:smooth(3.30,3.6,s),incoming:s>.80&&s<1.18};
+}
+function draw(t){
+ const st=stateAt(t),{s,power,compression,clock}=st;
+ breathUniform.value.set(compression,1+(compression-1)*.76,1+(compression-1)*1.1);
+ camera.position.x=.15+.34*smooth(0,3,s);camera.zoom=1.22+.025*smooth(0,3,s);camera.lookAt(0,0,0);camera.updateProjectionMatrix();camera.updateMatrixWorld();
+ phase.textContent=st.after<.5?'Before':'After one week';phase.style.opacity=String(.58+.42*Math.abs(st.after*2-1));veil.style.opacity=String(st.fade);film.dataset.time=t.toFixed(3);
+ anatomy.updateMatrixWorld(true);outlet.copy(top).applyMatrix4(anatomy.matrixWorld);
+ for(let i=0;i<AIR_COUNT;i++){
+  const d=dust[i],u=((d.phase+clock)%1+1)%1;pathPoint(airPaths[d.path],u,temp);breatheCPU(temp,temp);airPositions.set(temp.toArray(),i*3);
+ }
+ airGeometry.attributes.position.needsUpdate=true;airMaterial.uniforms.uPower.value=power;
+ ribbonUniforms.uClock.value=clock;ribbonUniforms.uReach.value=st.reach;ribbonUniforms.uPower.value=power;ribbonUniforms.uAlpha.value=st.alpha*(st.incoming?.18:1);
+ for(const {mesh,lane,count} of ribbons){
+  const pos=mesh.geometry.attributes.position;
+  for(let j=0;j<=count;j++){
+   const u=j/count;plumePoint(u,lane,clock,power,p0);
+   const width=(.013+.053*power)*(.5+.5*Math.sin(Math.PI*u))*(.85+.15*Math.cos(lane));
+   const twist=lane*.41+u*8-clock*.2,dy=Math.cos(twist)*width,dz=Math.sin(twist)*width;
+   pos.setXYZ(j*2,p0.x,p0.y-dy,p0.z-dz);pos.setXYZ(j*2+1,p0.x,p0.y+dy,p0.z+dz);
+  }
+  pos.needsUpdate=true;
+ }
+ for(let i=0;i<OUT_COUNT;i++){
+  const d=dust[i],u=(d.phase+clock*.72)%1,lane=(i%23)-11;
+  plumePoint(u,lane,clock,power,p0);plumePoint(Math.min(1,u+.002),lane,clock,power,p1);
+  dummy.position.copy(p0);dummy.quaternion.setFromUnitVectors(X,p1.sub(p0).normalize());
+  const visible=u<st.reach-.012&&!st.incoming&&(power>.2||i%4===0);
+  dummy.scale.set(visible?(.026+.125*power)*d.offset:0,visible?.007:0,visible?.007:0);dummy.updateMatrix();outerParticles.setMatrixAt(i,dummy.matrix);
+ }
+ outerParticles.instanceMatrix.needsUpdate=true;outerMaterial.opacity=.88*st.alpha;
+ renderer.render(scene,camera);
+}
+function resize(){film.style.setProperty('--scale',Math.min(innerWidth/W,innerHeight/H))}
+window.addEventListener('resize',resize);resize();
+const params=new URLSearchParams(location.search),raw=params.get('t');const frozen=raw!==null&&raw.trim()!==''&&Number.isFinite(Number(raw));
+if(frozen)draw(Math.max(0,Number(raw)));else{const start=performance.now();renderer.setAnimationLoop(now=>draw((now-start)/1000))}
+
+</script>
+</body>
+</html>

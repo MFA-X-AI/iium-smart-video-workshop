@@ -1,0 +1,261 @@
+<!doctype html>
+<!--
+Paper-derived: Abidin et al., J Dent Res Dent Clin Dent Prospects 2026;20(2):126–132.
+Preparation and five groups of 20: pp.126–128. Mean fracture loads and ANOVA
+P=0.175: pp.126/128, Fig.1. Modal Burke patterns: p.128. Restorable counts
+12,11,7,8,7: read from Fig.3, p.130, as documented in the supplied brief.
+No significance test is reported for the fracture-pattern comparison.
+Artistic licence: procedural CT anatomy, density and scan artefacts, representative
+crack trajectories, fragment movements, tally cross-sections and compressed time.
+These are illustrative sections, not acquired scans or individual-specimen data.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Same strength, but posts break repairably</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #030506; }
+  body { display: grid; place-items: center; }
+  canvas { display: block; width: min(100vw, 177.777778vh); height: min(100vh, 56.25vw); }
+</style>
+</head>
+<body>
+<canvas id="scene" width="1920" height="1080" role="img" aria-label="Five root-filled premolar restorations have no significant difference in mean fracture load, P equals 0.175. Restorable fracture counts out of twenty: metal post twelve, fibre post eleven, flowable composite seven, fibre-reinforced composite eight, and no post seven."></canvas>
+<script>
+'use strict';
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d', { alpha: false });
+const W = 1920, H = 1080, TOP = 300, TOOTH_SCALE = 1.18, CEJ = TOP + 112 * TOOTH_SCALE;
+const WHITE = '#e5e9e8', CYAN = '#8cbfc7', AMBER = '#e0a452';
+const MONO = '"SFMono-Regular", Consolas, "Liberation Mono", monospace';
+const groups = [
+  { x:300, label:['Metal post'], mean:896.26, count:12, stop:1.18,
+    crack:[[-78,68],[-51,73],[-32,65],[-9,77],[13,73],[36,83],[60,77],[77,84]], shift:[-5,-17], tilt:-.055 },
+  { x:640, label:['Fibre post'], mean:1046.64, count:11, stop:1.30,
+    crack:[[-78,78],[-54,73],[-34,85],[-10,80],[15,91],[38,81],[58,89],[76,82]], shift:[4,-16], tilt:.05 },
+  { x:980, label:['Flowable','composite'], mean:937.94, count:7, stop:1.23,
+    crack:[[5,24],[-5,51],[10,82],[1,109],[12,141],[2,179],[11,210],[2,244],[10,278],[4,314],[7,341]], shift:[6,1] },
+  { x:1320, label:['Fibre-reinforced','composite'], mean:799.90, count:8, stop:1.12,
+    crack:[[-23,26],[-17,54],[-2,74],[5,98],[20,116],[29,139],[48,157]], shift:[5,-4] },
+  { x:1660, label:['No post (control)'], mean:973.54, count:7, stop:1.26,
+    crack:[[-17,29],[-22,52],[-6,77],[4,98],[10,120],[32,139],[48,152]], shift:[5,-4] }
+];
+const clamp = (v, lo=0, hi=1) => Math.max(lo, Math.min(hi, v));
+const smooth = (a,b,t) => { const v=clamp((t-a)/(b-a)); return v*v*(3-2*v); };
+const loadFraction = (i,t) => Math.pow(clamp((t-.2)/(groups[i].stop-.2)),.86+i*.008);
+function random(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let n=Math.imul(seed ^ seed>>>15,1|seed); n=n+Math.imul(n ^ n>>>7,61|n)^n; return ((n ^ n>>>14)>>>0)/4294967296; }; }
+function surface(w,h) { const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+function path(points, close=false) { const p=new Path2D(); points.forEach(([x,y],i)=>i?p.lineTo(x,y):p.moveTo(x,y)); if(close)p.closePath(); return p; }
+function text(s,x,y,size,color=WHITE,align='left',weight=400) {
+  ctx.font=`${weight} ${size}px ${MONO}`; ctx.fillStyle=color; ctx.textAlign=align; ctx.fillText(s,x,y);
+}
+const outline = new Path2D('M -79 55 C -85 29 -72 5 -57 1 C -42 -5 -29 22 -7 27 C 12 31 35 -2 52 6 C 74 15 82 40 76 66 L 63 98 C 58 109 54 122 53 149 C 52 200 40 259 26 313 C 19 341 13 367 3 372 C -8 369 -17 350 -22 324 C -35 267 -52 219 -53 163 C -54 133 -55 113 -64 98 Z');
+const canal = new Path2D('M -16 62 C -25 82 -21 113 -16 157 C -14 212 -8 282 2 351 C 8 306 10 253 13 206 L 18 139 C 23 104 22 77 13 62 Z');
+const enamel = new Path2D('M -79 55 C -85 29 -72 5 -57 1 C -47 -2 -37 10 -29 19 L -36 30 C -47 23 -51 10 -58 15 C -70 23 -69 48 -65 64 L -51 95 L -58 109 C -71 87 -77 70 -79 55 Z');
+const restoration = new Path2D('M -34 20 C -25 25 -15 31 -7 27 C 12 31 35 -2 52 6 C 73 15 82 40 76 66 L 64 97 Q 8 103 -49 93 L -57 49 Z');
+
+// One cached, deterministic radiographic section per material.
+function toothTexture(index) {
+  const c=surface(260,420), g=c.getContext('2d');
+  const rng=random(1819); // Same anatomy/noise across groups: material is the variable.
+  g.translate(130,22);
+  g.save(); g.clip(outline);
+  let d=g.createLinearGradient(-84,0,84,0);
+  d.addColorStop(0,'#777b7c'); d.addColorStop(.15,'#c1c3c3'); d.addColorStop(.42,'#85898a');
+  d.addColorStop(.58,'#747879'); d.addColorStop(.85,'#bdc0bf'); d.addColorStop(1,'#686d6e');
+  g.fillStyle=d; g.fillRect(-100,-10,200,400);
+  // Longitudinal dentinal lamellae; sparse lacunae and fine scan granularity.
+  for(let j=0;j<100;j++) {
+    const x=(rng()-.5)*155;
+    g.strokeStyle=`rgba(235,239,237,${.015+rng()*.035})`; g.lineWidth=.4+rng()*.8;
+    g.beginPath(); g.moveTo(x,50); g.bezierCurveTo(x*.92,145,x*.65,275,x*.12,370); g.stroke();
+  }
+  g.fillStyle='#23282a'; g.fill(canal);
+  g.strokeStyle='#5b6061'; g.lineWidth=3; g.stroke(canal);
+  const gp=new Path2D('M -9 91 L 11 91 C 10 170 9 262 3 350 C -3 305 -8 214 -9 91 Z');
+  d=g.createLinearGradient(-11,0,12,0); d.addColorStop(0,'#85898a'); d.addColorStop(.48,'#d4d7d6'); d.addColorStop(1,'#929798');
+  g.fillStyle=d; g.fill(gp);
+  d=g.createLinearGradient(-65,0,70,100); d.addColorStop(0,'#b8bbba'); d.addColorStop(.5,'#919695'); d.addColorStop(1,'#adb0ae');
+  g.fillStyle=d; g.fill(restoration);
+  g.strokeStyle='#646968'; g.lineWidth=1.2; g.stroke(restoration);
+  g.fillStyle='#edf0ec'; g.fill(enamel);
+  g.strokeStyle='rgba(239,243,239,.33)'; g.lineWidth=1.1; g.stroke(outline);
+  // Orifice at y=105; 12 mm and 4 mm translated to 144 px and 48 px.
+  if(index<2) {
+    g.fillStyle='#323739'; g.fillRect(-13,66,26,184);
+    const rod=g.createLinearGradient(-10,0,10,0);
+    if(index===0) { rod.addColorStop(0,'#bfc3c4'); rod.addColorStop(.35,'#ffffff'); rod.addColorStop(.7,'#f6f8f7'); rod.addColorStop(1,'#b9bfc0'); }
+    else { rod.addColorStop(0,'#6e7677'); rod.addColorStop(.5,'#b9c0bd'); rod.addColorStop(1,'#788182'); }
+    g.fillStyle=rod; g.fillRect(-10,69,20,180);
+    if(index===1) for(let k=-8;k<=8;k+=3) { g.strokeStyle=k%2?'#c2c8c3':'#707c7c'; g.lineWidth=.7; g.beginPath(); g.moveTo(k,71); g.lineTo(k,247); g.stroke(); }
+    if(index===0) {
+      g.fillStyle='rgba(252,255,255,.06)';
+      g.fill(path([[-80,115],[80,142],[80,149],[-80,121]],true));
+      g.fill(path([[-80,188],[80,163],[80,166],[-80,197]],true));
+    }
+  } else if(index<4) {
+    g.fillStyle='#555c5c'; g.fillRect(-14,100,28,55);
+    g.fillStyle=index===2?'#a8afac':'#999f9d'; g.fillRect(-11,103,22,50);
+    if(index===3) {
+      g.save(); g.beginPath(); g.rect(-11,103,22,50); g.clip();
+      for(let j=0;j<50;j++) { const x=-12+rng()*25,y=103+rng()*50; g.strokeStyle=j%3?'#c6cbc5':'#626d6a'; g.lineWidth=.65; g.beginPath(); g.moveTo(x,y); g.lineTo(x+3+rng()*5,y-3-rng()*7); g.stroke(); } g.restore();
+    }
+  } else { g.fillStyle='#d1d5ce'; g.fillRect(-18,102,36,6); g.fillStyle='#6f7673'; g.fillRect(-17,108,34,2); }
+  for(let j=0;j<29000;j++) {
+    const x=-90+rng()*180,y=rng()*378,v=rng();
+    g.fillStyle=v>.5?`rgba(255,255,250,${rng()*.12})`:`rgba(0,5,7,${rng()*.19})`;
+    g.fillRect(x,y,.55+rng()*1.0,.5+rng()*.8);
+  }
+  for(let j=0;j<14;j++) { g.strokeStyle='rgba(222,229,225,.022)'; g.lineWidth=.7; g.beginPath(); g.arc(18,160,30+j*13,0,Math.PI*2); g.stroke(); }
+  g.restore(); return c;
+}
+const textures=groups.map((_,i)=>toothTexture(i));
+const field=surface(W,H);
+{
+  const g=field.getContext('2d'), rng=random(3077);
+  g.fillStyle='#040708'; g.fillRect(0,0,W,H);
+  const glow=g.createRadialGradient(930,390,10,930,420,1010);
+  glow.addColorStop(0,'#111719'); glow.addColorStop(.6,'#080d0f'); glow.addColorStop(1,'#030506');
+  g.fillStyle=glow; g.fillRect(0,0,W,H);
+  for(let i=0;i<68000;i++) { const v=35+Math.floor(rng()*25); g.fillStyle=`rgba(${v},${v+3},${v+4},${rng()*.12})`; g.fillRect(rng()*W,rng()*H,1,1); }
+  g.strokeStyle='rgba(145,168,171,.035)'; g.lineWidth=1;
+  for(let r=200;r<1500;r+=113) { g.beginPath(); g.ellipse(920,428,r,r*.78,0,0,Math.PI*2); g.stroke(); }
+}
+function fragmentPath(i) {
+  const p=groups[i].crack;
+  if(i<2) return path([[-130,-30],[130,-30],[130,p[p.length-1][1]],...p.slice().reverse(),[-130,p[0][1]]],true);
+  if(i===2) return path([...p,[130,390],[130,-30],[5,-30]],true);
+  return path([...p,[130,157],[130,-30],[p[0][0],-30]],true);
+}
+const fragments=groups.map((_,i)=>fragmentPath(i));
+function drawTooth(i,t) {
+  const item=groups[i], separation=smooth(1.48,2.08,t), growth=smooth(1.10+(i*.018),1.51,t);
+  ctx.save(); ctx.translate(item.x,TOP); ctx.scale(TOOTH_SCALE,TOOTH_SCALE);
+  if(separation===0) ctx.drawImage(textures[i],-130,-22);
+  else {
+    const base=new Path2D(); base.rect(-130,-30,260,430); base.addPath(fragments[i]);
+    ctx.save(); ctx.clip(base,'evenodd'); ctx.drawImage(textures[i],-130,-22); ctx.restore();
+    ctx.save(); ctx.translate(item.shift[0]*separation,item.shift[1]*separation);
+    // Rotate the coronal fragment around the fracture, leaving the root fixed.
+    ctx.translate(0,80); ctx.rotate((item.tilt||0)*separation); ctx.translate(0,-80);
+    ctx.clip(fragments[i]); ctx.drawImage(textures[i],-130,-22); ctx.restore();
+  }
+  const stress=loadFraction(i,t)*(1-smooth(1.12,1.50,t));
+  if(stress>0) {
+    ctx.save(); ctx.clip(outline);
+    const radius=24+42*Math.sqrt(stress);
+    const halo=ctx.createRadialGradient(0,28,3,0,33,radius);
+    halo.addColorStop(0,`rgba(255,255,251,${.14+.44*stress})`);
+    halo.addColorStop(.32,`rgba(248,252,250,${.10+.23*stress})`);
+    halo.addColorStop(1,'rgba(248,252,250,0)');
+    ctx.fillStyle=halo; ctx.fillRect(-85,0,170,110);
+    ctx.strokeStyle=`rgba(255,255,251,${stress*.18})`; ctx.lineWidth=.85;
+    for(let r=18;r<radius;r+=13) { ctx.beginPath(); ctx.arc(0,25,r,0,Math.PI); ctx.stroke(); }
+    ctx.restore();
+  }
+  // Grow in arc-length order, so every below-CEJ segment follows the coronal crack.
+  const p=item.crack; const lengths=p.slice(1).map((q,j)=>Math.hypot(q[0]-p[j][0],q[1]-p[j][1]));
+  let available=lengths.reduce((a,b)=>a+b,0)*growth;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  p.slice(1).forEach((q,j)=>{
+    const f=clamp(available/lengths[j]); available-=lengths[j]; if(!f)return;
+    const a=p[j],b=[a[0]+(q[0]-a[0])*f,a[1]+(q[1]-a[1])*f];
+    const cut=clamp((112-a[1])/(b[1]-a[1]||1));
+    const draw=(u,v,warm)=>{
+      ctx.beginPath(); ctx.moveTo(...u); ctx.lineTo(...v);
+      ctx.save();
+      ctx.strokeStyle=warm?'rgba(224,164,82,.20)':'rgba(236,248,247,.13)'; ctx.lineWidth=warm?9:6; ctx.stroke();
+      ctx.shadowColor=warm?'rgba(232,157,61,.8)':'transparent'; ctx.shadowBlur=warm?9:0;
+      ctx.strokeStyle=warm?AMBER:'#f7fffd'; ctx.lineWidth=warm?3.2:1.6; ctx.stroke();
+      ctx.shadowBlur=0;
+      ctx.strokeStyle=warm?'#ffd494':'rgba(255,255,255,.76)'; ctx.lineWidth=warm?.7:.55; ctx.stroke();
+      ctx.restore();
+    };
+    if(a[1]<112&&b[1]>112) { const mid=[a[0]+(b[0]-a[0])*cut,112]; draw(a,mid,false); draw(mid,b,true); }
+    else draw(a,b,a[1]>=112);
+  });
+  ctx.restore();
+}
+function ball(i,t) {
+  const x=groups[i].x;
+  const y=274+smooth(.03,.25,t)*31+7*loadFraction(i,t)-26*smooth(1.48,2.08,t);
+  ctx.save();
+  const g=ctx.createRadialGradient(x-8,y-12,1,x,y,27);
+  g.addColorStop(0,'#e8ecec'); g.addColorStop(.27,'#b8bfc1'); g.addColorStop(.65,'#636c70'); g.addColorStop(.88,'#252d30'); g.addColorStop(1,'#9aa2a4');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,27,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(208,219,220,.23)'; ctx.lineWidth=.7; ctx.stroke(); ctx.restore();
+}
+function tally(item,t) {
+  for(let j=0;j<20;j++) {
+    const appear=smooth(1.53+j*.022,1.65+j*.022,t); if(!appear)continue;
+    const x=item.x-157+(j%10)*21,y=752+Math.floor(j/10)*19;
+    const broken=j>=item.count;
+    ctx.save(); ctx.globalAlpha=appear;
+    const r=9.1*(.65+.35*appear);
+    const g=ctx.createRadialGradient(x-1,y-1,1,x,y,r);
+    g.addColorStop(0,broken?'#8f6432':'#727f7e'); g.addColorStop(.22,broken?'#b57d37':'#a9b4b0');
+    g.addColorStop(.44,broken?'#f1bd77':'#fafbf3'); g.addColorStop(.82,broken?'#dda24f':'#e7ece6'); g.addColorStop(1,broken?'#946735':'#8b9996');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.ellipse(x,y,r,r*.78,.10,0,Math.PI*2); ctx.fill();
+    if(broken) { ctx.beginPath(); ctx.moveTo(x-7,y-4.8); ctx.lineTo(x-.7,y-.9); ctx.lineTo(x+1,y+2); ctx.lineTo(x+7,y+4.8); ctx.strokeStyle='#17130e'; ctx.lineWidth=2.5; ctx.stroke(); }
+    ctx.restore();
+  }
+  ctx.save(); ctx.globalAlpha=smooth(1.91,2.18,t);
+  text(`${item.count}/20`,item.x+56,758,30,WHITE,'left',600);
+  text('restorable',item.x+56,776,13,WHITE);
+  ctx.restore();
+}
+function render(rawTime) {
+  const t=clamp(rawTime,0,3);
+  ctx.drawImage(field,0,0);
+  // Reserved lower-right corner contains only the cached background field.
+  ctx.save(); const scrim=ctx.createLinearGradient(980,0,1880,210);
+  scrim.addColorStop(0,'rgba(3,5,6,0)'); scrim.addColorStop(.30,'rgba(3,5,6,.78)'); scrim.addColorStop(1,'rgba(3,5,6,.4)');
+  ctx.fillStyle=scrim; ctx.fillRect(990,25,890,160); ctx.restore();
+  text('Same strength, but',1858,85,49,WHITE,'right',600);
+  text('posts break repairably',1858,147,49,WHITE,'right',600);
+  ctx.save(); ctx.globalAlpha=smooth(1.19,1.48,t);
+  text('Strength: no significant difference (P = 0.175)',70,119,25,CYAN); ctx.restore();
+  text('mean load at fracture',58,277,16,'#92a0a2');
+  // Edge slice guides, deliberately unnumbered.
+  ctx.strokeStyle='#304044'; ctx.lineWidth=1;
+  for(let y=217;y<740;y+=26) {
+    ctx.beginPath(); ctx.moveTo(45,y); ctx.lineTo(y%2?58:53,y); ctx.moveTo(1875,y); ctx.lineTo(1862,y); ctx.stroke();
+  }
+  for(let i=0;i<groups.length;i++) {
+    const item=groups[i];
+    item.label.forEach((line,j)=>text(line,item.x,item.label.length===1?239:222+j*25,23,WHITE,'center'));
+    const load=item.mean*loadFraction(i,t);
+    text(`${load.toFixed(2)} N`,item.x+38,277,24,WHITE,'left');
+    drawTooth(i,t); ball(i,t); tally(item,t);
+  }
+  // Shared reference crosses every section but remains quiet enough to see cracks.
+  ctx.save(); ctx.strokeStyle='rgba(140,191,199,.61)'; ctx.lineWidth=1; ctx.setLineDash([7,8]);
+  ctx.beginPath(); ctx.moveTo(67,CEJ); ctx.lineTo(1799,CEJ); ctx.stroke(); ctx.setLineDash([]);
+  text('CEJ - repair line',56,CEJ-36,13,CYAN);
+  text('\u2191 restorable',56,CEJ-11,13,WHITE);
+  text('\u2193 non-restorable',56,CEJ+20,13,AMBER);
+  ctx.restore();
+  // A single moving acquisition band reveals density early, then disappears.
+  if(t<.9) {
+    const scanY=TOP+clamp(t/.9)*475;
+    ctx.save(); ctx.beginPath(); ctx.rect(190,TOP,1620,441); ctx.clip();
+    const wash=ctx.createLinearGradient(0,scanY-30,0,scanY+5);
+    wash.addColorStop(0,'rgba(231,241,238,0)'); wash.addColorStop(.78,'rgba(231,241,238,.12)'); wash.addColorStop(.9,'rgba(249,255,250,.22)'); wash.addColorStop(1,'rgba(231,241,238,0)');
+    ctx.fillStyle=wash; ctx.fillRect(190,scanY-30,1620,35);
+    ctx.shadowColor='rgba(223,245,236,.55)'; ctx.shadowBlur=9;
+    ctx.strokeStyle='rgba(237,249,241,.65)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(190,scanY); ctx.lineTo(1810,scanY); ctx.stroke(); ctx.restore();
+  }
+}
+const query=new URLSearchParams(location.search);
+const requested=Number(query.get('t'));
+if(query.has('t')&&Number.isFinite(requested)) render(requested);
+else {
+  const start=performance.now();
+  const frame=now=>{ const t=(now-start)/1000; render(t); if(t<3)requestAnimationFrame(frame); };
+  requestAnimationFrame(frame);
+}
+</script>
+</body>
+</html>

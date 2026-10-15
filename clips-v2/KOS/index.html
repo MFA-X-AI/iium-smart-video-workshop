@@ -1,0 +1,419 @@
+<!doctype html>
+<!--
+FROM THE PAPER: Noorbahrin et al., Results in Optics 21, 100928 (2025),
+doi:10.1016/j.rio.2025.100928. The supplied full abstract, not the unavailable
+PDF, reports a fusion-splicer microsphere coupled to a tapered optical fibre.
+0 µm contact: Q-factor 16,069.688, finesse 42.792.
+10 µm gap: Q-factor 659.997, finesse 1.111.
+ARTISTIC LICENCE: sphere/fibre dimensions and proportions were not supplied;
+the gap is exaggerated to 32 scene pixels (about 9% of the 350-pixel sphere
+diameter) so contact and separation remain unambiguous. This is not a scale bar.
+Side-by-side staging
+combines configurations tested separately. Visible warm-gold light represents
+infrared near 1543 nm. Slowed circulation, lap buildup, brightness and decay
+illustrate stored energy; they are not measured lifetimes or quantitative Q
+simulations. Camera, studio lighting, refraction environment and bokeh
+are illustrative. The two parallel fibres are separate, not connected in series.
+DISCLOSURE: This imitates a macro photograph but is an illustration. The visible
+caption reads "Illustration · real light is infrared / Q-factors as reported" (two lines).
+Gold emission, moving crests, surface spill and the contact light pool are
+illustrative false-colour effects; the Q-factors are the reported abstract values.
+All geometry and optics are procedural. No external images, fonts or assets.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080e14">
+  <title>Touching the fibre beats a 10 µm gap</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #080e14; }
+    body { display: grid; place-items: center; }
+    #film { position: relative; width: min(100vw, 177.77777778vh); aspect-ratio: 16/9; overflow: hidden; container-type: inline-size; }
+    canvas, #annotations, .scrim { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    canvas { z-index: 0; }
+    .scrim { z-index: 1; pointer-events: none; background: radial-gradient(ellipse 64% 41% at 0 0, #060b11b8, #060b1138 70%, transparent); }
+    h1 { position: absolute; z-index: 2; left: 5.4166667%; top: 7.037037%; margin: 0; color: #f0f0e9; font: 400 3.0208333cqw/1.13 Georgia, "Times New Roman", serif; letter-spacing: -.035em; opacity: 0; }
+    h1 span { display: block; }
+    #illustration { position: absolute; z-index: 2; left: 5.4166667%; top: 21.7592593%; margin: 0; color: #edf0ea; opacity: .60; font: 400 1.1458333cqw/1.3 "Segoe UI", Arial, sans-serif; white-space: nowrap; }
+    #annotations { z-index: 2; overflow: visible; pointer-events: none; }
+    .leader, .dimension { fill: none; stroke: #d4dedc; stroke-width: 1.1; opacity: .57; }
+    .dimension { stroke: #f0f2eb; stroke-width: 1.8; opacity: .95; }
+    .gap { fill: #edf0ea; fill-opacity: .85; font: 400 29px "Segoe UI", Arial, sans-serif; letter-spacing: .4px; }
+    .q { fill: #edf0ea; fill-opacity: .85; font: 300 34px "Segoe UI", Arial, sans-serif; letter-spacing: -.3px; font-variant-numeric: tabular-nums; }
+    #error { display: none; position: absolute; z-index: 5; top: 30%; left: 10%; right: 10%; color: #edf0ea; font: 24px/1.6 "Segoe UI", sans-serif; }
+  </style>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <main id="film" aria-label="Two glass microspheres on separate optical fibres. At contact, light builds into a persistent sharp ring, Q-factor 16,069.688. Across a 10 µm gap, a weak diffuse glow fades, Q-factor 659.997.">
+    <div class="scrim"></div>
+    <h1><span>Touching the fibre</span><span>beats a 10 µm gap</span></h1>
+    <p id="illustration">Illustration · real light is infrared<br>Q-factors as reported</p>
+    <svg id="annotations" viewBox="0 0 1920 1080" aria-hidden="true">
+      <g id="tracked">
+        <path class="leader" d="M 613,630 L 587,666 L 451,666"/>
+        <text class="gap" x="451" y="697">0 µm gap</text>
+        <g id="left-q" opacity="0"><text class="q" x="451" y="742">Q-factor 16,069.688</text></g>
+        <!-- The bracket spans the actual surfaces: sphere bottom 620, taper top 652. -->
+        <path class="dimension" d="M 1319,620 H 1345 M 1336,620 V 652 M 1319,652 H 1345"/>
+        <path class="leader" d="M 1345,636 L 1370,666 H 1129"/>
+        <text class="gap" x="1129" y="697">10 µm gap</text>
+        <g id="right-q" opacity="0"><text class="q" x="1129" y="742">Q-factor 659.997</text></g>
+      </g>
+    </svg>
+    <div id="error" role="alert"></div>
+  </main>
+  <script type="module">
+    import * as THREE from 'three';
+
+    const WIDTH = 1920, HEIGHT = 1080, DURATION = 3;
+    const film = document.querySelector('#film');
+    const title = document.querySelector('h1');
+    const tracked = document.querySelector('#tracked');
+    const leftQ = document.querySelector('#left-q');
+    const rightQ = document.querySelector('#right-q');
+    const params = new URLSearchParams(location.search);
+    const parsed = Number(params.get('t'));
+    const frozen = params.has('t') && Number.isFinite(parsed);
+    const freezeTime = Math.max(0, Math.min(DURATION, parsed || 0));
+    const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+    function smooth(a, b, t) { const v = clamp((t - a) / (b - a)); return v * v * (3 - 2 * v); }
+
+    // Pure absolute-time state. No integration, accumulation, CSS animations,
+    // random calls, async textures, temporal AA, or frame-dependent exposure.
+    function stateAt(t) {
+      const age = Math.max(0, t - .42);
+      const laps = age / .32;
+      const steps = Math.floor(laps) + smooth(0, .68, laps % 1);
+      const high = smooth(.40, .52, t) * (.12 + .82 * (1 - Math.exp(-steps * .95)));
+      const lowEnvelope = smooth(.42, .49, t) * (1 - smooth(.90, 1.30, t));
+      return {
+        time: t,
+        zoom: 1 + .016 * smooth(0, 3, t),
+        high,
+        low: Math.min(.021, high * .055) * lowEnvelope,
+        title: smooth(.02, .36, t),
+        leftQ: smooth(1.28, 1.48, t),
+        rightQ: smooth(1.65, 1.87, t)
+      };
+    }
+
+    const vertexShader = /* glsl */`
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = vec4(position.xy, 0.0, 1.0);
+      }
+    `;
+    const fragmentShader = /* glsl */`
+      precision highp float;
+      varying vec2 vUv;
+      uniform float uTime, uZoom, uHigh, uLow;
+      const float PI = 3.14159265359;
+      const float TAU = 6.28318530718;
+      const vec3 GOLD = vec3(1.0, .66, .29);
+
+      float sq(float x) { return x*x; }
+      float bell(float x, float w) { return exp(-.5*sq(x/w)); }
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }
+
+      vec3 backdrop(vec2 p) {
+        vec2 q = (p-vec2(950.0, 430.0))/vec2(1000.0, 750.0);
+        float pool = exp(-dot(q,q)*1.8);
+        vec3 c = vec3(.0035,.0065,.0105) + vec3(.007,.014,.021)*pool;
+        c += vec3(.006,.009,.010)*exp(-sq((p.x-450.0)/800.0)-sq((p.y-690.0)/160.0));
+        // Distant studio reflections, defocused well behind the subject.
+        c += vec3(.008,.014,.021)*bell(p.x-1640.0,95.0)*bell(p.y-435.0,460.0);
+        c += vec3(.008,.011,.015)*bell(p.x-285.0,65.0)*bell(p.y-540.0,280.0);
+        return c;
+      }
+
+      vec3 studio(vec3 d) {
+        vec3 c = mix(vec3(.009,.015,.022), vec3(.05,.064,.08), clamp(-d.y*.5+.5,0.0,1.0));
+        // Finite luminous cards reflected in curved glass. The narrow key card
+        // and larger dim fill provide shape without lighting the whole outline.
+        vec3 key = normalize(vec3(-.65,-.74,1.0));
+        vec3 side = normalize(cross(key,vec3(0.0,1.0,0.0)));
+        vec3 up = cross(side,key);
+        float facing = smoothstep(.2,.7,dot(d,key));
+        float card = (1.0-smoothstep(.055,.076,abs(dot(d,side))))
+                   * (1.0-smoothstep(.22,.27,abs(dot(d,up)))) * facing;
+        float soft = exp(-sq(dot(d,side)/.11)-sq(dot(d,up)/.34))*facing;
+        c += vec3(1.65,1.83,1.90)*card + vec3(.10,.15,.20)*soft;
+        vec3 rim = normalize(vec3(.90,.1,-.25));
+        c += vec3(.13,.21,.27)*pow(max(dot(d,rim),0.0),30.0);
+        c += vec3(.60,.49,.34)*pow(max(dot(d,normalize(vec3(.3,.82,1.0))),0.0),180.0);
+        return c;
+      }
+
+      vec3 transmitted(vec3 origin, vec3 direction) {
+        float travel = (-850.0-origin.z)/min(direction.z,-.035);
+        vec2 hit = origin.xy + direction.xy*travel;
+        vec3 c = backdrop(hit);
+        c += vec3(.033,.047,.060)*bell(hit.x-850.0,130.0)*bell(hit.y-170.0,650.0);
+        c += vec3(.014,.020,.024)*bell(hit.y-700.0,65.0);
+        return c;
+      }
+
+      void fibre(inout vec3 c, inout vec3 light, vec2 p, vec2 centre, vec2 bounds) {
+        float x = p.x-centre.x;
+        float dy = p.y-centre.y;
+        // Each fibre has finite, independent support. No glass or pulse crosses
+        // the empty 900..1020 interval, even at maximum optical defocus.
+        float edgeDistance = min(p.x-bounds.x,bounds.y-p.x);
+        float end = smoothstep(0.0,46.0,edgeDistance);
+        if (end <= 0.0) return;
+        float defocus = .48+2.0*(1.0-smoothstep(0.0,65.0,edgeDistance));
+        // A 6 px waist and two smoothly joined, 250 px taper shoulders lead to
+        // 12 px cladding. Broad cylindrical illumination makes the entire glass
+        // cross-section visible, rather than just two hairline edge reflections.
+        float shoulder = smoothstep(42.0,292.0,abs(x));
+        float radius = 3.0+3.0*shoulder;
+        float mask = (1.0-smoothstep(radius-defocus,radius+defocus,abs(dy)))*end;
+        float ny = clamp(dy/radius,-.995,.995);
+        vec3 normal = vec3(0.0,ny,sqrt(1.0-ny*ny));
+        float fresnel = .035+.965*pow(1.0-normal.z,5.0);
+        vec3 body = backdrop(p+vec2(0.0,-dy*2.0))*.35;
+        body += vec3(.065,.095,.125)*(.32+.68*normal.z);
+        body += studio(reflect(vec3(0.0,0.0,-1.0),normal))*(.08+fresnel*.20);
+        body += vec3(.10,.145,.17)*bell(ny+.30,.48);
+        body += vec3(.10,.17,.21)*bell(ny+.62,.16);
+        body += vec3(.035,.075,.10)*bell(ny-.72,.17);
+        c = mix(c,body,mask*.97);
+
+        // Matching wave packets enter the left end of EACH fibre together.
+        // Their heads reach the bead at .42 s; the visible tails keep feeding
+        // it through .6 s. Incoming travel is normalized to each visible arm.
+        float startX = bounds.x+38.0-centre.x;
+        float pulseX = uTime < .42 ? mix(startX,0.0,uTime/.42) : (uTime-.42)*650.0;
+        float behind = pulseX-x;
+        float tail = exp(-max(behind,0.0)/62.0)*smoothstep(-5.0,10.0,behind)
+                   *(1.0-smoothstep(135.0,190.0,behind));
+        float pulse = (.95*bell(behind,17.0)+.66*tail)*(1.0-smoothstep(.62,.82,uTime));
+        float shaft = 3.6*bell(dy,1.65)+.34*bell(dy,4.3);
+        // Finite PSF keeps the right gap dark instead of filling it with bloom.
+        float haloCutoff = 1.0-smoothstep(8.0,12.0,abs(dy));
+        light += GOLD*pulse*end*shaft*haloCutoff;
+        // Persistent, soft reflected light on the touching fibre only. This is
+        // a small pool on its cylindrical surface, not a floating ellipse.
+        if (centre.x < 960.0) {
+          float contactPool = .55*bell(x,28.0)*bell(dy,2.7)
+                            +.075*bell(x,44.0)*bell(dy-1.5,5.0);
+          light += GOLD*uHigh*end*contactPool*haloCutoff;
+        }
+      }
+
+      void stem(inout vec3 c, vec2 p, float centreX) {
+        float y = p.y;
+        // Stem terminates inside the sphere, with a smooth melted neck.
+        float width = 6.0+10.0*smoothstep(224.0,285.0,y);
+        float blur = .6+2.7*(1.0-smoothstep(50.0,235.0,y));
+        float dx = p.x-centreX;
+        float mask = (1.0-smoothstep(width-blur,width+blur,abs(dx)))
+                   *(1.0-smoothstep(274.0,293.0,y));
+        float n = clamp(dx/width,-1.0,1.0);
+        vec3 glass = backdrop(p)*.78;
+        glass += vec3(.10,.14,.17)*bell(n+.57,.17);
+        glass += vec3(.024,.036,.045)*bell(n-.82,.11);
+        c = mix(c,glass,mask*.87);
+      }
+
+      void sphere(inout vec3 c, inout vec3 light, vec2 p, vec2 centre, float energy, bool highQ) {
+        const float radius = 175.0;
+        vec2 q = p-centre;
+        float r = length(q);
+        float coverage = 1.0-smoothstep(radius-.65,radius+.65,r);
+        if (r < radius+.65) {
+          vec2 safeQ = q*min(1.0,(radius-.001)/max(r,.001));
+          float z = sqrt(max(0.0,radius*radius-dot(safeQ,safeQ)));
+          vec3 n = vec3(safeQ,z)/radius;
+          vec3 hit = vec3(centre+safeQ,z);
+          vec3 incident = vec3(0.0,0.0,-1.0);
+          // Two real dielectric interfaces: air -> glass, then glass -> air.
+          vec3 inside = refract(incident,n,1.0/1.46);
+          float distanceInGlass = -2.0*dot(vec3(safeQ,z),inside);
+          vec3 exitPoint = hit+inside*distanceInGlass;
+          vec3 exitNormal = normalize(exitPoint-vec3(centre,0.0));
+          vec3 outgoing = refract(inside,-exitNormal,1.46);
+          float fresnel = .03497+.96503*pow(1.0-max(n.z,0.0),5.0);
+          vec3 refraction = transmitted(exitPoint,outgoing);
+          // A restrained chromatic fringe belongs to refraction, not labels.
+          refraction.r = transmitted(exitPoint,normalize(outgoing+n*.003)).r;
+          refraction.b = transmitted(exitPoint,normalize(outgoing-n*.003)).b;
+          refraction *= exp(-vec3(.00065,.00024,.00013)*distanceInGlass);
+          vec3 reflection = studio(reflect(incident,n));
+          vec3 glass = refraction*(1.0-fresnel)+reflection*fresnel;
+          // Secondary internal reflection and a narrow photographic catchlight.
+          glass += studio(reflect(inside,-exitNormal))*.012*(1.0-fresnel);
+          glass += vec3(.25,.31,.34)*pow(max(dot(n,normalize(vec3(-.42,-.56,.72))),0.0),520.0);
+          glass += vec3(.015,.026,.034)*pow(1.0-n.z,2.4);
+          c = mix(c,glass,coverage);
+        }
+
+        // The mode is 9.5..14.4 px INSIDE the glass edge, with a 14-degree
+        // elevation: a slightly foreshortened equatorial plane containing x.
+        // Front/back attenuation and moving surface glints expose its depth.
+        const float modeRadius = 165.5;
+        const float tiltCos = .970296;
+        vec2 ringQ = q/vec2(1.0,tiltCos);
+        float ringDistance = length(ringQ)-modeRadius;
+        float angle = mod(atan(ringQ.y,ringQ.x)-PI*.5+TAU,TAU);
+        float travel = max(0.0,uTime-.42)*TAU/.32;
+        if (highQ) {
+          float fill = 1.0-smoothstep(travel+.05,travel+.25,angle);
+          fill *= mix(smoothstep(0.0,.35,angle),1.0,clamp((travel-TAU)/.6,0.0,1.0));
+          float delta = mod(angle-travel+PI+TAU*32.0,TAU)-PI;
+          float delta2 = mod(angle-travel+2.55+PI+TAU*32.0,TAU)-PI;
+          float tail = exp(min(delta,0.0)/.68)*(1.0-smoothstep(-.06,.04,delta));
+          float tail2 = exp(min(delta2,0.0)/.60)*(1.0-smoothstep(-.06,.04,delta2));
+          float second = smoothstep(.47,.60,uTime);
+          float crests = 4.2*bell(delta,.11)+1.15*tail
+                       + second*(3.8*bell(delta2,.12)+1.05*tail2);
+          float front = .82+.18*smoothstep(-.85,.85,ringQ.y/modeRadius);
+          float stored = energy*fill*front;
+          // Restore the bright stored-light band independently of the crests.
+          // The heads stay distinct through a wider, whiter core and longer
+          // luminous tails, even where the pedestal approaches display white.
+          float core = bell(ringDistance,1.65);
+          float innerBloom = .28*bell(ringDistance+1.5,4.5)+.045*bell(ringDistance+4.0,10.0);
+          light += GOLD*stored*1.85*(core+innerBloom)*coverage;
+          vec3 crestColour = vec3(1.0,.91,.68);
+          light += crestColour*stored*crests*(bell(ringDistance,2.25)
+                     +.25*bell(ringDistance+1.0,5.3)+.04*bell(ringDistance+4.0,10.0))*coverage;
+          // Soft spill remains inside the glass and follows the passing tails.
+          light += GOLD*stored*.07*(.5+tail+second*tail2)
+                     *bell(ringDistance+10.0,12.0)*coverage;
+
+          // Local refracted/reflected images of the moving heads. There is no
+          // second outline: these highlights only occupy a short moving arc.
+          for (int head=0;head<2;head++) {
+            float index = float(head);
+            float phase = travel+PI*.5-index*2.55;
+            vec2 radial = vec2(cos(phase),sin(phase));
+            vec2 tangent = vec2(-radial.y,radial.x);
+            vec2 onGlass = radial*vec2(171.0,166.0);
+            vec2 glint = q-onGlass;
+            float headGain = head == 0 ? 1.0 : second*.90;
+            float nearSide = .55+.45*smoothstep(-.6,.8,radial.y);
+            light += vec3(1.0,.86,.61)*energy*headGain*nearSide*.75
+                   *bell(dot(glint,radial),1.8)*bell(dot(glint,tangent),8.0)*coverage;
+            vec2 ghost = q-radial*vec2(151.0,143.0)-vec2(3.0,-3.0);
+            light += GOLD*energy*headGain*.065*bell(length(ghost),4.0)*coverage;
+          }
+          // A small contact glint links the stored orbit to its feeding waist.
+          light += GOLD*energy*.22*bell(q.x,9.0)*bell(q.y-173.0,2.5)*coverage;
+        } else {
+          // Only the lower rim responds. Zero global annular pedestal prevents
+          // the entire sphere turning gold. Visible at .5..9 s, then exactly
+          // zero from 1.3 s. A broad curved smear sits well inside the bead;
+          // there is no sharp component, full orbit or late residual emission.
+          float sector = bell(q.x-9.0*sin(uTime*4.0),55.0)*smoothstep(95.0,125.0,q.y);
+          float lowerRimY = 151.0-.0027*q.x*q.x;
+          float edgeFade = 1.0-smoothstep(165.0,175.0,q.y);
+          light += GOLD*energy*sector*bell(q.y-lowerRimY,16.0)*edgeFade*coverage;
+        }
+      }
+
+      vec3 toneMap(vec3 x) {
+        return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.0,1.0);
+      }
+      vec3 toSRGB(vec3 x) {
+        return mix(x*12.92,1.055*pow(x,vec3(1.0/2.4))-.055,step(vec3(.0031308),x));
+      }
+      void main() {
+        vec2 screen = vec2(vUv.x,1.0-vUv.y)*vec2(1920.0,1080.0);
+        vec2 p = (screen-vec2(960.0,540.0))/uZoom+vec2(960.0,540.0);
+        vec3 c = backdrop(p);
+        vec3 light = vec3(0.0);
+
+        // Fixed seed dust positions; time affects only deterministic slow drift.
+        for (int i=0;i<19;i++) {
+          float seed = float(i)+41.0;
+          vec2 pos = vec2(hash(vec2(seed,3.7))*2100.0-90.0,
+                          hash(vec2(seed,8.3))*1130.0-20.0);
+          pos += vec2(sin(seed*1.8+uTime*.16)*3.0,cos(seed+uTime*.13)*2.0);
+          float size = 3.0+hash(vec2(seed,5.2))*20.0;
+          float d = length(p-pos)/size;
+          float disc = (1.0-smoothstep(.62,1.25,d))*.65+bell(d-.84,.13)*.15;
+          c += vec3(.018,.026,.032)*disc*(.15+.35*hash(vec2(seed,2.1)));
+        }
+
+        stem(c,p,620.0);
+        stem(c,p,1300.0);
+        // Soft occlusion behind the separated bead keeps its open gap legible.
+        c *= 1.0-.52*bell(p.x-1300.0,85.0)*bell(p.y-636.0,13.0);
+        fibre(c,light,p,vec2(620.0,623.0),vec2(60.0,900.0));
+        fibre(c,light,p,vec2(1300.0,655.0),vec2(1020.0,1870.0));
+        sphere(c,light,p,vec2(620.0,445.0),uHigh,true);
+        sphere(c,light,p,vec2(1300.0,445.0),uLow,false);
+        c += light;
+        vec2 vignette = (screen-vec2(960.0,490.0))/vec2(1300.0,1050.0);
+        c *= 1.0-.24*clamp(dot(vignette,vignette),0.0,1.0);
+        c = toSRGB(toneMap(c*1.18));
+        float grain = hash(floor(screen)+vec2(floor(uTime*30.0)*13.17,71.3))-.5;
+        c += grain*.005;
+        gl_FragColor = vec4(max(c,vec3(0.0)),1.0);
+      }
+    `;
+
+    try {
+      const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'high-performance' });
+      // Fixed render size matches the capture target regardless of device DPR.
+      renderer.setPixelRatio(1);
+      renderer.setSize(WIDTH, HEIGHT, false);
+      renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+      renderer.toneMapping = THREE.NoToneMapping;
+      renderer.domElement.setAttribute('aria-hidden', 'true');
+      film.prepend(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.Camera();
+      const uniforms = {
+        uTime: { value: 0 }, uZoom: { value: 1 },
+        uHigh: { value: 0 }, uLow: { value: 0 }
+      };
+      const material = new THREE.ShaderMaterial({
+        uniforms, vertexShader, fragmentShader,
+        depthTest: false, depthWrite: false, toneMapped: false
+      });
+      const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+      quad.frustumCulled = false;
+      scene.add(quad);
+      function renderAt(t) {
+        const state = stateAt(clamp(t, 0, DURATION));
+        uniforms.uTime.value = state.time;
+        uniforms.uZoom.value = state.zoom;
+        uniforms.uHigh.value = state.high;
+        uniforms.uLow.value = state.low;
+        title.style.opacity = String(state.title);
+        leftQ.setAttribute('opacity', String(state.leftQ));
+        rightQ.setAttribute('opacity', String(state.rightQ));
+        tracked.setAttribute('transform', `translate(960 540) scale(${state.zoom}) translate(-960 -540)`);
+        renderer.render(scene, camera);
+        film.dataset.time = state.time.toFixed(6);
+      }
+      // Render synchronously, including frozen frames: no warmup is required.
+      renderAt(frozen ? freezeTime : 0);
+      film.dataset.ready = 'true';
+      if (!frozen) {
+        const start = performance.now();
+        const tick = (now) => {
+          const t = Math.min(DURATION, (now-start)/1000);
+          renderAt(t);
+          if (t < DURATION) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+      // The final comparison holds rather than cutting back to an empty ring.
+    } catch (error) {
+      const message = document.querySelector('#error');
+      message.textContent = 'This optical film requires WebGL and access to the pinned Three.js module.';
+      message.style.display = 'block';
+      console.error(error);
+    }
+  </script>
+</body>
+</html>

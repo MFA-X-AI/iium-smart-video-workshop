@@ -1,0 +1,491 @@
+﻿<!--
+Paper: Measuring Human Capital in Indonesia Using an Adapted World Bank HCI Framework.
+ALL 34 provincial period-average HCI scores come directly from Table 6, pp.12–13.
+DI Yogyakarta 78.16 is highest; Papua 59.63 lowest (2011–2019 averages).
+All towers use equal footprints, one ZERO-BASED height scale (0.058 units/point),
+and one single-hue sequential blue colour scale. No estimated scores or omitted table rows.
+Artistic licence: schematic coastlines and province positions, compressed map depth,
+small Java location offsets, uniform map extrusion, wave timing and shallow orthographic framing.
+The wave REVEALS period averages; it is NOT a time series, trend, geographic diffusion,
+policy effect or productivity percentage. Colours encode the table's observed HCI range.
+The map follows the study's 34-province geography, not present-day subdivisions.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indonesia’s health and learning gap</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#eedbd4}
+body{font-family:Arial,Helvetica,sans-serif;color:#302047}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--fit,1));overflow:hidden;background:#eedbd4}
+canvas{position:absolute;inset:0;width:1920px;height:1080px}
+.scrim{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 840px 390px at 150px 50px,rgba(246,233,223,.97),rgba(246,233,223,.62) 58%,transparent 100%)}
+header{position:absolute;left:88px;top:50px;width:650px}
+h1{font-size:50px;line-height:1.04;letter-spacing:-2.7px;margin:0;font-weight:700;max-width:630px}
+.period{font-size:24px;letter-spacing:.5px;margin:14px 0 0;color:#79647c}
+#leaders{position:absolute;inset:0;pointer-events:none;width:1920px;height:1080px;overflow:visible}
+.label{position:absolute;pointer-events:none;opacity:0}
+.label .name{font-size:25px;letter-spacing:-.25px;font-weight:700}
+.label .score{font-size:73px;line-height:1.06;letter-spacing:-4.4px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:6px}
+.label .qualifier{font-size:19px;letter-spacing:2px;text-transform:uppercase;margin-top:9px;color:#76617b}
+#yogya .score{color:#075877}#papua .score{color:#286d83}
+#gap{position:absolute;font-size:18px;font-weight:700;letter-spacing:2.4px;text-transform:uppercase;opacity:0;color:#695071}
+#failure{display:none;position:absolute;left:88px;top:340px;font-size:24px;max-width:600px}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+</head>
+<body>
+<main id="stage" aria-label="Indonesia's health and learning gap. DI Yogyakarta has the highest average adapted Human Capital Index, 78.16; Papua the lowest, 59.63, during 2011 to 2019.">
+<canvas id="scene" aria-label="Sculptural map of Indonesia with all 34 provincial score towers rising in a geographical wave"></canvas>
+<div class="scrim"></div>
+<header><h1>Indonesia’s health<br>and learning gap</h1><p class="period">Average human capital index · 2011–2019</p></header>
+<svg id="leaders" viewBox="0 0 1920 1080" aria-hidden="true"><path id="yogya-line" fill="none" stroke="#665077" stroke-width="1.6"/><path id="papua-line" fill="none" stroke="#286d83" stroke-width="1.6"/></svg>
+<div id="yogya" class="label"><div class="name">DI Yogyakarta</div><div class="score">78.16</div><div class="qualifier">Highest average</div></div>
+<div id="papua" class="label"><div class="name">Papua</div><div class="score">59.63</div><div class="qualifier">Lowest average</div></div>
+<div id="gap">The regional gap</div>
+<div id="failure">This scene requires WebGL and access to the pinned Three.js module on jsDelivr.</div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+const W=1920,H=1080,stage=document.getElementById('stage');
+function fit(){stage.style.setProperty('--fit',Math.min(innerWidth/W,innerHeight/H));}
+addEventListener('resize',fit);fit();
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('scene'),antialias:true,alpha:false});
+renderer.setSize(W,H,false);renderer.setPixelRatio(1);
+renderer.setClearColor(0xeedbd4);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.16;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xeedbd4);
+const camera=new THREE.OrthographicCamera(-14,14,8.2,-7.55,.1,100);
+// Fixed parallel projection: equal world heights have equal screen lengths everywhere.
+camera.position.set(0,18.45,32);camera.lookAt(0,.45,0);camera.updateMatrixWorld();
+scene.add(new THREE.HemisphereLight(0xfff7ed,0x716090,2.6));
+const key=new THREE.DirectionalLight(0xfff4db,4.2);key.position.set(-10,22,-12);key.castShadow=true;
+key.shadow.mapSize.set(2048,2048);Object.assign(key.shadow.camera,{left:-19,right:19,top:17,bottom:-17,near:1,far:65});key.shadow.normalBias=.035;key.shadow.bias=-.0002;key.shadow.radius=3;scene.add(key);
+const rim=new THREE.DirectionalLight(0xc3b6ff,1.8);rim.position.set(12,10,6);scene.add(rim);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(160,160),new THREE.MeshStandardMaterial({color:0xeedbd4,roughness:.96}));ground.rotation.x=-Math.PI/2;ground.position.y=-.055;ground.receiveShadow=true;scene.add(ground);
+const root=new THREE.Group();scene.add(root);
+const topMat=new THREE.MeshStandardMaterial({color:0xc6bacf,roughness:.49,metalness:.12});
+const sideMat=new THREE.MeshStandardMaterial({color:0x75617d,roughness:.45,metalness:.17});
+const geo=(lon,lat)=>new THREE.Vector3((lon-118)*.45,.29,-(lat+2)*.5);
+// Simplified coastlines are editorial silhouettes, not administrative boundaries.
+const islands=[
+['Sumatra',[[95.1,5.6],[96,5.3],[97.3,5.1],[98,4.3],[98.4,3.5],[99.7,3.1],[100.2,2.2],[101.2,1.9],[102.3,1],[103,.5],[103.7,-.8],[104.3,-1.1],[104.8,-2.6],[105.6,-3.2],[105.9,-4.6],[105.7,-5.8],[104.9,-5.5],[104.3,-5.1],[103.5,-4.3],[102.4,-3.5],[101.8,-2.7],[100.9,-2],[100.3,-.6],[99.5,.3],[99,1.2],[98.1,1.8],[97.2,2.9],[96.4,3.8],[95.7,4.5]]],
+['Java',[[105.2,-6.7],[105.6,-5.9],[106.4,-6],[107.1,-5.9],[108.1,-6.2],[108.7,-6.7],[109.4,-6.8],[110.4,-6.5],[111,-6.6],[111.5,-6.8],[112.4,-6.9],[112.8,-7.4],[113.4,-7.7],[114.3,-7.7],[114.5,-8.2],[114.4,-8.7],[113.6,-8.5],[112.8,-8.4],[112.1,-8.3],[111.3,-8.2],[110.6,-8.1],[109.8,-7.8],[109,-7.7],[108,-7.7],[107.2,-7.4],[106.3,-7.3]]],
+['Kalimantan',[[109.1,2],[109.7,1.7],[110.5,1.1],[111.3,1],[112,.9],[112.7,1.6],[113.8,1.5],[114.5,1.4],[115.5,2.4],[115.6,3.1],[116.1,4.3],[117.1,4.2],[117.8,4.1],[117.6,3.3],[118.1,2.6],[117.7,1.7],[119,1.1],[118.6,.7],[117.9,.2],[117.6,-.8],[116.8,-1.3],[116.5,-2.2],[116.1,-3.2],[115.6,-4],[114.7,-4.1],[114.4,-3.4],[113.6,-3.1],[112.7,-3.4],[111.8,-3.2],[111,-3],[110.2,-2.8],[110,-1.7],[109.3,-1.2],[109.1,-.3],[108.8,.5]]],
+['Sulawesi',[[119.4,-5.6],[119.5,-4.3],[119,-3.4],[118.9,-2.4],[119.4,-1.7],[119.8,-.3],[119.8,.7],[120.5,1.1],[121.3,1.2],[122,1],[122.9,.9],[123.8,1],[124.6,1.7],[125.2,1.6],[124.8,.6],[123.6,.2],[122.3,.4],[121.4,.4],[120.8,-.5],[121.3,-1.2],[122.1,-.9],[122.8,-.7],[123.4,-.9],[123,-1.5],[122.2,-1.7],[121.6,-2.2],[122.2,-3],[122.5,-3.8],[123.1,-4.3],[122.8,-4.9],[122,-4.5],[121.5,-3.7],[120.8,-3],[120.2,-2.8],[120.3,-4.2],[120.5,-5.5]]],
+['Papua',[[130.9,-.5],[131.4,-.2],[132,-.4],[132.5,-.3],[133.2,-.6],[134,-.8],[134.4,-1.4],[134.1,-2.2],[134.6,-2.8],[135.2,-3.4],[135.9,-3.3],[136.4,-2.4],[137.1,-2],[138.1,-1.5],[139,-1.7],[140,-2.3],[141,-2.6],[141,-9.1],[140.4,-8.6],[139.7,-8.1],[138.9,-8.2],[138.2,-7.4],[138.7,-6.8],[138.1,-5.9],[137.5,-5.4],[136.5,-4.9],[135.5,-4.5],[134.7,-4.2],[134.1,-3.8],[133.6,-3.4],[132.8,-3.1],[132,-2.8],[132.4,-2.2],[133.1,-2.1],[132.3,-1.5],[131.5,-1.5],[131,-1]]],
+['Bali',[[114.5,-8.1],[115.1,-8],[115.7,-8.4],[115.2,-8.8],[114.8,-8.5]]],
+['Lombok',[[115.9,-8.2],[116.5,-8.2],[116.6,-8.8],[116,-8.8]]],
+['Sumbawa',[[116.8,-8.5],[117.2,-8.3],[117.8,-8.6],[118.1,-8.2],[118.6,-8.3],[119.1,-8.5],[118.9,-8.9],[118.1,-8.8],[117.7,-9],[117,-8.9]]],
+['Flores',[[119.4,-8.5],[120.2,-8.3],[121,-8.5],[121.7,-8.4],[122.4,-8.6],[123,-8.3],[123.1,-8.7],[122.3,-8.9],[121.4,-8.8],[120.6,-8.9],[119.6,-8.8]]],
+['Sumba',[[119,-9.4],[119.7,-9.3],[120.8,-9.8],[120.6,-10.2],[119.7,-9.9],[119,-9.7]]],
+['West Timor',[[123.5,-10.2],[124.1,-9.8],[124.9,-9],[125.1,-9.2],[124.7,-9.7],[124.4,-10.1],[123.8,-10.4]]],
+['Seram',[[127.9,-3.1],[128.7,-2.8],[129.4,-2.9],[130.3,-3],[130.8,-3.4],[130.2,-3.6],[129.4,-3.4],[128.7,-3.5],[128,-3.4]]],
+['Buru',[[126,-3.1],[126.7,-3],[127.2,-3.4],[127,-3.8],[126.3,-3.8]]],
+['Halmahera',[[127.4,1.1],[127.8,2.2],[128,1.7],[127.9,.9],[128.5,1.6],[128.7,1.3],[128.2,.5],[128.6,.2],[128.8,-.4],[128.3,-.3],[127.9,.3],[127.7,-.7],[127.4,-.6]]],
+['Riau islands',[[104.1,.6],[104.15,1.1],[104.55,1.2],[104.8,.9],[104.85,.5],[104.5,.3]]],
+['Bangka',[[105.3,-1.6],[106,-1.5],[106.4,-2.2],[106.7,-2.7],[106,-3],[105.7,-2.4]]],
+['Belitung',[[107.5,-2.6],[108,-2.6],[108.2,-3.1],[107.7,-3.3]]],
+['Nias',[[97.1,1.5],[97.6,1.2],[97.9,.5],[97.5,.6]]],
+['Mentawai',[[98.5,-.8],[98.9,-1.1],[99.3,-1.7],[99,-1.8],[98.6,-1.3]]],
+['Madura',[[112.8,-7],[113.5,-6.9],[114.1,-7.1],[113.6,-7.3],[113,-7.2]]],
+['Biak',[[135.7,-.8],[136.3,-1],[136.1,-1.3],[135.6,-1.1]]],
+['Yapen',[[135.4,-1.7],[136.6,-1.7],[136.8,-1.9],[135.8,-1.9]]],
+['Aru',[[134.2,-5.5],[134.6,-5.7],[134.6,-6.6],[134.2,-6.5]]],
+['Waigeo',[[130.2,-.1],[130.6,.1],[131.2,-.1],[130.8,-.4]]]
+];
+const landMeshes=[];
+for(const [name,ring] of islands){
+ const shape=new THREE.Shape();ring.forEach(([lon,lat],i)=>{const p=geo(lon,lat);i?shape.lineTo(p.x,-p.z):shape.moveTo(p.x,-p.z);});shape.closePath();
+ const geometry=new THREE.ExtrudeGeometry(shape,{depth:.38,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.025,bevelThickness:.025,curveSegments:1});geometry.rotateX(-Math.PI/2);
+ const mesh=new THREE.Mesh(geometry,[topMat,sideMat]);mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);landMeshes.push(mesh);
+ const points=ring.map(([lon,lat])=>{const p=geo(lon,lat);p.y=.416;return p;});points.push(points[0].clone());
+ root.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:0xe5d8f1,transparent:true,opacity:.72})));
+}
+// Fine ocean contours add physical cartographic texture, without encoding data.
+const contourMat=new THREE.LineBasicMaterial({color:0xb9a1b2,transparent:true,opacity:.22});
+for(let i=0;i<14;i++){
+ const pts=[];for(let j=0;j<=100;j++){const a=j/100*Math.PI*2;pts.push(new THREE.Vector3(Math.cos(a)*(6.8+i*.55),.006,Math.sin(a)*(3.8+i*.38)));}
+ scene.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),contourMat));
+}
+// Exact period averages, Table 6, study geography (34 provinces).
+const provinces=[
+ {
+  "rank": 1,
+  "name": "DI YOGYAKARTA",
+  "score": 78.16,
+  "lon": 110.37,
+  "lat": -7.8,
+  "offsetX": 0.2
+ },
+ {
+  "rank": 2,
+  "name": "DKI JAKARTA",
+  "score": 74.61,
+  "lon": 106.85,
+  "lat": -6.2,
+  "offsetX": 0.06
+ },
+ {
+  "rank": 3,
+  "name": "KALIMANTAN TIMUR",
+  "score": 74.02,
+  "lon": 117.15,
+  "lat": 0.2,
+  "offsetX": 0
+ },
+ {
+  "rank": 4,
+  "name": "BALI",
+  "score": 74.02,
+  "lon": 115.2,
+  "lat": -8.4,
+  "offsetX": 0
+ },
+ {
+  "rank": 5,
+  "name": "SULAWESI UTARA",
+  "score": 72.61,
+  "lon": 124.5,
+  "lat": 1,
+  "offsetX": 0
+ },
+ {
+  "rank": 6,
+  "name": "JAWA TENGAH",
+  "score": 72.56,
+  "lon": 110,
+  "lat": -7,
+  "offsetX": -0.23
+ },
+ {
+  "rank": 7,
+  "name": "KEP. RIAU",
+  "score": 71.92,
+  "lon": 104.5,
+  "lat": 0.7,
+  "offsetX": 0
+ },
+ {
+  "rank": 8,
+  "name": "KALIMANTAN UTARA",
+  "score": 71.38,
+  "lon": 116.5,
+  "lat": 3,
+  "offsetX": 0
+ },
+ {
+  "rank": 9,
+  "name": "JAWA TIMUR",
+  "score": 71.03,
+  "lon": 112.65,
+  "lat": -7.8,
+  "offsetX": 0
+ },
+ {
+  "rank": 10,
+  "name": "SULAWESI TENGGARA",
+  "score": 70.97,
+  "lon": 122.2,
+  "lat": -4,
+  "offsetX": 0
+ },
+ {
+  "rank": 11,
+  "name": "JAWA BARAT",
+  "score": 70.7,
+  "lon": 108,
+  "lat": -7.05,
+  "offsetX": 0.12
+ },
+ {
+  "rank": 12,
+  "name": "LAMPUNG",
+  "score": 70.29,
+  "lon": 105,
+  "lat": -4.7,
+  "offsetX": 0
+ },
+ {
+  "rank": 13,
+  "name": "SULAWESI SELATAN",
+  "score": 70.01,
+  "lon": 120,
+  "lat": -4.4,
+  "offsetX": 0
+ },
+ {
+  "rank": 14,
+  "name": "BENGKULU",
+  "score": 69.94,
+  "lon": 102.3,
+  "lat": -3.35,
+  "offsetX": 0
+ },
+ {
+  "rank": 15,
+  "name": "JAMBI",
+  "score": 69.42,
+  "lon": 103.1,
+  "lat": -1.25,
+  "offsetX": 0
+ },
+ {
+  "rank": 16,
+  "name": "SUMATERA SELATAN",
+  "score": 69.37,
+  "lon": 104.15,
+  "lat": -3.1,
+  "offsetX": 0
+ },
+ {
+  "rank": 17,
+  "name": "RIAU",
+  "score": 69.18,
+  "lon": 101.5,
+  "lat": 0.6,
+  "offsetX": 0
+ },
+ {
+  "rank": 18,
+  "name": "NUSA TENGGARA BARAT",
+  "score": 68.92,
+  "lon": 117.6,
+  "lat": -8.6,
+  "offsetX": 0
+ },
+ {
+  "rank": 19,
+  "name": "GORONTALO",
+  "score": 68.81,
+  "lon": 122.7,
+  "lat": 0.8,
+  "offsetX": 0
+ },
+ {
+  "rank": 20,
+  "name": "KALIMANTAN TENGAH",
+  "score": 68.8,
+  "lon": 113.2,
+  "lat": -1.7,
+  "offsetX": 0
+ },
+ {
+  "rank": 21,
+  "name": "MALUKU UTARA",
+  "score": 68.74,
+  "lon": 127.8,
+  "lat": 0.7,
+  "offsetX": 0
+ },
+ {
+  "rank": 22,
+  "name": "KEP. BANGKA BELITUNG",
+  "score": 68.66,
+  "lon": 106.1,
+  "lat": -2.2,
+  "offsetX": 0
+ },
+ {
+  "rank": 23,
+  "name": "SUMATERA UTARA",
+  "score": 68.37,
+  "lon": 98.9,
+  "lat": 2.3,
+  "offsetX": 0
+ },
+ {
+  "rank": 24,
+  "name": "KALIMANTAN SELATAN",
+  "score": 68,
+  "lon": 115.3,
+  "lat": -3,
+  "offsetX": 0
+ },
+ {
+  "rank": 25,
+  "name": "NUSA TENGGARA TIMUR",
+  "score": 67.96,
+  "lon": 121.3,
+  "lat": -8.6,
+  "offsetX": 0
+ },
+ {
+  "rank": 26,
+  "name": "MALUKU",
+  "score": 67.88,
+  "lon": 129,
+  "lat": -3.2,
+  "offsetX": 0
+ },
+ {
+  "rank": 27,
+  "name": "SUMATERA BARAT",
+  "score": 67.76,
+  "lon": 100.2,
+  "lat": -0.8,
+  "offsetX": 0
+ },
+ {
+  "rank": 28,
+  "name": "BANTEN",
+  "score": 67.59,
+  "lon": 106,
+  "lat": -6.55,
+  "offsetX": -0.1
+ },
+ {
+  "rank": 29,
+  "name": "SULAWESI TENGAH",
+  "score": 67.26,
+  "lon": 120.8,
+  "lat": -1.3,
+  "offsetX": 0
+ },
+ {
+  "rank": 30,
+  "name": "PAPUA BARAT",
+  "score": 67.14,
+  "lon": 133,
+  "lat": -1.1,
+  "offsetX": 0
+ },
+ {
+  "rank": 31,
+  "name": "ACEH",
+  "score": 66.96,
+  "lon": 96.8,
+  "lat": 4.3,
+  "offsetX": 0
+ },
+ {
+  "rank": 32,
+  "name": "KALIMANTAN BARAT",
+  "score": 66.87,
+  "lon": 110,
+  "lat": -0.4,
+  "offsetX": 0
+ },
+ {
+  "rank": 33,
+  "name": "SULAWESI BARAT",
+  "score": 64.46,
+  "lon": 119.3,
+  "lat": -2.7,
+  "offsetX": 0
+ },
+ {
+  "rank": 34,
+  "name": "PAPUA",
+  "score": 59.63,
+  "lon": 138.4,
+  "lat": -4.3,
+  "offsetX": 0
+ }
+];
+const BASE=.435,SCALE=.058;
+const scoreMin=59.63,scoreMax=78.16;
+// Constant sRGB hue (195 degrees) and saturation; only lightness decreases.
+// Low = pale blue (Papua), high = deep blue (Yogyakarta). No categorical colours.
+function scoreColor(score){
+ const u=THREE.MathUtils.clamp((score-scoreMin)/(scoreMax-scoreMin),0,1);
+ return new THREE.Color().setHSL(195/360,.78,.84-.55*u,THREE.SRGBColorSpace);
+}
+const bodyGeometry=new THREE.CylinderGeometry(.205,.205,1,6,1,false);
+const capGeometry=new THREE.CylinderGeometry(.233,.233,.055,6);
+function tower(province){
+ const {lon,lat,score,offsetX}=province,origin=geo(lon,lat),anchor=origin.clone();anchor.x+=offsetX;
+ const height=score*SCALE,color=scoreColor(score),side=color.clone();
+ const group=new THREE.Group();group.name=province.name;group.position.set(anchor.x,BASE,anchor.z);root.add(group);
+ const wall=new THREE.MeshStandardMaterial({color:side,roughness:.62,metalness:.03,emissive:color,emissiveIntensity:0});
+ const capMat=new THREE.MeshStandardMaterial({color,roughness:.58,metalness:.03,emissive:color,emissiveIntensity:0});
+ const body=new THREE.Mesh(bodyGeometry,[wall,capMat,wall]);body.castShadow=true;body.receiveShadow=true;group.add(body);
+ const cap=new THREE.Mesh(capGeometry,capMat);cap.castShadow=true;group.add(cap);
+ const crownPoints=[];for(let k=0;k<6;k++){const a=k/6*Math.PI*2;crownPoints.push(new THREE.Vector3(Math.sin(a)*.234,.029,Math.cos(a)*.234));}
+ const crown=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(crownPoints),new THREE.LineBasicMaterial({color:0x39778c,transparent:true,opacity:.8}));cap.add(crown);
+ // Fixed score intervals share the same linear scale; they expand with the reveal.
+ const ribPoints=[];
+ for(let value=10;value<score;value+=10)for(let k=0;k<6;k++){
+  for(const j of [k,k+1]){const a=j/6*Math.PI*2;ribPoints.push(new THREE.Vector3(Math.sin(a)*.207,value*SCALE,Math.cos(a)*.207));}
+ }
+ const ribs=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(ribPoints),new THREE.LineBasicMaterial({color:color.clone().lerp(new THREE.Color(0xffffff),.4),transparent:true,opacity:.52}));group.add(ribs);
+ const outline=[];for(let k=0;k<6;k++){const a=k/6*Math.PI*2;outline.push(new THREE.Vector3(Math.sin(a)*.255,0,Math.cos(a)*.255));}
+ const halo=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(outline),new THREE.LineBasicMaterial({color:0x39778c,transparent:true,opacity:.65}));halo.position.set(anchor.x,BASE+.004,anchor.z);root.add(halo);
+ if(offsetX){const tether=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(origin.x,BASE,origin.z),new THREE.Vector3(anchor.x,BASE,anchor.z)]),new THREE.LineBasicMaterial({color:0x776287}));root.add(tether);}
+ return {...province,anchor,height,group,body,cap,ribs,halo,wall,capMat,rise:0,arrival:.06+(lon-95)/46*1.08};
+}
+const towers=provinces.map(tower);
+const yogya=towers.find(p=>p.name==='DI YOGYAKARTA');
+const papua=towers.find(p=>p.name==='PAPUA');
+const referenceMat=new THREE.LineDashedMaterial({color:0x39778c,transparent:true,opacity:0,dashSize:.14,gapSize:.11});
+const reference=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),referenceMat);scene.add(reference);
+const bracketMat=new THREE.LineBasicMaterial({color:0x39778c,transparent:true,opacity:0});
+const bracket=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(Array.from({length:6},()=>new THREE.Vector3())),bracketMat);scene.add(bracket);
+const clamp=x=>Math.max(0,Math.min(1,x));
+const smooth=(a,b,t)=>{const x=clamp((t-a)/(b-a));return x*x*(3-2*x);};
+const ease=x=>1-Math.pow(1-clamp(x),3);
+function project(v){const p=v.clone().project(camera);return {x:(p.x*.5+.5)*W,y:(.5-p.y*.5)*H};}
+function topOf(tower,amount){return new THREE.Vector3(tower.anchor.x,BASE+tower.height*amount,tower.anchor.z);}
+// Audit the fully revealed encoding, not absolute screen Y of each map location.
+// During the wave, the moving lengths are explicitly a reveal of these target lengths.
+function verifyHeightEncoding(){
+ const rows=towers.map(data=>{
+  const base=project(new THREE.Vector3(data.anchor.x,BASE,data.anchor.z));
+  const top=project(topOf(data,1));
+  return {name:data.name,score:data.score,pixels:Math.hypot(base.x-top.x,base.y-top.y)};
+ }).sort((a,b)=>b.pixels-a.pixels);
+ const perPoint=rows[0].pixels/rows[0].score;
+ if(rows[0].name!=='DI YOGYAKARTA'||rows.at(-1).name!=='PAPUA'||
+    rows.some(row=>Math.abs(row.pixels/row.score-perPoint)>1e-9)){
+  throw new Error('Projected HCI height scale is inconsistent.');
+ }
+ return {pixelsPerPoint:perPoint,highest:rows[0],lowest:rows.at(-1),rows};
+}
+function positionLabel(id,tip,dx,dy,opacity){
+ const el=document.getElementById(id),p=project(tip),x=p.x+dx,y=p.y+dy;el.style.left=x+'px';el.style.top=y+'px';el.style.opacity=opacity;
+ const line=document.getElementById(id+'-line');const endX=dx<0?x+190:x-16,endY=y+45;
+ line.setAttribute('d',`M ${p.x} ${p.y} L ${p.x+(dx<0?-42:42)} ${endY} L ${endX} ${endY}`);line.style.opacity=opacity;
+ return {x,y,tip:p};
+}
+function draw(t){
+ // Lock the camera throughout the reveal: no perspective, orbit or scale change.
+ const settle=1;
+ for(const data of towers){
+  data.rise=smooth(data.arrival,data.arrival+.77,t);
+  const height=Math.max(.012,data.height*data.rise);
+  data.body.scale.y=height;data.body.position.y=height/2;data.cap.position.y=height;
+  data.ribs.scale.y=data.rise;data.ribs.visible=data.rise>.035;
+  const flash=Math.sin(Math.PI*data.rise)*.24;
+  data.wall.emissiveIntensity=flash;data.capMat.emissiveIntensity=flash;
+  const isExtreme=data===yogya||data===papua;
+  data.halo.scale.setScalar(1+(isExtreme?.35*smooth(1.9,2.3,t):0));
+  data.halo.material.opacity=.45+(isExtreme?.5*smooth(1.9,2.3,t):0);
+ }
+ const a=topOf(yogya,yogya.rise),b=topOf(papua,papua.rise);
+ const lineEnd=new THREE.Vector3(papua.anchor.x,BASE+yogya.height,papua.anchor.z);
+ const reveal=smooth(1.95,2.48,t),refEnd=a.clone().lerp(lineEnd,reveal);
+ reference.geometry.setFromPoints([a,refEnd]);reference.computeLineDistances();referenceMat.opacity=.7*smooth(1.9,2.16,t);
+ const q=lineEnd.clone();q.x+=.43;const r=b.clone();r.x+=.43;
+ bracket.geometry.setFromPoints([q,r,q.clone().add(new THREE.Vector3(-.1,0,0)),q.clone().add(new THREE.Vector3(.1,0,0)),r.clone().add(new THREE.Vector3(-.1,0,0)),r.clone().add(new THREE.Vector3(.1,0,0))]);bracketMat.opacity=smooth(2.35,2.65,t)*.85;
+ const labels=smooth(1.94,2.28,t);
+ const ly=positionLabel('yogya',a,35,50-project(a).y,labels);
+ const lp=positionLabel('papua',b,72,-25,labels);
+ const gp=project(a.clone().lerp(lineEnd,.61));const gap=document.getElementById('gap');gap.style.left=(project(b).x+72)+'px';gap.style.top=(project(lineEnd).y-38)+'px';gap.style.opacity=smooth(2.2,2.6,t);
+ renderer.render(scene,camera);
+ return {t,settle,yogya:ly,papua:lp,referenceStart:project(a),referenceEnd:project(lineEnd),provinces:towers.map(p=>({name:p.name,score:p.score,rise:p.rise,base:project(new THREE.Vector3(p.anchor.x,BASE,p.anchor.z)),top:project(topOf(p,p.rise))}))};
+}
+const heightAudit=verifyHeightEncoding();
+const query=new URLSearchParams(location.search);const parsed=Number(query.get('t'));
+const frozen=query.has('t')&&Number.isFinite(parsed);const start=performance.now();
+function frame(now){const t=frozen?Math.max(0,parsed):Math.min((now-start)/1000,3);draw(t);if(!frozen&&t<3)requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+window.__KENMS={draw,project,camera,islands,landMeshes,yogya,papua,towers,provinces,scoreColor,heightAudit,verifyHeightEncoding};
+document.getElementById('scene').addEventListener('webglcontextlost',e=>{e.preventDefault();document.getElementById('failure').style.display='block';});
+</script>
+</body>
+</html>
+
+
+

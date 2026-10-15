@@ -1,0 +1,627 @@
+<!--
+PAPER: Mohamad Rosly et al. (2026), Journal of Pharmacy, DOI 10.31436/jop.v6i2.515.
+The supplied PDF pp. 3–4 places Curcuma xanthorrhiza extract IN THE PCL CORE;
+the shell is gelatine/chitosan. The fibres form a continuous nonwoven membrane.
+At 1% loading the fibres produced no measurable inhibition zones against
+S. aureus or E. coli (pp. 1, 10–11). No healing or antibacterial success is shown.
+
+ARTISTIC LICENCE: bright medical illustration, not experimental footage or a
+physical simulation. Approximately ten hours of fabrication are compressed to
+three seconds. Hardware, instability, strand dimensions, opacity and shadows are
+illustrative. The foreground cutaway is greatly enlarged to explain the structure;
+its proportions are not measured fibre radii. Amber represents extract-loaded PCL,
+not pure extract. The pearly bulk shell prevents the mat reading as gold wire.
+Soft contact occlusion and selective foreground defocus are illustrative optical
+treatments, not measured shadows or a physical depth-of-field simulation.
+The live jet joins the same continuous path that reveals the deposited fibres.
+No quantified release mechanism or antibacterial outcome is implied.
+
+EDITOR: no on-screen attribution. Bottom-right x=940..1920, y=780..1080 is
+reserved for the citation added in the montage edit. Title is bottom-left.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#fcfefe">
+  <title>KOP — Plant extract, spun into fibres</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { background: #fcfefe; color: #29434e; font-family: "Segoe UI", Arial, sans-serif; }
+    #film { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    main { position: absolute; inset: 0; pointer-events: none; }
+    .heading { position: absolute; bottom: 6.5%; left: 5%; width: 36%; }
+    h1 { margin: 0; font-size: clamp(30px,3.05vw,65px); font-weight: 500;
+      line-height: 1.08; letter-spacing: -.04em; text-wrap: nowrap; }
+    h1 span { color: #467587; }
+    .deck { margin: 1.6vh 0 0; color: #627c85; font-size: clamp(13px,1.12vw,24px);
+      line-height: 1.45; font-weight: 400; }
+    #failure { display: none; position: absolute; top: 5%; left: 5%; width: 32%;
+      color: #8b503b; font-size: 20px; line-height: 1.5; }
+    @media (max-aspect-ratio: 1/1) {
+      .heading { bottom: 5%; width: 85%; } h1 { font-size: 7vw; }
+      .deck { font-size: 3.1vw; }
+    }
+  </style>
+  <script type="importmap">
+  { "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  } }
+  </script>
+</head>
+<body>
+  <canvas id="film" role="img" aria-label="A dual-inlet coaxial spinneret lays continuous pearly fibres into a layered nonwoven mat. A magnified foreground cutaway reveals an amber extract-loaded PCL core inside a gelatine/chitosan shell."></canvas>
+  <main>
+    <header class="heading">
+      <h1>Plant extract,<br><span>spun into fibres.</span></h1>
+      <p class="deck">Experimental wound-dressing material.</p>
+    </header>
+  </main>
+  <div id="failure" role="status"></div>
+  <script>
+    window.addEventListener('error', () => {
+      const message = document.getElementById('failure');
+      message.textContent = 'The 3D scene could not load. This clip needs WebGL 2 and access to jsDelivr.';
+      message.style.display = 'block';
+    });
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+
+    import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+    import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+    // One clock drives deposition, moving geometry and timed shadows. No incremental state.
+    const params = new URLSearchParams(location.search);
+    const requestedTime = params.get('t');
+    const frozen = requestedTime !== null && requestedTime.trim() !== '' && Number.isFinite(Number(requestedTime));
+    const freezeTime = frozen ? THREE.MathUtils.clamp(Number(requestedTime), 0, 3) : 0;
+    const clock = { value: 0 };
+    const TAU = Math.PI * 2;
+    const clamp = THREE.MathUtils.clamp;
+    const smooth = (a,b,v) => { const q = clamp((v-a)/(b-a),0,1); return q*q*(3-2*q); };
+
+    // Bright, seamless medical-illustration studio. All runtime assets are procedural.
+    const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('film'),antialias:false,powerPreference:'high-performance'});
+    const renderScale=()=>Math.min(devicePixelRatio,1.5,Math.sqrt(1920*1080/(innerWidth*innerHeight)));
+    renderer.setPixelRatio(renderScale());renderer.setSize(innerWidth,innerHeight);
+    renderer.toneMapping=THREE.NeutralToneMapping;renderer.toneMappingExposure=1;
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+    const scene=new THREE.Scene();scene.background=new THREE.Color('#fcfefe');
+    const camera=new THREE.PerspectiveCamera(30.5,innerWidth/innerHeight,.1,70);
+    camera.position.set(0,7.5,12.5);camera.lookAt(0,-1.65,0);
+
+    // Full-frame seamless studio sweep, in linear light. No title rectangle.
+    const backdrop=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({
+      depthTest:false,depthWrite:false,
+      vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,1.0,1.0);}`,
+      fragmentShader:`varying vec2 vUv;void main(){
+        float pool=exp(-pow((vUv.x-.61)/.62,2.0)-pow((vUv.y-.57)/.44,2.0));
+        vec3 base=mix(vec3(.965,.970,.970),vec3(.72,.755,.77),smoothstep(.06,.95,vUv.y));
+        base-=vec3(.095,.090,.085)*pool;
+        gl_FragColor=vec4(base,1.0);
+      }`
+    }));backdrop.frustumCulled=false;backdrop.renderOrder=-100;scene.add(backdrop);
+
+    const studio=new THREE.Scene();studio.background=new THREE.Color('#66737b');
+    function softbox(color,power,x,y,z,sx,sy,sz){
+      const mesh=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),new THREE.MeshBasicMaterial({color:new THREE.Color(color).multiplyScalar(power)}));
+      mesh.position.set(x,y,z);studio.add(mesh);
+    }
+    softbox('#ffffff',2.4,-3,7,4,7,.1,5);
+    softbox('#f5fbff',1.7,7,3,1,.1,7,2);
+    softbox('#ffffff',1.8,-5,3,-3,.1,6,1.2);
+    softbox('#202a32',.55,2,1,8,3.2,7,.1);
+    softbox('#17222c',.45,-3,2,3,.7,7,3);
+    const pmrem=new THREE.PMREMGenerator(renderer),environment=pmrem.fromScene(studio,.07);
+    scene.environment=environment.texture;
+    studio.traverse(o=>{if(o.isMesh){o.geometry.dispose();o.material.dispose();}});pmrem.dispose();
+    scene.environmentIntensity=.62;
+    scene.add(new THREE.HemisphereLight('#f9fdff','#81939e',.65));
+    const key=new THREE.DirectionalLight('#fff9ef',2.1);key.position.set(-4,10,5);key.target.position.set(1,-1,0);
+    key.castShadow=true;key.shadow.mapSize.set(2048,2048);
+    Object.assign(key.shadow.camera,{left:-8,right:8,top:8,bottom:-8,near:.5,far:30});
+    key.shadow.camera.updateProjectionMatrix();
+    key.shadow.bias=-.00008;key.shadow.normalBias=.004;key.shadow.radius=2;
+    scene.add(key,key.target);
+    const fill=new THREE.DirectionalLight('#e4f4ff',.45);fill.position.set(5,4,-3);scene.add(fill);
+
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.ShadowMaterial({color:'#526571',opacity:.28}));
+    floor.rotation.x=-Math.PI/2;floor.position.y=-2.14;floor.receiveShadow=true;scene.add(floor);
+    const steel=new THREE.MeshStandardMaterial({color:'#d1d6dc',metalness:1,roughness:.16,envMapIntensity:1.3});
+    const collarMaterial=new THREE.MeshStandardMaterial({color:'#74818d',metalness:1,roughness:.26,envMapIntensity:1.1});
+    const glass=new THREE.MeshPhysicalMaterial({color:'#bacfd7',roughness:.15,metalness:0,transmission:.15,thickness:.08,ior:1.4,transparent:true,opacity:.46,depthWrite:false});
+    const amber=new THREE.MeshPhysicalMaterial({color:'#b96306',roughness:.31,metalness:0,clearcoat:.25,clearcoatRoughness:.28});
+    const shellFluid=new THREE.MeshPhysicalMaterial({color:'#a9c8d3',roughness:.25,metalness:0,clearcoat:.3,transparent:true,opacity:.56,depthWrite:false});
+
+    // A thin frosted glass collector replaces the dark circular plate.
+    const collector=new THREE.Group();collector.position.set(1.2,-2.08,-.8);scene.add(collector);
+    const outline=new THREE.Shape(),w=5.4,d=3.3,r=.45;
+    outline.moveTo(-w+r,-d);outline.lineTo(w-r,-d);outline.quadraticCurveTo(w,-d,w,-d+r);
+    outline.lineTo(w,d-r);outline.quadraticCurveTo(w,d,w-r,d);outline.lineTo(-w+r,d);
+    outline.quadraticCurveTo(-w,d,-w,d-r);outline.lineTo(-w,-d+r);outline.quadraticCurveTo(-w,-d,-w+r,-d);
+    const collectorPlate=new THREE.Mesh(new THREE.ExtrudeGeometry(outline,{depth:.075,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.035,bevelThickness:.025,curveSegments:14}),
+      new THREE.MeshPhysicalMaterial({color:'#c2cfd4',roughness:.52,metalness:.03,transparent:true,opacity:.13,depthWrite:false}));
+    collectorPlate.rotation.x=-Math.PI/2;collectorPlate.receiveShadow=true;collector.add(collectorPlate);
+
+    // Broad, feathered contact occlusion supplies the tonal bed that individual
+    // sub-pixel strand shadows cannot provide. It grows with the deposited web.
+    const matContact=new THREE.Mesh(new THREE.PlaneGeometry(11.5,6.5),new THREE.ShaderMaterial({
+      uniforms:{uTime:clock},transparent:true,depthWrite:false,
+      vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+      fragmentShader:`uniform float uTime;varying vec2 vUv;void main(){
+        vec2 p=(vUv-.5)*2.0;float r=dot(p,p);
+        float a=exp(-2.8*r)*(1.0-smoothstep(.56,1.0,r));
+        gl_FragColor=vec4(.16,.21,.24,a*.25*smoothstep(0.0,2.8,uTime));
+      }`
+    }));matContact.rotation.x=-Math.PI/2;matContact.position.set(1.2,-1.974,-.8);matContact.renderOrder=1;scene.add(matContact);
+
+    // Timed reveal applies to BOTH the visible surface and its shadow. Unborn
+    // fibres must not cast shadows onto the sheet before they are deposited.
+    function revealMaterial(material,keyName){
+      material.onBeforeCompile=shader=>{
+        shader.uniforms.uTime=clock;
+        shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute float aBirth; varying float vBirth; varying float vLayer;')
+          .replace('#include <begin_vertex>','#include <begin_vertex>\nvBirth=aBirth; vLayer=position.y;');
+        shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nuniform float uTime; varying float vBirth; varying float vLayer;')
+          .replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\nif(vBirth>uTime) discard;');
+        if(!material.isMeshDepthMaterial){
+          shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+            diffuseColor.rgb*=mix(0.82,1.0,smoothstep(-1.85,-0.96,vLayer));`);
+        }
+      };
+      material.customProgramCacheKey=()=>keyName;return material;
+    }
+    function opticalMaterial(shell,deposited=false,strength=1){
+      if(deposited){
+        const material=shell
+          // A restrained diffuse fill suggests scattering through the protein
+          // shell. It is an illustration treatment, not measured luminescence.
+          ?new THREE.MeshPhysicalMaterial({color:'#f2efe7',roughness:.94,metalness:0,clearcoat:0,
+            sheen:.65,sheenColor:'#fff6df',sheenRoughness:1,emissive:'#fff1da',emissiveIntensity:.12,
+            transparent:true,opacity:.78,depthWrite:true})
+          :new THREE.MeshStandardMaterial({color:'#e2cba0',roughness:.95,metalness:0,emissive:'#ecd7b1',emissiveIntensity:.08});
+        return revealMaterial(material,shell?'medical-laid-shell':'medical-laid-core');
+      }
+      // The active jet keeps a clear amber interior, distinct from the soft,
+      // overwhelmingly pearly membrane. No emissive gold outlines on the mat.
+      return new THREE.ShaderMaterial({
+        defines:{SHELL:shell?1:0},uniforms:{uTime:clock,uStrength:{value:strength}},transparent:shell,depthWrite:!shell,
+        vertexShader:`varying vec3 vN;varying vec3 vV;varying vec2 vUv;
+          void main(){vec4 p=modelViewMatrix*vec4(position,1.0);vN=normalize(normalMatrix*normal);vV=-p.xyz;vUv=uv;gl_Position=projectionMatrix*p;}`,
+        fragmentShader:`uniform float uTime;uniform float uStrength;varying vec3 vN;varying vec3 vV;varying vec2 vUv;
+          void main(){
+            vec3 N=normalize(vN),V=normalize(vV),L=normalize(vec3(-.55,.8,.7));
+            float light=.42+.58*max(dot(N,L),0.0);
+            float edge=pow(1.0-clamp(dot(N,V),0.0,1.0),2.0);
+            float shine=pow(max(dot(N,normalize(V+L)),0.0),55.0);
+            #if SHELL == 1
+              vec3 pearl=mix(vec3(.79,.86,.89),vec3(.17,.30,.38),edge*.76)*light+shine*.30;
+              gl_FragColor=vec4(pearl,.24+.54*edge+.12*shine);
+            #else
+              vec3 gold=vec3(.65,.235,.015)*light+vec3(.30,.20,.065)*shine;
+              gold*=.97+.025*sin(vUv.x*33.0-uTime*17.0);
+              gl_FragColor=vec4(gold,1.0);
+            #endif
+          }`
+      });
+    }
+
+    // Compact steel coaxial spinneret. Fine independent feed lines enter a
+    // machined hub; the inner blunt needle projects below the outer cannula.
+    const spinneret=new THREE.Group();scene.add(spinneret);
+    function solid(geometry,material,x,y,z,parent=spinneret){
+      const mesh=new THREE.Mesh(geometry,material);mesh.position.set(x,y,z);mesh.castShadow=!material.transparent;mesh.receiveShadow=true;parent.add(mesh);return mesh;
+    }
+    function pipe(points,radius,material){
+      const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)),false,'centripetal');
+      const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,64,radius,16,false),material);mesh.castShadow=!material.transparent;spinneret.add(mesh);return mesh;
+    }
+    const coreFeed=[[-.95,1.95,-.65],[.2,1.95,-.65],[1.08,2.02,-.65],[1.4,1.97,-.65],[1.4,1.65,-.65]];
+    pipe(coreFeed,.047,glass);pipe(coreFeed,.026,amber);
+    const shellFeed=[[3.65,1.66,-.65],[3.0,1.66,-.65],[2.2,1.75,-.65],[1.58,1.75,-.65]];
+    pipe(shellFeed,.065,glass);pipe(shellFeed,.043,shellFluid);
+    const inletA=solid(new THREE.CylinderGeometry(.086,.086,.19,6),steel,.64,1.98,-.65);inletA.rotation.z=Math.PI/2;
+    const inletB=solid(new THREE.CylinderGeometry(.10,.10,.22,6),steel,1.94,1.75,-.65);inletB.rotation.z=Math.PI/2;
+    function annularTube(inner,outer,height,y,material,cut=false){
+      const points=[[inner,0],[outer,0],[outer,height],[inner,height],[inner,0]].map(([x,y])=>new THREE.Vector2(x,y));
+      return solid(new THREE.LatheGeometry(points,64,cut?.48:0,cut?TAU-.96:TAU),material,1.4,y,-.65);
+    }
+    annularTube(.055,.245,.26,1.69,steel);
+    solid(new THREE.CylinderGeometry(.255,.255,.095,6),collarMaterial,1.4,1.69,-.65);
+    annularTube(.055,.19,.11,1.55,steel);
+    // The outer tube is open-ended, with a short cutaway at its lower end.
+    annularTube(.098,.132,.75,.80,steel);
+    annularTube(.098,.132,.07,.73,steel,true);
+    annularTube(.033,.052,1.03,.65,steel);
+    annularTube(.053,.096,.10,.73,shellFluid,true);
+    solid(new THREE.CylinderGeometry(.031,.031,1.20,32),amber,1.4,1.25,-.65);
+    const coneBaseY=.47;
+    const coneProfile=[[.055,0],[.058,.045],[.071,.10],[.103,.18],[.132,.26]];
+    const coneShell=new THREE.Mesh(new THREE.LatheGeometry(coneProfile.map(([r,y])=>new THREE.Vector2(r,y)),64),opticalMaterial(true));
+    coneShell.position.set(1.4,coneBaseY,-.65);coneShell.renderOrder=6;scene.add(coneShell);
+    const coneCore=new THREE.Mesh(new THREE.LatheGeometry(coneProfile.map(([r,y])=>new THREE.Vector2(r*(.56-.28*smooth(0,.26,y)),y)),48),opticalMaterial(false));
+    coneCore.position.copy(coneShell.position);scene.add(coneCore);
+
+
+    // ONE continuous deposited centreline. Its irregular loops change their
+    // size, aspect, position and orientation; no separate chord ends exist.
+    const windingCount=640;
+    const matSegments=windingCount*48;
+    const matSides=5;
+    const depositStart=.07, depositEnd=3.0;
+    const fibreCentres=Array.from({length:matSegments+1},()=>new THREE.Vector3());
+    const fibreRadii=new Float32Array(matSegments+1);
+    function depositedPoint(q,out) {
+      const theta=TAU*(windingCount*q+.43*Math.sin(TAU*7.1*q)+.12*Math.sin(TAU*19.4*q));
+      const orientation=TAU*(12.17*q+.06*Math.sin(TAU*9.31*q));
+      const a=.47+.27*Math.sin(TAU*17.37*q+.2)*Math.sin(TAU*3.93*q+1.4);
+      const b=.36+.25*Math.cos(TAU*13.71*q+.9)*Math.sin(TAU*8.61*q+.5);
+      const lx=a*Math.cos(theta)+.022*Math.sin(theta*2.37+q*110);
+      const lz=b*Math.sin(theta+.70*Math.sin(q*TAU*21.7+.3))+.022*Math.sin(theta*1.71+q*81);
+      // Off-centre loops cross the middle instead of collecting into a torus.
+      let x=.34*Math.sin(TAU*13.91*q+.3)+.115*Math.sin(TAU*27.43*q)+lx*Math.cos(orientation)-lz*Math.sin(orientation);
+      let z=.30*Math.cos(TAU*9.33*q+.4)+.11*Math.sin(TAU*23.7*q)+lx*Math.sin(orientation)+lz*Math.cos(orientation);
+      const radius=Math.hypot(x,z);
+      const contain=Math.pow(1+Math.pow(radius/.93,8),-1/8);
+      x*=5.35*contain; z*=2.70*contain;
+      const y=-1.80+.76*q+.055*Math.sin(x*1.7+z*.8)+.027*Math.cos(z*3.2-x*1.2);
+      return out.set(1.2+x,y,z-.8);
+    }
+    for(let i=0;i<=matSegments;i++) {
+      const q=i/matSegments;
+      depositedPoint(q,fibreCentres[i]);
+      fibreRadii[i]= .0055+.0015*Math.pow(Math.sin(q*TAU*9.7+.4),2);
+    }
+    // Tight bends remain thinner than their local bend radius, avoiding pinched
+    // or inverted tube surfaces at a few narrow loops.
+    const incoming=new THREE.Vector3(),outgoing=new THREE.Vector3(),crossing=new THREE.Vector3();
+    for(let i=1;i<matSegments;i++) {
+      incoming.subVectors(fibreCentres[i],fibreCentres[i-1]);
+      outgoing.subVectors(fibreCentres[i+1],fibreCentres[i]);
+      const area=crossing.crossVectors(incoming,outgoing).length();
+      if(area>1e-10) {
+        const bendRadius=incoming.length()*outgoing.length()*fibreCentres[i+1].distanceTo(fibreCentres[i-1])/(2*area);
+        fibreRadii[i]=Math.min(fibreRadii[i],bendRadius*.35);
+      }
+    }
+    function laidTube(ratio) {
+      const count=(matSegments+1)*(matSides+1);
+      const positions=new Float32Array(count*3),normals=new Float32Array(count*3);
+      const uvs=new Float32Array(count*2),birth=new Float32Array(count);
+      const indices=new Uint32Array(matSegments*matSides*6);
+      const T=new THREE.Vector3(),N=new THREE.Vector3(),B=new THREE.Vector3(),axis=new THREE.Vector3(0,1,0);
+      let index=0;
+      for(let i=0;i<=matSegments;i++) {
+        const q=i/matSegments,p=fibreCentres[i];
+        T.subVectors(fibreCentres[Math.min(i+1,matSegments)],fibreCentres[Math.max(i-1,0)]).normalize();
+        N.crossVectors(T,axis).normalize(); B.crossVectors(T,N).normalize();
+        const radius=fibreRadii[i]*ratio;
+        for(let j=0;j<=matSides;j++) {
+          const phi=j/matSides*TAU,c=Math.cos(phi),s=Math.sin(phi);
+          const nx=N.x*c+B.x*s,ny=N.y*c+B.y*s,nz=N.z*c+B.z*s;
+          const k=i*(matSides+1)+j;
+          positions[k*3]=p.x+nx*radius; positions[k*3+1]=p.y+ny*radius; positions[k*3+2]=p.z+nz*radius;
+          normals[k*3]=nx; normals[k*3+1]=ny; normals[k*3+2]=nz;
+          uvs[k*2]=q; uvs[k*2+1]=j/matSides;
+          birth[k]=depositStart+q*(depositEnd-depositStart);
+          if(i<matSegments && j<matSides) {
+            const a=k,b=a+matSides+1;
+            indices[index++]=a; indices[index++]=a+1; indices[index++]=b;
+            indices[index++]=b; indices[index++]=a+1; indices[index++]=b+1;
+          }
+        }
+      }
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.BufferAttribute(positions,3));
+      g.setAttribute('normal',new THREE.BufferAttribute(normals,3));
+      g.setAttribute('uv',new THREE.BufferAttribute(uvs,2));
+      g.setAttribute('aBirth',new THREE.BufferAttribute(birth,1));
+      g.setIndex(new THREE.BufferAttribute(indices,1)); g.computeBoundingSphere();
+      return g;
+    }
+    const coreMat=opticalMaterial(false,true,.97);
+    const shellMat=opticalMaterial(true,true,1.12);
+    const membraneCore=new THREE.Mesh(laidTube(.56),coreMat);
+    const membraneShell=new THREE.Mesh(laidTube(1),shellMat);
+    membraneShell.renderOrder=3;
+    scene.add(membraneCore,membraneShell);
+    // Sub-pixel strand shadow maps create hard wire-like outlines. The growing
+    // feathered contact shadow and gentle layer shading carry the bulk depth.
+    membraneShell.castShadow=false;membraneShell.receiveShadow=false;membraneCore.receiveShadow=false;
+    membraneShell.customDepthMaterial=revealMaterial(new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking}),'medical-fibre-shadow');
+
+    const contact=new THREE.Vector3();
+    function depositionFraction(t) { return clamp((t-depositStart)/(depositEnd-depositStart),0,1); }
+    function contactAt(t,out=contact) {
+      const index=depositionFraction(t)*matSegments;
+      const i=Math.min(matSegments-1,Math.floor(index));
+      return out.lerpVectors(fibreCentres[i],fibreCentres[i+1],index-i);
+    }
+
+    // A short stable neck accelerates into irregular 3D bending. Superposed
+    // frequencies modulate the expanding whip; the last point is always the
+    // SAME advancing end used to reveal the deposited membrane.
+    const jetSegments=280,jetSides=12;
+    const jetOrigin=new THREE.Vector3(1.4,coneBaseY,-.65);
+    const jetCentres=Array.from({length:jetSegments+1},()=>new THREE.Vector3());
+    const tangent=new THREE.Vector3(),normal=new THREE.Vector3(),binormal=new THREE.Vector3();
+    const reference=new THREE.Vector3(0,0,1),alternative=new THREE.Vector3(1,0,0);
+    function centrelineAt(t,points) {
+      const tip=contactAt(t);
+      const establish=smooth(0,depositStart,t);
+      const amp=1+.15*Math.sin(t*23.7)+.09*Math.sin(t*57.9+1.2);
+      for(let i=0;i<=jetSegments;i++) {
+        const s=i/jetSegments*establish;
+        // Leave the first section tangent to the vertical compound cone.
+        const lean=smooth(.08,1,s);
+        const p=points[i];
+        p.set(THREE.MathUtils.lerp(jetOrigin.x,tip.x,lean),THREE.MathUtils.lerp(jetOrigin.y,tip.y,s),THREE.MathUtils.lerp(jetOrigin.z,tip.z,lean));
+        const envelope=smooth(.09,.46,s)*Math.pow(Math.max(0,Math.sin(Math.PI*s)),.72)*amp;
+        const phase=s*TAU*2.65-t*43.0+.65*Math.sin(s*13.3-t*19.7)+.23*Math.sin(t*61.1+s*8);
+        p.x+=envelope*(1.58*Math.cos(phase)+.31*Math.sin(phase*1.79+t*13.6));
+        p.z+=envelope*(1.18*Math.sin(phase)+.28*Math.cos(phase*1.41-t*11.3));
+        p.y+=envelope*.16*Math.sin(phase*1.23+t*9.1);
+      }
+      // Avoid floating point remnants at either endpoint.
+      points[0].copy(jetOrigin);
+      if(establish===1) points[jetSegments].copy(tip);
+    }
+    function jetGeometry() {
+      const g=new THREE.BufferGeometry();
+      const count=(jetSegments+1)*(jetSides+1);
+      g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(count*3),3).setUsage(THREE.DynamicDrawUsage));
+      g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(count*3),3).setUsage(THREE.DynamicDrawUsage));
+      const uvs=[],indices=[];
+      for(let i=0;i<=jetSegments;i++) {
+        for(let j=0;j<=jetSides;j++) {
+          uvs.push(i/jetSegments,j/jetSides);
+          if(i<jetSegments && j<jetSides) {
+            const a=i*(jetSides+1)+j,b=a+jetSides+1;
+            indices.push(a,a+1,b,b,a+1,b+1);
+          }
+        }
+      }
+      g.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));g.setIndex(indices);
+      return g;
+    }
+    const jetCoreMaterial=opticalMaterial(false,false,1.30);
+    const jetShellMaterial=opticalMaterial(true,false,1.20);
+    const jetCore=new THREE.Mesh(jetGeometry(),jetCoreMaterial);
+    const jetShell=new THREE.Mesh(jetGeometry(),jetShellMaterial);
+    jetCore.frustumCulled=false;jetShell.frustumCulled=false;jetShell.renderOrder=6;
+    scene.add(jetCore,jetShell);
+    const jetLayers=[[jetShell,1],[jetCore,.56]];
+    const jetRadii=new Float32Array(jetSegments+1);
+    function updateJet(t) {
+      centrelineAt(t,jetCentres);
+      const pathIndex=depositionFraction(t)*matSegments;
+      const i0=Math.min(matSegments-1,Math.floor(pathIndex));
+      const tipRadius=THREE.MathUtils.lerp(fibreRadii[i0],fibreRadii[i0+1],pathIndex-i0);
+      for(let i=0;i<=jetSegments;i++) jetRadii[i]=tipRadius+(.055-tipRadius)*Math.pow(1-i/jetSegments,1.72);
+      for(let i=1;i<jetSegments;i++) {
+        incoming.subVectors(jetCentres[i],jetCentres[i-1]);
+        outgoing.subVectors(jetCentres[i+1],jetCentres[i]);
+        const area=crossing.crossVectors(incoming,outgoing).length();
+        if(area>1e-10) {
+          const bendRadius=incoming.length()*outgoing.length()*jetCentres[i+1].distanceTo(jetCentres[i-1])/(2*area);
+          jetRadii[i]=Math.min(jetRadii[i],bendRadius*.30);
+        }
+      }
+      for(let i=0;i<=jetSegments;i++) {
+        tangent.subVectors(jetCentres[Math.min(jetSegments,i+1)],jetCentres[Math.max(0,i-1)]).normalize();
+        if(tangent.lengthSq()<.1) tangent.set(0,-1,0);
+        // Transport the cross-section along the curve instead of switching
+        // reference axes at every ring, which can abruptly twist the tube.
+        if(i===0) normal.crossVectors(tangent,Math.abs(tangent.z)>.94?alternative:reference).normalize();
+        else {
+          normal.addScaledVector(tangent,-normal.dot(tangent));
+          if(normal.lengthSq()<.001) normal.crossVectors(tangent,Math.abs(tangent.z)>.94?alternative:reference);
+          normal.normalize();
+        }
+        binormal.crossVectors(tangent,normal).normalize();
+        const radius=jetRadii[i];
+        for(let j=0;j<=jetSides;j++) {
+          const phi=j/jetSides*TAU,c=Math.cos(phi),s=Math.sin(phi),k=(i*(jetSides+1)+j)*3;
+          const nx=normal.x*c+binormal.x*s,ny=normal.y*c+binormal.y*s,nz=normal.z*c+binormal.z*s;
+          for(const [mesh,ratio] of jetLayers) {
+            const p=mesh.geometry.attributes.position.array,n=mesh.geometry.attributes.normal.array;
+            p[k]=jetCentres[i].x+nx*radius*ratio;p[k+1]=jetCentres[i].y+ny*radius*ratio;p[k+2]=jetCentres[i].z+nz*radius*ratio;
+            n[k]=nx;n[k+1]=ny;n[k+2]=nz;
+          }
+        }
+      }
+      for(const [mesh] of jetLayers) {
+        mesh.geometry.attributes.position.needsUpdate=true;mesh.geometry.attributes.normal.needsUpdate=true;
+        mesh.visible=t>.003;
+      }
+    }
+
+    // Thin, fading shutter exposures communicate speed without extra solid jets.
+    const trailDelays=[.0035,.008,.014,.023];
+    const trailPoints=Array.from({length:jetSegments+1},()=>new THREE.Vector3());
+    const ghosts=trailDelays.map((delay,k)=>{
+      const g=new THREE.BufferGeometry();
+      g.setAttribute('position',new THREE.BufferAttribute(new Float32Array((jetSegments+1)*3),3).setUsage(THREE.DynamicDrawUsage));
+      const colors=new Float32Array((jetSegments+1)*3);
+      for(let i=0;i<=jetSegments;i++) {
+        const weight=Math.pow(Math.sin(i/jetSegments*Math.PI),.6);
+        colors[i*3]=.43*weight;colors[i*3+1]=.71*weight;colors[i*3+2]=.76*weight;
+      }
+      g.setAttribute('color',new THREE.BufferAttribute(colors,3));
+      const m=new THREE.LineBasicMaterial({color:'#6394a3',vertexColors:true,transparent:true,opacity:.10-k*.018,depthWrite:false,blending:THREE.NormalBlending});
+      const line=new THREE.Line(g,m);line.frustumCulled=false;line.renderOrder=4;scene.add(line);
+      return line;
+    });
+    function updateTrails(t) {
+      ghosts.forEach((line,k)=>{
+        const past=Math.max(0,t-trailDelays[k]);
+        centrelineAt(past,trailPoints);
+        const p=line.geometry.attributes.position.array;
+        for(let i=0;i<=jetSegments;i++) {p[i*3]=trailPoints[i].x;p[i*3+1]=trailPoints[i].y;p[i*3+2]=trailPoints[i].z;}
+        line.geometry.attributes.position.needsUpdate=true;line.visible=past>.01;
+      });
+    }
+
+
+    // An enlarged fibre curls out of the front of the forming mat. The open
+    // longitudinal window and annular end face make the two materials explicit.
+    // Its radius tapers back to a normal strand where it enters the web.
+    const sectionPath=new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-3.05,-.62,3.05),new THREE.Vector3(-3.09,-.56,2.43),
+      new THREE.Vector3(-1.75,-.48,1.88),new THREE.Vector3(-.15,-.67,1.60),
+      new THREE.Vector3(1.28,-1.11,.34)
+    ],false,'centripetal');
+    const sectionSegments=144,sectionSides=40;
+    const sectionCentres=[],sectionFrames=[],sectionRadii=[];
+    for(let i=0;i<=sectionSegments;i++){
+      const u=i/sectionSegments,p=sectionPath.getPointAt(u),T=sectionPath.getTangentAt(u).normalize();
+      const N=camera.position.clone().sub(p);N.addScaledVector(T,-N.dot(T));
+      if(N.lengthSq()<.001)N.crossVectors(T,new THREE.Vector3(0,1,0));N.normalize();
+      const B=new THREE.Vector3().crossVectors(T,N).normalize();
+      sectionCentres.push(p);sectionFrames.push({T,N,B});sectionRadii.push(THREE.MathUtils.lerp(.235,.018,smooth(.65,1,u)));
+    }
+    function sectionData(){return {p:[],n:[],index:[]};}
+    const sectionShellData=sectionData(),sectionCoreData=sectionData();
+    function quad(data,points,normals){
+      const start=data.p.length/3;
+      for(let k=0;k<4;k++){data.p.push(points[k].x,points[k].y,points[k].z);data.n.push(normals[k].x,normals[k].y,normals[k].z);}
+      const facing=points[1].clone().sub(points[0]).cross(points[2].clone().sub(points[0])).dot(normals[0]);
+      if(facing>=0)data.index.push(start,start+1,start+2,start,start+2,start+3);
+      else data.index.push(start,start+2,start+1,start,start+3,start+2);
+    }
+    function radial(i,phi){const f=sectionFrames[i];return f.N.clone().multiplyScalar(Math.cos(phi)).addScaledVector(f.B,Math.sin(phi));}
+    function ringPoint(i,phi,ratio){return sectionCentres[i].clone().addScaledVector(radial(i,phi),sectionRadii[i]*ratio);}
+    const gapSides=7;
+    for(let i=0;i<sectionSegments;i++){
+      const inWindow=i>=18&&i<99;
+      for(let j=0;j<sectionSides;j++){
+        const a=j/sectionSides*TAU,b=(j+1)/sectionSides*TAU;
+        const normals=[radial(i,a),radial(i,b),radial(i+1,b),radial(i+1,a)];
+        quad(sectionCoreData,[ringPoint(i,a,.56),ringPoint(i,b,.56),ringPoint(i+1,b,.56),ringPoint(i+1,a,.56)],normals);
+        if(inWindow&&(j<gapSides||j>=sectionSides-gapSides))continue;
+        quad(sectionShellData,[ringPoint(i,a,1),ringPoint(i,b,1),ringPoint(i+1,b,1),ringPoint(i+1,a,1)],normals);
+        quad(sectionShellData,[ringPoint(i,a,.56),ringPoint(i,b,.56),ringPoint(i+1,b,.56),ringPoint(i+1,a,.56)],normals.map(n=>n.clone().negate()));
+      }
+      if(inWindow){
+        for(const [j,sign] of [[gapSides,-1],[sectionSides-gapSides,1]]){
+          const phi=j/sectionSides*TAU;
+          const wallNormal=k=>sectionFrames[k].N.clone().multiplyScalar(-Math.sin(phi)*sign).addScaledVector(sectionFrames[k].B,Math.cos(phi)*sign);
+          quad(sectionShellData,[ringPoint(i,phi,1),ringPoint(i,phi,.56),ringPoint(i+1,phi,.56),ringPoint(i+1,phi,1)],
+            [wallNormal(i),wallNormal(i),wallNormal(i+1),wallNormal(i+1)]);
+        }
+      }
+    }
+    // Annular faces at the window boundaries show shell thickness, not a skin.
+    for(const [i,sign] of [[0,-1],[18,1],[99,-1],[sectionSegments,1]]){
+      const N=sectionFrames[i].T.clone().multiplyScalar(sign);
+      for(let j=0;j<sectionSides;j++){
+        if((i===18||i===99)&&j>=gapSides&&j<sectionSides-gapSides)continue;
+        const a=j/sectionSides*TAU,b=(j+1)/sectionSides*TAU;
+        quad(sectionShellData,[ringPoint(i,a,1),ringPoint(i,b,1),ringPoint(i,b,.56),ringPoint(i,a,.56)],[N,N,N,N]);
+      }
+    }
+    // The exposed core's end disk is flush with the shell end.
+    for(const [i,sign] of [[0,-1],[sectionSegments,1]]){
+      const N=sectionFrames[i].T.clone().multiplyScalar(sign),C=sectionCentres[i];
+      for(let j=0;j<sectionSides;j++){
+        const a=j/sectionSides*TAU,b=(j+1)/sectionSides*TAU;
+        quad(sectionCoreData,[C,ringPoint(i,a,.56),ringPoint(i,b,.56),C],[N,N,N,N]);
+      }
+    }
+    function sectionGeometry(data){
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(data.p,3));
+      g.setAttribute('normal',new THREE.Float32BufferAttribute(data.n,3));g.setIndex(data.index);g.computeBoundingSphere();return g;
+    }
+    const sectionCore=new THREE.Mesh(sectionGeometry(sectionCoreData),new THREE.MeshPhysicalMaterial({color:'#c06a05',roughness:.32,metalness:0,clearcoat:.24,envMapIntensity:.45}));
+    const sectionShell=new THREE.Mesh(sectionGeometry(sectionShellData),new THREE.MeshPhysicalMaterial({color:'#b7cbd5',roughness:.26,metalness:0,clearcoat:.4,transmission:.12,thickness:.18,ior:1.4,transparent:true,opacity:.91,depthWrite:true}));
+    // Keep the accepted cutaway materials; use its feathered contact shadow
+    // below instead of a shadow-map silhouette of the triangulated cut ends.
+    sectionShell.castShadow=false;sectionShell.receiveShadow=true;sectionShell.renderOrder=4;
+    sectionCore.castShadow=false;sectionCore.receiveShadow=true;scene.add(sectionCore,sectionShell);
+
+    // A curved, feathered shadow under the enlarged fibre, rather than a hard
+    // silhouette. It follows the fibre in world space during the camera slide.
+    // Evaluate distance to the curved centreline on ONE plane. An offset ribbon
+    // can fold at tight bends and expose a fan of overlapping triangle streaks.
+    const shadowPath=Array.from({length:19},(_,i)=>{
+      const p=sectionCentres[i*8],u=i/18;
+      return new THREE.Vector3(p.x+.10,p.z-.12,.32*(1-.55*smooth(.55,1,u)));
+    });
+    const sectionContact=new THREE.Mesh(new THREE.PlaneGeometry(7,5),new THREE.ShaderMaterial({
+      uniforms:{uPath:{value:shadowPath}},
+      transparent:true,depthWrite:false,side:THREE.DoubleSide,
+      vertexShader:`varying vec2 vWorldXZ;void main(){
+        vec4 p=modelMatrix*vec4(position,1.0);vWorldXZ=p.xz;gl_Position=projectionMatrix*viewMatrix*p;
+      }`,
+      fragmentShader:`uniform vec3 uPath[19];varying vec2 vWorldXZ;void main(){
+        float distanceSquared=1000.0;
+        for(int i=0;i<18;i++){
+          vec2 a=uPath[i].xy,b=uPath[i+1].xy,ab=b-a;
+          float t=clamp(dot(vWorldXZ-a,ab)/max(dot(ab,ab),.00001),0.0,1.0);
+          vec2 delta=vWorldXZ-mix(a,b,t);
+          float width=mix(uPath[i].z,uPath[i+1].z,t);
+          distanceSquared=min(distanceSquared,dot(delta,delta)/(width*width));
+        }
+        float alpha=exp(-2.0*distanceSquared)*(1.0-smoothstep(2.0,4.0,distanceSquared));
+        gl_FragColor=vec4(.17,.22,.25,.22*alpha);
+      }`
+    }));sectionContact.rotation.x=-Math.PI/2;sectionContact.position.set(-.85,-1.970,1.60);
+    sectionContact.renderOrder=1;scene.add(sectionContact);
+
+    const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+    composer.addPass(new OutputPass());
+    // Selective optical softness on the front-right fringe of the mat. This is
+    // an illustrative focus treatment, not a simulated microscope/PSF. The
+    // focus anchor is projected from world space and follows the camera.
+    const focusAnchor=new THREE.Vector3(3.45,-1.18,1.35),focusProjected=new THREE.Vector3();
+    const finish=new ShaderPass({
+      uniforms:{tDiffuse:{value:null},uPixel:{value:new THREE.Vector2(1/innerWidth,1/innerHeight)},uTime:clock,uFocus:{value:new THREE.Vector2()}},
+      vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+      fragmentShader:`uniform sampler2D tDiffuse;uniform vec2 uPixel;uniform vec2 uFocus;varying vec2 vUv;
+        void main(){
+          vec3 c=texture2D(tDiffuse,vUv).rgb;
+          vec3 soft=(texture2D(tDiffuse,vUv+vec2(uPixel.x,0.0)).rgb+texture2D(tDiffuse,vUv-vec2(uPixel.x,0.0)).rgb+
+            texture2D(tDiffuse,vUv+vec2(0.0,uPixel.y)).rgb+texture2D(tDiffuse,vUv-vec2(0.0,uPixel.y)).rgb)*.25;
+          c=mix(c,soft,.14*smoothstep(.035,.20,length(c-soft)));
+          vec2 f=(vUv-uFocus)/vec2(.20,.065);
+          float defocus=exp(-dot(f,f)*1.5)*smoothstep(.57,.66,vUv.x);
+          vec2 r=uPixel*3.0;
+          vec3 blurred=texture2D(tDiffuse,vUv).rgb*.20;
+          blurred+=(texture2D(tDiffuse,vUv+vec2(r.x,0.0)).rgb+texture2D(tDiffuse,vUv-vec2(r.x,0.0)).rgb+
+            texture2D(tDiffuse,vUv+vec2(0.0,r.y)).rgb+texture2D(tDiffuse,vUv-vec2(0.0,r.y)).rgb)*.12;
+          blurred+=(texture2D(tDiffuse,vUv+r*.707).rgb+texture2D(tDiffuse,vUv-r*.707).rgb+
+            texture2D(tDiffuse,vUv+vec2(r.x,-r.y)*.707).rgb+texture2D(tDiffuse,vUv+vec2(-r.x,r.y)*.707).rgb)*.08;
+          gl_FragColor=vec4(mix(c,blurred,defocus*.94),1.0);
+        }`
+    });composer.addPass(finish);
+    function composeAt(t){
+      clock.value=t;finish.uniforms.uTime.value=t;
+      const slide=.34*(smooth(0,3,t)-.5);
+      camera.position.set(slide,7.5,12.5);camera.lookAt(0,-1.65,0);camera.updateMatrixWorld(true);
+      focusProjected.copy(focusAnchor).project(camera);
+      finish.uniforms.uFocus.value.set(focusProjected.x*.5+.5,focusProjected.y*.5+.5);
+      updateJet(t);updateTrails(t);composer.render();
+    }
+    function resize(){
+      camera.aspect=innerWidth/innerHeight;
+      camera.position.set(0,7.5,12.5);camera.lookAt(0,-1.65,0);camera.fov=camera.aspect<1?50:30.5;camera.updateProjectionMatrix();
+      renderer.setPixelRatio(renderScale());renderer.setSize(innerWidth,innerHeight);
+      composer.setPixelRatio(renderer.getPixelRatio());composer.setSize(innerWidth,innerHeight);
+      finish.uniforms.uPixel.value.set(1/(innerWidth*renderer.getPixelRatio()),1/(innerHeight*renderer.getPixelRatio()));
+      composeAt(frozen?freezeTime:lastTime);
+    }
+    let lastTime=frozen?freezeTime:0;resize();const start=performance.now();
+    function frame(now){lastTime=Math.min(((now-start)/1000)%3.55,3);composeAt(lastTime);requestAnimationFrame(frame);}
+    if(!frozen)requestAnimationFrame(frame);window.addEventListener('resize',resize);
+    window.__KOP_CLIP__={duration:3,loop:3.55,frozen,time:freezeTime,style:'bright medical illustration',continuousPath:true,
+      core:'PCL + Curcuma xanthorrhiza extract',shell:'gelatine/chitosan',editorSafeRect:[940,780,980,300]};
+  </script>
+</body>
+</html>

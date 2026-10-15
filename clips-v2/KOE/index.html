@@ -1,0 +1,255 @@
+<!doctype html>
+<!--
+PAPER: Wahid & Badarussamin, Jurnal Kejuruteraan 38(1), 455–463 (2026).
+Table 2, p.459: extension 0.27 Nm / 30 deg; flexion 0.26 Nm / 40 deg;
+radial and ulnar 0.32 Nm. P.459: four antagonistic SMA coils, two dorsal,
+two palm-side; diagonal combinations for deviation; 2 A, 5 V torque test,
+6 cm moment arm. P.460 / Fig.11: extension 0.328 Nm, flexion 0.332 Nm;
+neither sideways mode meets 0.32 Nm. Sideways arrows use APPROXIMATE PLOT
+READINGS of 0.08 and 0.07 Nm, not exact reported measurements. All four
+sweeps use one scale: 300 degrees/Nm (0.1 Nm = 30 deg). Pp.460–461: diagonal placement and
+glove friction suggested as causes. P.461 / Table 4: cycle about 1 min.
+Fig.9 mode names disagree with p.459 prose / Fig.11; diagonal pairs are
+shown sequentially, with a combined radial/ulnar label, without mode names.
+ARTISTIC LICENCE: orthographic 2.5D geometry, illustrative target wrist
+poses (not measured ROM), exaggerated contraction and luminous red heat
+encoding (not literal incandescence), accelerated deterministic timeline.
+Top view is a translucent technical cutaway: the two palm-side coils are
+visible and offset inward. There are four actuators, repeated in two views.
+No new torque, speed or clinical outcome is inferred from this illustration.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heated springs bend the wrist, but not sideways</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071d30}
+body{display:grid;place-items:center}
+canvas{display:block;width:min(100vw,177.777778vh);height:min(100vh,56.25vw)}
+</style>
+</head>
+<body>
+<canvas id="sheet" width="1920" height="1080" aria-label="Heated springs bend the wrist, but not sideways"></canvas>
+<script type="module">
+const canvas=document.getElementById('sheet'),ctx=canvas.getContext('2d');
+const W=1920,H=1080,DEG=Math.PI/180,TORQUE_SCALE=300*DEG;
+const TOP={x:1490,y:533,scale:.864};
+const C={white:'#e7f6fb',cyan:'#8bdaed',muted:'#83b3c7',green:'#92ffdc',amber:'#ffc47c'};
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=(t,a,b)=>{const u=clamp((t-a)/(b-a));return u*u*(3-2*u)};
+const mix=(a,b,t)=>a+(b-a)*t;
+let t=0,mode='blueprint',item=0;
+function stateAt(time){
+ const ex=ease(time,1.10,1.48),fl=ease(time,1.61,1.98);
+ const radial=ease(time,1.91,2.06),ulnar=ease(time,2.14,2.30);
+ const diagonalA=radial*(1-ease(time,2.06,2.14));
+ const diagonalB=ease(time,2.15,2.28)*(1-ease(time,2.56,3.00));
+ return {ex,fl,radial,ulnar,angle:(-30*ex+70*fl)*DEG,
+   topHeat:ex*(1-ease(time,1.59,1.78)),bottomHeat:fl*(1-ease(time,2.30,3.50)),
+   diagonalA,diagonalB,
+   yaw:6.5*(diagonalA-diagonalB)*DEG};
+}
+// Paths are flattened into measured segments: trace fronts advance in pixels,
+// not by an easing of the stroke's percentage.
+class Line {
+ constructor(x,y){this.p=[[x,y]]}
+ l(x,y){this.p.push([x,y]);return this}
+ c(a,b,c,d,x,y){const [sx,sy]=this.p.at(-1);for(let i=1;i<=24;i++){const u=i/24,v=1-u;this.l(v*v*v*sx+3*v*v*u*a+3*v*u*u*c+u*u*u*x,v*v*v*sy+3*v*v*u*b+3*v*u*u*d+u*u*u*y)}return this}
+ close(){this.p.push(this.p[0]);return this}
+}
+function line(points){const p=new Line(...points[0]);points.slice(1).forEach(v=>p.l(...v));return p}
+function trace(p,stroke=C.cyan,width=1.7,fill=null,cloth=false){
+ const pts=p.p;let length=0;for(let i=1;i<pts.length;i++)length+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);
+ const progress=mode==='cad'?1:clamp((t-.025-item*.004)*14000/Math.max(1,length));item++;
+ ctx.beginPath();ctx.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)ctx.lineTo(...pts[i]);
+ if(fill&&mode==='cad'){
+  ctx.save();ctx.shadowColor='#03111f80';ctx.shadowBlur=13;ctx.shadowOffsetY=5;ctx.fillStyle=fill;ctx.fill();ctx.restore();
+  if(cloth){
+   ctx.save();ctx.clip();const xs=pts.map(v=>v[0]),ys=pts.map(v=>v[1]);
+   const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
+   for(let y=top;y<bottom;y+=4)rule(left,y,right,y,'#d4e6ed16',.8);
+   for(let x=left-bottom+top;x<right+bottom-top;x+=5)rule(x,top,x+bottom-top,bottom,'#03162238',1.2);
+   ctx.restore();
+   ctx.beginPath();ctx.moveTo(...pts[0]);for(let i=1;i<pts.length;i++)ctx.lineTo(...pts[i]);
+  }
+ }
+ ctx.strokeStyle=mode==='cad'?stroke:C.cyan;ctx.lineWidth=width;
+ if(progress<1)ctx.setLineDash([length*progress,length+2]);
+ ctx.stroke();ctx.setLineDash([]);
+}
+function grad(x,y,x2,y2,stops){const g=ctx.createLinearGradient(x,y,x2,y2);stops.forEach(([p,c])=>g.addColorStop(p,c));return g}
+function rule(x,y,x2,y2,color=C.muted,width=1){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
+function label(text,x,y,size=30,color=C.white,alpha=1,weight=500){
+ ctx.save();ctx.globalAlpha=clamp(alpha);ctx.font=`${weight} ${size}px "Bahnschrift", "Arial Narrow", Arial, sans-serif`;
+ ctx.textBaseline='alphabetic';ctx.fillStyle=color;ctx.fillText(text,x,y);ctx.restore();
+}
+function circle(x,y,r,stroke,width=1,fill=null){ctx.beginPath();ctx.arc(x,y,r,0,2*Math.PI);if(fill){ctx.fillStyle=fill;ctx.fill()}ctx.strokeStyle=stroke;ctx.lineWidth=width;ctx.stroke()}
+function terminal(x,y,w=24,h=18){
+ trace(line([[x-w/2,y-h/2],[x+w/2,y-h/2],[x+w/2,y+h/2],[x-w/2,y+h/2],[x-w/2,y-h/2]]),'#a9c1cf',1.5,grad(x,y-h/2,x,y+h/2,[[0,'#c0d0d5'],[.3,'#627e8f'],[1,'#253f50']]));
+ if(mode==='cad')for(const dx of [-5,5]){circle(x+dx,y,2.6,'#1f3544',1,'#b8c8ce');rule(x+dx-1.5,y,x+dx+1.5,y,'#314556')}
+}
+function rotatePoint(x,y,a){return [660+x*Math.cos(a)-y*Math.sin(a),394+x*Math.sin(a)+y*Math.cos(a)]}
+function coil(a,b,heat,hidden=false){
+ const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L;
+ // The fixed turn count occupies a shorter active length when hot; leads carry
+ // the remainder. Moving hand anchors independently shorten the full span.
+ const span=L*(.80-.19*heat),start=(L-span)/2,p=new Line(...a);
+ const point=(s,n)=>[a[0]+ux*s-uy*n,a[1]+uy*s+ux*n];
+ p.l(...point(start,0));for(let i=0;i<33;i++)p.l(...point(start+span*i/32,i===0||i===32?0:(i%2?7:-7)));p.l(...b);
+ ctx.save();if(hidden)ctx.globalAlpha=.66;
+ if(mode==='cad'){
+  if(heat>.01){ctx.shadowColor=`rgba(255,83,38,${heat})`;ctx.shadowBlur=16*heat}
+  trace(p,heat>.1?`rgb(255,${Math.round(149-65*heat)},${Math.round(95-48*heat)})`:'#8596a0',5);
+  ctx.shadowBlur=0;trace(p,heat>.1?'#ffd2a0':'#d7dce0',1.3);
+ }else trace(p,C.cyan,1.8);
+ ctx.restore();
+ terminal(...a,20,15);terminal(...b,20,15);
+}
+function fabricSeams(pairs){ctx.save();ctx.setLineDash([3,5]);pairs.forEach(p=>trace(line(p),'#77929e',1));ctx.restore();ctx.setLineDash([])}
+function sideView(s){
+ const skin=grad(0,327,0,471,[[0,'#c6d6dc'],[.18,'#adc2cd'],[.55,'#728fa0'],[1,'#304e62']]);
+ const splint=grad(0,332,0,462,[[0,'#cadbe1'],[.20,'#728c9d'],[.48,'#4a687e'],[.75,'#8ca6b7'],[1,'#2b455a']]);
+ trace(new Line(99,328).c(260,331,470,349,611,360).c(630,364,651,364,665,368).l(665,426).c(550,430,327,459,99,469).close(),'#b3d2df',2,skin);
+ trace(new Line(137,335).c(300,340,469,350,589,363).l(580,433).c(413,452,250,459,139,460).close(),'#acc8d6',2,splint);
+ for(const x of [210,393]){
+  trace(new Line(x,337+(x-210)*.06).l(x+37,339+(x-210)*.06).l(x+37,452-(x-210)*.04).l(x,455-(x-210)*.04).close(),'#718b9a',1.5,grad(x,0,x+37,0,[[0,'#112d40'],[.4,'#314d61'],[1,'#0d2536']]))
+  trace(line([[x+6,355],[x+31,356],[x+31,387],[x+6,387],[x+6,355]]),'#96adb8',2, '#405b6e');
+ }
+ ctx.save();ctx.translate(660,394);ctx.rotate(s.angle);
+ // Four overlapping, staggered digits and a distinct thumb in orthographic profile.
+ const glove=grad(0,-45,0,68,[[0,'#839baa'],[.35,'#425e71'],[.68,'#223f54'],[1,'#122a3d']]);
+ trace(new Line(-20,-28).c(38,-39,100,-47,155,-34).c(180,-40,230,-35,274,-31).c(292,-30,300,-17,286,-9).l(179,-5).c(230,-11,279,-11,303,-7).c(321,-5,322,11,305,14).l(179,15).c(218,14,262,13,283,17).c(301,20,296,33,282,35).l(171,33).c(205,34,234,37,253,41).c(267,46,263,58,249,58).l(155,51).c(122,53,109,51,87,44).c(64,60,42,75,31,70).c(18,63,27,53,39,41).c(17,38,-4,34,-20,32).close(),'#aec5d0',2.2,glove,true);
+ // The thumb is already part of the silhouette; no second thumb contour.
+ fabricSeams([[[6,-23],[46,-31],[109,-29],[152,-18]],[[13,23],[65,29],[111,37]],[[172,-23],[213,-22]],[[182,5],[233,5]],[[179,25],[226,27]]]);
+ // Knuckle cuff is a textile anchor, not a rigid mechanical wrist hinge.
+ trace(new Line(102,-36).l(124,-37).l(124,37).l(105,35).close(),'#809aa8',1.2,'#152f42');
+ ctx.restore();
+ coil([459,338],rotatePoint(120,-44,s.angle),s.topHeat);
+ coil([451,317],rotatePoint(112,-64,s.angle),s.topHeat);
+ coil([459,450],rotatePoint(120,44,s.angle),s.bottomHeat);
+ coil([451,473],rotatePoint(112,65,s.angle),s.bottomHeat);
+}
+function topView(s){
+ ctx.save();ctx.translate(TOP.x,TOP.y);ctx.scale(TOP.scale,TOP.scale);
+ const body=grad(0,-85,0,90,[[0,'#a5beca'],[.40,'#51758b'],[1,'#213d53']]);
+ trace(new Line(-449,-96).c(-305,-94,-111,-57,-8,-55).l(0,56).c(-112,64,-309,92,-449,91).close(),'#aecbd9',2,body);
+ trace(new Line(-415,-80).l(-95,-51).l(-95,56).l(-415,77).close(),'#a6c3d1',2,grad(0,-80,0,80,[[0,'#89a5b8'],[.30,'#304e66'],[.64,'#688ba2'],[1,'#1c394e']]));
+ for(const x of [-352,-250])trace(line([[x,-77],[x+27,-74],[x+27,70],[x,73],[x,-77]]),'#668499',1.5,'#16364c');
+ ctx.save();ctx.rotate(s.yaw);
+ const hand=new Line(-22,-55).c(29,-59,56,-76,90,-80).l(170,-80).l(256,-78).c(283,-77,283,-48,259,-46).l(180,-42)
+  .l(287,-38).c(312,-37,315,-9,290,-6).l(180,-4).l(280,3).c(305,6,304,33,280,35).l(174,33)
+  .l(244,44).c(266,48,266,74,242,76).l(143,61).c(120,70,95,68,74,53)
+  .c(99,91,103,115,85,121).c(69,130,57,110,46,94).l(7,60).l(-22,55).close();
+ trace(hand,'#b7d0dc',2,grad(0,-85,0,124,[[0,'#839eaf'],[.40,'#3f6078'],[.70,'#25465c'],[1,'#6c899a']]),true);
+ fabricSeams([[[14,-45],[55,-63],[132,-64]],[[12,43],[48,53],[80,100]],[[174,-62],[225,-61]],[[182,-24],[244,-23]],[[180,16],[240,20]],[[172,48],[220,59]]]);
+ trace(line([[101,-79],[122,-79],[122,59],[102,57],[101,-79]]),'#91abb9',1.5,'#17364b');
+ ctx.restore();
+ const anchor=(x,y)=>[x*Math.cos(s.yaw)-y*Math.sin(s.yaw),x*Math.sin(s.yaw)+y*Math.cos(s.yaw)];
+ // Opposite diagonal pairs; thumb is below, little finger above in this view.
+ // Inner lanes are the exposed palm-side pair in this technical cutaway.
+ coil([-171,-48],anchor(119,-48),s.diagonalB);
+ coil([-171,-20],anchor(119,-20),s.diagonalA,true);
+ coil([-171,20],anchor(119,20),s.diagonalB,true);
+ coil([-171,48],anchor(119,48),s.diagonalA);
+ ctx.restore();
+}
+function axis(x,y,r=13){ctx.save();ctx.globalAlpha=ease(t,.05,.30);ctx.setLineDash([11,5,2,5]);rule(x-46,y,x+46,y,'#b9dbea');rule(x,y-44,x,y+44,'#b9dbea');ctx.setLineDash([]);circle(x,y,r,C.white,1.3);circle(x,y,3,C.cyan,1,C.cyan);ctx.restore()}
+function tip(x,y,angle,color,size=13){ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-size,-size*.43);ctx.lineTo(-size*.72,0);ctx.lineTo(-size,size*.43);ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.restore()}
+function crossingTime(required,value,start,finish){
+ let lo=start,hi=finish;
+ for(let i=0;i<32;i++){const mid=(lo+hi)/2;if(ease(mid,start,finish)*value<required)lo=mid;else hi=mid}
+ return (lo+hi)/2;
+}
+const extensionCross=crossingTime(.27,.328,1.10,1.48);
+const flexionCross=crossingTime(.26,.332,1.61,1.98);
+function checkMark(x,y,alpha){
+ ctx.save();ctx.globalAlpha*=alpha;rule(x-8,y,x-2,y+6,C.green,3.5);rule(x-2,y+6,x+11,y-9,C.green,3.5);ctx.restore();
+}
+function stopMark(x,y,alpha){
+ ctx.save();ctx.globalAlpha*=alpha;rule(x-6,y-6,x+6,y+6,C.amber,3);rule(x-6,y+6,x+6,y-6,C.amber,3);ctx.restore();
+}
+function moment(x,y,r,sign,required,value,progress,color,cross=null){
+ const target=sign*required*TORQUE_SCALE,end=sign*value*progress*TORQUE_SCALE;
+ ctx.save();ctx.globalAlpha=ease(t,.12,.32);
+ // Dashed requirement arc and solid output share the exact origin and radius.
+ ctx.beginPath();ctx.arc(x,y,r,0,target,sign<0);ctx.setLineDash([7,7]);ctx.strokeStyle='#b5d9e58c';ctx.lineWidth=2.4;ctx.stroke();ctx.setLineDash([]);
+ if(progress>.002){
+  ctx.beginPath();ctx.arc(x,y,r,0,end,sign<0);ctx.strokeStyle=color;ctx.lineWidth=5;ctx.shadowColor=color;ctx.shadowBlur=6;ctx.stroke();ctx.shadowBlur=0;
+  tip(x+r*Math.cos(end),y+r*Math.sin(end),end+sign*Math.PI/2,color,18);
+ }
+ circle(x+r,y,3,C.white,1,C.white);
+ const flash=cross===null?0:Math.sin(Math.PI*clamp((t-cross)/.22));
+ ctx.shadowColor=C.white;ctx.shadowBlur=flash*24;
+ rule(x+(r-21)*Math.cos(target),y+(r-21)*Math.sin(target),x+(r+21)*Math.cos(target),y+(r+21)*Math.sin(target),C.white,5+flash*3);
+ ctx.shadowBlur=0;
+ if(cross!==null){checkMark(x+(r+39)*Math.cos(target),y+(r+39)*Math.sin(target),ease(t,cross,cross+.10))}
+ else if(progress>.95){
+  const markerAngle=end+sign*9*DEG;
+  stopMark(x+(r+19)*Math.cos(markerAngle),y+(r+19)*Math.sin(markerAngle),clamp((progress-.95)/.05));
+ }
+ ctx.restore();
+}
+function sheet(){
+ ctx.fillStyle=grad(0,0,W,H,[[0,'#123e59'],[.44,'#0b2b43'],[1,'#071b2c']]);ctx.fillRect(0,0,W,H);
+ ctx.lineWidth=1;
+ for(let x=32;x<W;x+=32)rule(x,0,x,H,x%160===32?'#69a4bd18':'#609bb10c');
+ for(let y=24;y<H;y+=32)rule(0,y,W,y,y%160===24?'#69a4bd18':'#609bb10c');
+ ctx.strokeStyle='#6cabc33d';ctx.strokeRect(34.5,34.5,1851,1011);
+ // Empty drafting title-block cells continue into the reserved edit area.
+ rule(34,949,1886,949,'#6cabc32e');rule(919,949,919,1045,'#6cabc32e');
+ rule(919,993,1886,993,'#6cabc31a');rule(1616,949,1616,1045,'#6cabc32e');
+ for(const x of [34,1886])for(const y of [34,1045]){rule(x-10,y,x+10,y,C.muted);rule(x,y-10,x,y+10,C.muted)}
+}
+function annotations(s){
+ const on=ease(t,.10,.32);
+ label('SIDE VIEW',94,92,27,C.cyan,on,600);
+ label('TOP VIEW',1142,369,27,C.cyan,on,600);
+ axis(660,394);axis(TOP.x,TOP.y,10);
+ // Radial separation at the shared hand-side axis keeps the arrows distinct.
+ moment(660,394,204,-1,.27,.328,s.ex,C.green,extensionCross);
+ moment(660,394,236,1,.26,.332,s.fl,C.green,flexionCross);
+ moment(TOP.x,TOP.y,151,-1,.32,.07,s.ulnar,C.amber);
+ moment(TOP.x,TOP.y,166,1,.32,.08,s.radial,C.amber);
+ ctx.save();ctx.globalAlpha=on;
+ // Short leaders end precisely on the bold requirement bars.
+ rule(737,183,713,183,'#bedce8',1.5);rule(713,183,692,193,'#bedce8',1.5);
+ rule(746,656,730,637,'#bedce8',1.5);rule(730,637,709,625,'#bedce8',1.5);
+ ctx.restore();
+ label('needed 0.27 Nm',746,178,30,C.white,on);
+ label('needed 0.26 Nm',750,681,30,C.white,on);
+ label('Extension 0.328 Nm',288,167,37,C.green,ease(t,1.33,1.46),600);
+ label('Flexion 0.332 Nm',324,680,37,C.green,ease(t,1.84,1.98),600);
+ label('Radial / ulnar: below 0.32 Nm needed',1137,754,30,C.amber,ease(t,1.96,2.16),600);
+ // Reference dimension: wrist axis to force-application point, neutral pose.
+ ctx.save();ctx.globalAlpha=on;ctx.setLineDash([3,5]);rule(660,405,660,751,'#76a6bb66');rule(780,428,780,751,'#76a6bb66');ctx.setLineDash([]);
+ rule(660,746,780,746,C.muted);tip(660,746,Math.PI,C.cyan,8);tip(780,746,0,C.cyan,8);ctx.restore();
+ label('6 cm',690,789,28,C.white,on);
+ label('motion sped up; real cycle about 1 min',76,1007,27,C.muted,1);
+}
+function title(){
+ ctx.fillStyle=grad(1080,0,1870,0,[[0,'#0b2b4300'],[.20,'#0a263ad0'],[1,'#071c2db0']]);ctx.fillRect(1080,58,765,238);
+ label('Heated springs',1138,129,62,C.white,1,600);
+ label('bend the wrist,',1138,200,62,C.white,1,600);
+ label('but not sideways',1138,271,62,C.white,1,600);
+ rule(1138,306,1799,306,'#80c9dc55',1.3);
+}
+function render(time){
+ t=clamp(time,0,3);const s=stateAt(t);ctx.resetTransform();ctx.clearRect(0,0,W,H);ctx.lineJoin='round';ctx.lineCap='round';sheet();
+ mode='blueprint';item=0;sideView(s);topView(s);
+ if(t>.70){
+  const scan=clamp((t-.70)/.40),edge=70+1740*scan;
+  ctx.save();ctx.beginPath();ctx.rect(60,145,edge-60,590);ctx.clip();
+  mode='cad';item=0;sideView(s);topView(s);ctx.restore();
+  if(scan<1){ctx.save();ctx.fillStyle=grad(edge-55,0,edge+5,0,[[0,'#b6f1ff00'],[.9,'#b6f1ff20'],[1,'#b6f1ff00']]);ctx.fillRect(edge-55,320,60,350);rule(edge,320,edge,670,'#c8f5ff99',1.5);ctx.restore()}
+ }
+ annotations(s);title();
+}
+const raw=new URLSearchParams(location.search).get('t');
+const frozen=raw!==null&&Number.isFinite(Number(raw));
+if(frozen){render(Number(raw))}else{
+ const epoch=performance.now();const animate=now=>{const time=(now-epoch)/1000;render(time);if(time<3)requestAnimationFrame(animate)};requestAnimationFrame(animate);
+}
+</script>
+</body>
+</html>

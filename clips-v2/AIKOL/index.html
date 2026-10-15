@@ -1,0 +1,370 @@
+<!doctype html>
+<!--
+Paper: Ab Hamid et al. (2026), Transnational Organised Crime: A Significant
+Challenge to Malaysia's National Security. Five crime categories: abstract,
+p. 220; Table 3, pp. 229–231. Malaysian Acts: Table 3. FIPA = Firearms
+(Increased Penalties) Act 1971, p. 233. Migrant Smuggling Protocol: "not yet
+ratified", p. 232. Firearms Protocol: "not a signatory or State Party", p. 233.
+Drugs, migrants and firearms cross the porous Malaysian–Thai border, p. 228.
+No party-status assertion is made for the other three crime categories.
+Geography: unmodified world-atlas 2.0.2 / Natural Earth coordinates, drawn with
+an undistorted Mercator projection fitted to 99.4–103.4 E, 5.0–7.6 N.
+Artistic licence: schematic channel positions (not actual routes), emblems, the
+cybercrime signal/block just east of the Golok mouth, press timing, and linocut treatment. Selected Acts
+only where Table 3 lists several; the firearms block includes two Acts.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Five crimes; Malaysia outside two UN protocols</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #efe5ce; }
+  body { display: grid; place-items: center; }
+  canvas { display: block; width: min(100vw, 177.777778vh); height: auto; aspect-ratio: 16 / 9; }
+</style>
+</head>
+<body>
+<canvas id="print" width="1920" height="1080" role="img" aria-label="Five crimes; Malaysia outside two UN protocols"></canvas>
+<script type="module">
+import { geoMercator, geoPath } from 'https://cdn.jsdelivr.net/npm/d3-geo@3.1.1/+esm';
+import { feature, mesh } from 'https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm';
+
+const W = 1920, H = 1080;
+const PAPER = '#efe5ce', INK = '#191914', RED = '#d23a1e';
+const canvas = document.getElementById('print');
+const ctx = canvas.getContext('2d', { alpha: false });
+const clamp = (n, a = 0, b = 1) => Math.max(a, Math.min(b, n));
+const stepped = t => Math.floor((t + 1e-8) * 12) / 12;
+const lanes = [
+  { fraction: .09, hx: 280, hy: 225, w: 284, h: 82, label: ['DRUG', 'TRAFFICKING'], act: ['Dangerous Drugs', 'Act 1952'] },
+  { fraction: .25, hx: 680, hy: 225, w: 284, h: 82, label: ['HUMAN', 'TRAFFICKING'], act: ['ATIPSOM 2007'] },
+  { fraction: .50, hx: 950, hy: 280, w: 284, h: 82, label: ['SMUGGLING', 'OF MIGRANTS'], act: ['ATIPSOM 2007'] },
+  { fraction: .97, hx: 1270, hy: 245, w: 250, h: 78, fontSize: 26, label: ['ILLICIT FIREARMS', 'TRAFFICKING'], act: ['Arms Act 1960 ·', 'FIPA 1971'] },
+  { fraction: .999, offsetX: 280, hx: 1640, hy: 370, w: 264, h: 78, fontSize: 26, label: ['CYBERCRIME'], act: ['Computer Crimes', 'Act 1997'] }
+];
+function random(seed) {
+  let s = seed >>> 0;
+  return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+}
+function layer() {
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  return c;
+}
+function line(c, points, width = 2, color = INK) {
+  c.beginPath(); points.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y));
+  c.strokeStyle = color; c.lineWidth = width; c.lineCap = 'butt'; c.lineJoin = 'miter'; c.stroke();
+}
+function polygon(c, points, color) {
+  c.beginPath(); points.forEach(([x, y], i) => i ? c.lineTo(x, y) : c.moveTo(x, y));
+  c.closePath(); c.fillStyle = color; c.fill();
+}
+function roughRect(c, x, y, w, h, color, seed, rough = 2) {
+  const r = random(seed), p = [];
+  for (let k = 0; k < w; k += 9) p.push([x + k, y + (r() - .5) * rough]);
+  for (let k = 0; k < h; k += 8) p.push([x + w + (r() - .5) * rough, y + k]);
+  for (let k = w; k > 0; k -= 9) p.push([x + k, y + h + (r() - .5) * rough]);
+  for (let k = h; k > 0; k -= 8) p.push([x + (r() - .5) * rough, y + k]);
+  polygon(c, p, color);
+}
+function type(c, text, x, y, size, color = INK, family = 'Georgia', weight = 'bold') {
+  c.font = `${weight} ${size}px ${family}, serif`;
+  c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = color;
+  c.fillText(text, x, y);
+}
+function spaced(c, word, x, y) {
+  c.font = 'bold 27px Georgia, serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+  const tracking = 8;
+  const total = [...word].reduce((s, ch) => s + c.measureText(ch).width + tracking, -tracking);
+  let pen = x - total / 2; c.fillStyle = INK;
+  for (const ch of word) { c.fillText(ch, pen, y); pen += c.measureText(ch).width + tracking; }
+}
+function inkVoids(c, x, y, w, h, seed, count, alpha = .65) {
+  const r = random(seed);
+  c.save(); c.globalAlpha = alpha;
+  for (let i = 0; i < count; i++) {
+    const px = x + r() * w, py = y + r() * h;
+    polygon(c, [[px, py], [px + .5 + r() * 2.6, py - r() * 1.3],
+      [px + r() * 1.4, py + .5 + r() * 1.3]], PAPER);
+  }
+  c.restore();
+}
+function distancePath(points) {
+  const lengths = [0];
+  for (let i = 1; i < points.length; i++) lengths.push(lengths.at(-1) + Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]));
+  return { points, lengths, total: lengths.at(-1) };
+}
+function samplePath(path, distance) {
+  const d = clamp(distance, 0, path.total);
+  let i = path.lengths.findIndex((v, j) => j && v >= d);
+  if (i < 1) i = path.points.length - 1;
+  const a = path.points[i - 1], b = path.points[i];
+  const length = path.lengths[i] - path.lengths[i - 1];
+  const f = (d - path.lengths[i - 1]) / length;
+  return { x: a[0] + (b[0] - a[0]) * f, y: a[1] + (b[1] - a[1]) * f,
+    nx: -(b[1] - a[1]) / length, ny: (b[0] - a[0]) / length };
+}
+
+const paper = layer(), pc = paper.getContext('2d');
+pc.fillStyle = PAPER; pc.fillRect(0, 0, W, H);
+const grain = random(458764);
+for (let i = 0; i < 58000; i++) {
+  pc.globalAlpha = .018 + grain() * .05;
+  pc.fillStyle = i % 3 ? INK : '#ffffff';
+  pc.fillRect(grain() * W, grain() * H, .4 + grain() * 1.6, .4 + grain() * 1.5);
+}
+pc.globalAlpha = .045;
+for (let y = 1; y < H; y += 4) line(pc, [[0, y], [W, y + .3]], .5);
+pc.globalAlpha = .06;
+for (let x = 16; x < W; x += 83) {
+  line(pc, [[x, 0], [x + .7, H]], .6);
+  line(pc, [[x + 2, 0], [x + 2.8, H]], .45);
+}
+pc.globalAlpha = 1;
+
+function prepareGeography(world) {
+  const countries = world.objects.countries;
+  const land = feature(world, world.objects.land);
+  const border = mesh(world, countries, (a, b) =>
+    (+a.id === 458 && +b.id === 764) || (+a.id === 764 && +b.id === 458));
+  if (!border.coordinates.length) throw new Error('Missing Malaysia–Thailand mesh');
+  // Four corners describe the geographic bounding box without introducing
+  // great-circle curvature along its constant-latitude northern edge.
+  const fitBox = { type: 'MultiPoint', coordinates: [[99.4, 5.0], [103.4, 5.0], [103.4, 7.6], [99.4, 7.6]] };
+  const projection = geoMercator().fitExtent([[0, 0], [W, H]], fitBox).clipExtent([[0, 0], [W, H]]);
+  const project = coord => projection(coord);
+  const borderLines = border.coordinates.map(l => l.map(project));
+  const westToEast = [...borderLines].sort((a, b) => b.length - a.length)[0].slice();
+  if (westToEast[0][0] > westToEast.at(-1)[0]) westToEast.reverse();
+  const borderPath = distancePath(westToEast);
+  for (const lane of lanes) {
+    const crossing = samplePath(borderPath, borderPath.total * lane.fraction);
+    lane.borderAnchor = [crossing.x, crossing.y];
+    lane.x = crossing.x + (lane.offsetX || 0); lane.y = crossing.y;
+  }
+  // The eastern columns descend vertically. Only the cybercrime column is
+  // displaced east of the mouth, as an explicitly schematic digital crossing.
+  lanes[3].hx = lanes[3].x;
+  lanes[4].hx = lanes[4].x;
+  seals[1].x = lanes[3].x;
+  const bends = [
+    [[280, 365], [330, 365]], [], [[915, 480], [915, 635], [865, 690]],
+    [], []
+  ];
+  const ends = [l => [l.x + 8, l.y + 85], l => [l.x, l.y + 90],
+    () => [730, 775], l => [l.x, 660], l => [l.x, 660]];
+  lanes.forEach((lane, i) => { lane.path = distancePath([[lane.hx, lane.hy + 104], ...bends[i], [lane.x, lane.y], ends[i](lane)]); });
+  const map = layer(), c = map.getContext('2d');
+  c.drawImage(paper, 0, 0);
+  const r = random(7764);
+  // Sea: dense, broken horizontal gouges. Land masks these with the same paper.
+  for (let y = 0; y < H; y += 8) {
+    for (let x = -50; x < W; x += 86 + r() * 130) {
+      const len = 60 + r() * 126, yy = y + r() * 2;
+      line(c, [[x, yy], [x + len * .4, yy - 1], [x + len, yy + r()]], 1.3 + r() * 1.5);
+    }
+  }
+  const path = geoPath(projection, c);
+  c.beginPath(); path(land);
+  c.save(); c.clip(); c.drawImage(paper, 0, 0);
+  const carve = random(1221);
+  c.globalAlpha = .32;
+  for (let i = 0; i < 1200; i++) {
+    const x = carve() * W, y = carve() * H, len = 3 + carve() * 13;
+    line(c, [[x, y + 2], [x + len * .7, y], [x + len, y + 1]], .6 + carve() * .7);
+    if (i % 9 === 0) {
+      polygon(c, [[x, y], [x + 8, y - 2], [x + 12, y + 3], [x + 2, y + 2]], INK);
+      line(c, [[x + 2, y], [x + 8, y + .3]], .8, PAPER);
+    }
+  }
+  c.restore();
+  c.beginPath(); path(land);
+  c.strokeStyle = INK; c.lineWidth = 4.3; c.stroke();
+  // Gouge chatter is cut into the coastline's ink, never into its geometry.
+  const coastInk = layer(), ci = coastInk.getContext('2d');
+  ci.beginPath(); geoPath(projection, ci)(land); ci.strokeStyle = INK; ci.lineWidth = 4.3; ci.stroke();
+  ci.globalCompositeOperation = 'source-atop';
+  inkVoids(ci, 0, 180, W, H - 180, 9093, 18000, .9);
+  c.drawImage(coastInk, 0, 0);
+  for (const l of borderLines) {
+    line(c, l, 11);
+    const chatter = random(732);
+    for (let i = 1; i < l.length; i++) {
+      const [x, y] = l[i];
+      polygon(c, [[x - 3, y - 5], [x + 5, y + 5], [x + 7 + chatter() * 3, y + 4]], INK);
+      if (i % 4 === 0) line(c, [[x - 2, y - 3], [x + 2, y + 1]], 1.2, PAPER);
+    }
+  }
+  return { map, projection, project, borderLines, fitBox,
+    endpoints: border.coordinates.map(l => [l[0], l.at(-1)].map(coord => ({ coord, pixel: project(coord) }))) };
+}
+
+function person(c, x, y, scale = 1) {
+  c.save(); c.translate(x, y); c.scale(scale, scale);
+  polygon(c, [[-5, -21], [2, -23], [7, -18], [5, -11], [-3, -10], [-7, -16]], INK);
+  polygon(c, [[-6, -7], [6, -7], [11, 12], [5, 15], [4, 33], [-1, 33], [-3, 12], [-7, 31], [-12, 29], [-7, 6], [-12, 11], [-15, 7]], INK);
+  line(c, [[0, -4], [1, 12]], 1.5, PAPER); c.restore();
+}
+function emblem(c, i, x, y) {
+  c.save(); c.translate(x, y);
+  if (i === 0) {
+    polygon(c, [[-36, -23], [24, -28], [38, -16], [33, 27], [-31, 31], [-40, 17]], INK);
+    line(c, [[-33, -20], [-20, -10], [32, -15]], 3, PAPER);
+    line(c, [[-20, -10], [-23, 24]], 3, PAPER);
+    line(c, [[-8, -24], [3, -15], [0, 28]], 6, PAPER);
+    for (let n = 0; n < 5; n++) line(c, [[12 + n * 4, 1], [10 + n * 4, 13]], 1, PAPER);
+  } else if (i === 1) {
+    person(c, -31, -5, .86); person(c, 0, -10); person(c, 32, -3, .82);
+    line(c, [[-53, 32], [49, 32]], 3);
+  } else if (i === 2) {
+    person(c, -26, -8, .6); person(c, 0, -13, .68); person(c, 24, -7, .6);
+    polygon(c, [[-51, 10], [47, 10], [32, 32], [-32, 29]], INK);
+    line(c, [[-34, 17], [27, 18]], 3, PAPER);
+    line(c, [[-52, 37], [-18, 39], [4, 35], [49, 38]], 2);
+  } else if (i === 3) {
+    c.rotate(-.22);
+    polygon(c, [[-60, 1], [-31, -3], [-22, -12], [25, -12], [27, -7], [62, -7], [62, -2], [24, 1], [13, 8], [5, 31], [-9, 28], [-4, 9], [-19, 9], [-21, 22], [-31, 20], [-32, 8], [-60, 17]], INK);
+    line(c, [[-22, -5], [20, -5]], 2, PAPER);
+  } else {
+    roughRect(c, -38, -26, 76, 52, INK, 911, 2);
+    roughRect(c, -31, -19, 62, 34, PAPER, 912, 1);
+    polygon(c, [[-39, 29], [40, 29], [50, 37], [-49, 37]], INK);
+    line(c, [[-18, 2], [-8, 2], [-3, -11], [4, 10], [10, -3], [23, -3]], 3);
+  }
+  c.restore();
+}
+function channel(c, lane, index, t) {
+  const p = clamp((stepped(t) - .16 - index * .025) / .60);
+  if (!p) return;
+  const end = Math.floor(lane.path.total * p / 13) * 13;
+  if (index === 4) {
+    for (const side of [-1, 1]) {
+      const points = [];
+      for (let d = 0; d <= end; d += 12) {
+        const q = samplePath(lane.path, d), offset = side * 11 + ((d / 12) % 2 ? 7 : -7);
+        points.push([q.x + q.nx * offset, q.y + q.ny * offset]);
+      }
+      line(c, points, 3);
+    }
+  } else {
+    for (const side of [-1, 1]) for (let d = 0; d < end; d += 22) {
+      const a = samplePath(lane.path, d), b = samplePath(lane.path, Math.min(end, d + 21));
+      polygon(c, [[a.x + a.nx * (side * 12 - 1.5), a.y + a.ny * (side * 12 - 1.5)],
+        [a.x + a.nx * (side * 12 + 2), a.y + a.ny * (side * 12 + 2)],
+        [b.x + b.nx * (side * 12 + 1), b.y + b.ny * (side * 12 + 1)],
+        [b.x + b.nx * (side * 12 - 2), b.y + b.ny * (side * 12 - 2)]], INK);
+    }
+  }
+}
+function press(c, x, y, time, angle, draw) {
+  if (time < 0) return;
+  const age = stepped(time), impact = age < 1 / 12 ? 1 : age < 2 / 12 ? .3 : 0;
+  c.save(); c.translate(x + impact, y + impact * 1.5); c.rotate(angle);
+  c.scale(1 + .04 * impact, 1 - .012 * impact); draw(impact); c.restore();
+}
+function act(c, lane, index, t) {
+  press(c, lane.x, lane.y, t - (.6 + index * .12), (index % 2 ? .7 : -.65) * Math.PI / 180, impact => {
+    const { w, h } = lane;
+    roughRect(c, -w / 2 - impact * 2, -h / 2, w + impact * 4, h, INK, 810 + index, 4);
+    const r = random(17 + index);
+    for (let j = 0; j < 72; j++) {
+      const x = (r() - .5) * w, y = (r() > .5 ? 1 : -1) * (h / 2 - 6 + r() * 6);
+      line(c, [[x, y], [x + 1 + r() * 6, y - 1]], .8, PAPER);
+    }
+    inkVoids(c, -w / 2 + 4, -h / 2 + 3, w - 8, h - 6, 751 + index, 125, .6);
+    lane.act.forEach((text, j) => type(c, text, 0, (j - (lane.act.length - 1) / 2) * 32, lane.fontSize || 28, PAPER));
+  });
+}
+const seals = [
+  { x: 731, y: 850, w: 374, h: 96, angle: -4, start: 1.35, big: 'NOT RATIFIED', small: ['UN Migrant Smuggling Protocol'] },
+  { x: 1300, y: 711, w: 354, h: 90, angle: 3, start: 1.65, big: 'NOT A STATE PARTY', small: ['UN Firearms Protocol'] }
+];
+function seal(c, s, index, t) {
+  press(c, s.x, s.y, t - s.start, s.angle * Math.PI / 180, impact => {
+    roughRect(c, -s.w / 2, -s.h / 2, s.w, s.h, RED, 302 + index, 5);
+    roughRect(c, -s.w / 2 + 5, -s.h / 2 + 5, s.w - 10, s.h - 10, PAPER, 310 + index, 2);
+    roughRect(c, -s.w / 2 + 9, -s.h / 2 + 9, s.w - 18, s.h - 18, RED, 320 + index, 2);
+    type(c, s.big, 0, -16, 44, PAPER, 'Impact');
+    type(c, s.small[0], 0, 23, 24, PAPER, 'Georgia', 'normal');
+    const r = random(912 + index);
+    for (let i = 0; i < 65; i++) {
+      const x = (r() - .5) * s.w, y = (r() > .5 ? 1 : -1) * (s.h / 2 - r() * 4);
+      line(c, [[x, y], [x + r() * 5, y + 1]], .9, PAPER);
+    }
+    for (let i = 0; i < 18; i++) {
+      const x = (r() - .5) * (s.w + 12), y = (r() > .5 ? 1 : -1) * (s.h / 2 + 2 + r() * 3);
+      c.fillStyle = RED; c.fillRect(x, y, 1 + r() * (impact ? 3 : 2), 1.3);
+    }
+  });
+}
+function title(c) {
+  const scrim = c.createLinearGradient(0, 0, 0, 198);
+  scrim.addColorStop(0, PAPER); scrim.addColorStop(.85, PAPER); scrim.addColorStop(1, '#efe5ce00');
+  c.fillStyle = scrim; c.fillRect(0, 0, W, 198);
+  c.drawImage(titleInk, 0, 0);
+}
+const titleInk = layer(), tc = titleInk.getContext('2d');
+type(tc, 'Five crimes; Malaysia outside', 960, 71, 74);
+type(tc, 'two UN protocols', 960, 154, 74);
+tc.globalCompositeOperation = 'source-atop';
+inkVoids(tc, 330, 36, 1260, 148, 182, 5000, .78);
+let geo;
+function render(time) {
+  const t = clamp(time, 0, 3);
+  ctx.drawImage(paper, 0, 0);
+  const reveal = clamp(stepped(t) / (5 / 12));
+  // Keep geography below the title without fading or erasing nearby emblems.
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 195, Math.ceil(W * reveal), H - 195); ctx.clip();
+  ctx.drawImage(geo.map, 0, 0); ctx.restore();
+  // All non-title content is clipped out of both protected rectangles.
+  // The bottom-right 980 x 300 contains only the static map and paper texture.
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 190, W, 590); ctx.rect(0, 780, 940, 300); ctx.clip();
+  if (reveal > 0 && reveal < 1) {
+    const x = W * reveal;
+    roughRect(ctx, x - 13, 210, 14, 568, INK, 245, 5);
+    line(ctx, [[x - 19, 211], [x - 19, 776]], 2);
+  }
+  lanes.forEach((lane, i) => {
+    channel(ctx, lane, i, t);
+    if (stepped(t) < .16 + i * .025) return;
+    // Opaque paper relief behind the lettering avoids hatch interference.
+    roughRect(ctx, lane.hx - 145, lane.hy - 33, 290, 129, PAPER, 40 + i, 3);
+    emblem(ctx, i, lane.hx, lane.hy);
+    lane.label.forEach((label, j) => type(ctx, label, lane.hx, lane.hy + (lane.label.length === 1 ? 68 : 51 + j * 34), 36, INK, 'Impact'));
+  });
+  if (t >= .25) {
+    spaced(ctx, 'THAILAND', 500, 218);
+    spaced(ctx, 'MALAYSIA', 785, 975);
+  }
+  lanes.forEach((lane, i) => act(ctx, lane, i, t));
+  seals.forEach((s, i) => seal(ctx, s, i, t));
+  ctx.restore(); title(ctx);
+  canvas.dataset.time = t.toFixed(6);
+}
+async function main() {
+  const response = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json');
+  if (!response.ok) throw new Error(`Geography fetch failed (${response.status})`);
+  geo = prepareGeography(await response.json());
+  const rawTime = new URLSearchParams(location.search).get('t');
+  const requested = Number(rawTime);
+  const frozen = rawTime !== null && Number.isFinite(requested);
+  // Expose readiness and deterministic rendering to capture tools, without UI.
+  window.__AIKOL = { render, lanes, seals, endpoints: geo.endpoints,
+    projection: geo.projection, borderLines: geo.borderLines, fitBox: geo.fitBox };
+  render(frozen ? requested : 0);
+  canvas.dataset.ready = 'true'; document.documentElement.dataset.ready = 'true';
+  window.dispatchEvent(new Event('aikol-ready'));
+  if (!frozen) {
+    const start = performance.now();
+    const tick = now => { const t = (now - start) / 1000; render(t); if (t < 3) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }
+}
+window.__AIKOL_READY = main().catch(error => {
+  canvas.dataset.ready = 'error'; document.documentElement.dataset.ready = 'error';
+  console.error('AIKOL print could not load', error); throw error;
+});
+</script>
+</body>
+</html>
