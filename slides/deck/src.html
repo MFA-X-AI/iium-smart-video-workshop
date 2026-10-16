@@ -209,6 +209,18 @@ canvas.wave{position:absolute;left:50px;top:150px;width:900px;height:400px}
 .slide.st-2 .tbox span{font-size:26px;margin-top:16px}
 svg.tnet{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none}
 svg.tnet.on{transition-delay:.7s}
+.mx{position:absolute;left:56px;width:420px;box-sizing:border-box;border:2px solid var(--line);border-radius:14px;background:var(--soft);padding:14px 18px}
+.mx1{top:150px}.mx2{top:330px}
+.mx h4{margin:0 0 10px;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.mxr{display:flex;align-items:center;gap:14px;font-size:21px}
+.mxr i{font-style:normal;font-size:26px;color:var(--muted)}
+.mxr code{font-size:20px;font-weight:700;color:var(--hot);background:var(--card);border:2px solid var(--hot);border-radius:8px;padding:4px 12px;line-height:1.35;text-align:center}
+.mxcat{position:relative;width:110px;height:110px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.mxcat svg{display:block;width:110px;height:110px}
+.mxcat::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 11px),repeating-linear-gradient(90deg,rgba(0,0,0,.18) 0 1px,transparent 1px 11px)}
+svg.mxa{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none}
+.mxa path{fill:none;stroke:var(--amber);stroke-width:3}.mxa marker path{fill:var(--amber);stroke:none}
+.mxa text{fill:var(--amber);font-size:19px;font-weight:700;text-anchor:middle}
 .tnet .slab{fill:var(--card);stroke:var(--hot);stroke-width:2.5;stroke-linejoin:round}
 .tnet .n{fill:var(--shade);stroke:var(--hot);stroke-width:3}
 .tnet .wt{stroke:var(--ink);stroke-width:1;opacity:.35}
@@ -675,7 +687,7 @@ p.fpsm{position:absolute;left:0;top:130px;margin:0;font-size:26px}
 .vstep{position:absolute;right:56px;top:128px;font-size:20px;color:var(--muted)}.vstep b{color:var(--ink);font-size:26px}
 ol.vsteps2{position:absolute;left:56px;right:56px;top:380px;margin:0;padding:0 0 0 30px;font-size:27px;line-height:1.4}
 .vsteps2 li{padding:8px 0}
-/* motion engineering */
+/* motion design */
 p.mehead{position:absolute;left:56px;right:56px;top:126px;margin:0;font-size:28px;line-height:1.35}
 .mecards{position:absolute;left:56px;right:56px;top:190px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px}
 .mec{border:2px solid var(--line);border-radius:16px;padding:18px 22px 16px;background:var(--soft);min-height:180px;box-sizing:border-box}
@@ -686,7 +698,7 @@ table.mecmp{position:absolute;left:56px;top:392px;width:1168px;border-collapse:c
 .mecmp th,.mecmp td{padding:5px 14px;border-bottom:1px solid var(--line);text-align:left}
 .mecmp th{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .mecmp td:first-child{font-weight:700;width:260px}.mecmp td:nth-child(2){width:420px}.mecmp td:nth-child(2){color:var(--rose)}.mecmp td:nth-child(3){color:var(--hot);font-weight:700}
-p.mehf{position:absolute;left:56px;right:56px;top:640px;margin:0;font-size:17px;color:var(--muted)}
+p.mehf{position:absolute;left:56px;right:56px;top:440px;margin:0;font-size:23px;line-height:1.45;color:var(--ink)}
 .mec.hot{border-color:var(--hot)}.mec.hot h4{color:var(--hot)}
 /* code to motion */
 .c2code{position:absolute;left:56px;top:130px;width:540px;height:420px;box-sizing:border-box;padding:56px 22px 20px;border-radius:14px;background:#1d2628;color:#e6ecec;font:21px/2 ui-monospace,Consolas,monospace}
@@ -746,7 +758,7 @@ figure.snap img{display:block;width:100%;height:auto}
 svg.hnd{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none}
 .hnd path{fill:none;stroke:var(--rose);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
 ol.outl{position:absolute;left:56px;right:56px;top:118px;margin:0;padding:0;list-style:none}
-.outl li{display:flex;align-items:center;gap:18px;padding:7px 0;border-top:1px solid var(--line)}
+.outl li{display:flex;align-items:center;gap:18px;padding:5px 0;border-top:1px solid var(--line)}
 .outl i{flex:none;font-style:normal;width:40px;height:40px;border-radius:50%;background:var(--soft);border:2px solid var(--bar);display:grid;place-items:center;font-size:19px;font-weight:900;color:var(--muted)}
 .outl b{font-size:24px;font-weight:900;line-height:1.2;width:420px;flex:none}
 .outl b em{font-style:normal;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--hot);border:1.5px solid var(--hot);border-radius:20px;padding:2px 9px;margin-left:12px;vertical-align:4px}
@@ -824,26 +836,94 @@ canvas.icv{display:block;width:754px;height:478px;border-radius:12px;background:
 .lk ul{list-style:none;margin:0;padding:0}
 .lk li{display:flex;justify-content:space-between;gap:16px;font-size:22px;padding:14px 0;border-top:1px solid var(--line)}
 .lk li a{font-size:19px}
-ul.rmd{position:absolute;left:56px;right:120px;top:140px;margin:0;padding:0 0 0 28px;font-size:27px;line-height:1.4}
+.stp{position:absolute;left:56px;top:128px;width:500px;box-sizing:border-box;border:2px solid var(--line);border-radius:16px;background:var(--soft);padding:22px 26px}
+.stp .stme{font-size:30px;font-weight:900;line-height:1.2;margin:0 0 16px}
+.stp .stme em{font-style:normal;color:var(--hot)}
+.stp .stpaper{border-left:4px solid var(--hot);padding:2px 0 2px 16px}
+.stp .stpaper b{display:block;font-size:20px;line-height:1.3}
+.stp .stpaper span{display:block;margin-top:6px;font-size:16px;color:var(--muted)}
+.stp p.stabs{margin:16px 0 0;font-size:18px;line-height:1.45;color:var(--ink)}
+.stneed{position:absolute;left:610px;right:56px;top:128px}
+.stneed h4{margin:0 0 10px;font-size:22px;color:var(--muted);font-weight:700}
+ol.stn{margin:0;padding:0;list-style:none}
+.stn li{display:flex;align-items:center;gap:16px;padding:13px 0;border-top:1px solid var(--line);font-size:24px;font-weight:700}
+.stn li i{flex:none;font-style:normal;width:44px;height:44px;border-radius:50%;background:var(--amber);color:#fff;display:grid;place-items:center;font-size:17px;font-weight:900}
+.stn li span{margin-left:auto;font-size:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--hot)}
+ol.storyl{position:absolute;left:0;right:0;top:470px;margin:0;padding:0;list-style:none;display:flex;justify-content:center;gap:12px}
+.storyl li{display:flex;align-items:center;gap:8px;font-size:17px;color:var(--muted);border:2px solid var(--line);border-radius:30px;padding:7px 16px 7px 8px;background:var(--card)}
+.storyl li i{font-style:normal;width:28px;height:28px;border-radius:50%;background:var(--soft);border:2px solid var(--bar);display:grid;place-items:center;font-size:12px;font-weight:900;box-sizing:border-box}
+.storyl li.ok{opacity:.55}.storyl li.ok i{background:var(--hot);border-color:var(--hot);color:#fff}
+.storyl li.ok i{font-size:0}.storyl li.ok i::after{content:"\2713";font-size:15px}
+.storyl li.now{border-color:var(--amber);color:var(--ink);font-weight:700}.storyl li.now i{background:var(--amber);border-color:var(--amber);color:#fff}
+ol.psteps.gpc{top:130px;left:56px;right:56px;display:grid;grid-template-columns:1fr 1fr;column-gap:48px;grid-auto-flow:column;grid-template-rows:repeat(3,auto)}.gpc li{padding:14px 0}
+img.dyko{height:1.5em;width:auto;margin-left:.25em;vertical-align:-.45em;image-rendering:pixelated;transform:rotate(2deg)}
+.dykt img.dyko{height:1.9em;vertical-align:-.7em}
+ol.mk{position:absolute;left:56px;right:56px;top:124px;margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:18px;counter-reset:mk}
+.mk li{counter-increment:mk;border:2px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--soft);min-height:150px;position:relative}
+.mk li::before{content:counter(mk);position:absolute;right:14px;top:10px;font-size:26px;font-weight:900;color:var(--bar)}
+.mk li b{display:block;font-size:21px;line-height:1.25;padding-right:20px}
+.mk li span{display:block;margin-top:8px;font-size:17px;line-height:1.4;color:var(--muted)}
+.mk li:nth-child(1),.mk li:nth-child(4){border-color:var(--hot)}
+em.tp,em.tc{font-style:normal;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:1px 7px;border-radius:4px;margin-right:6px;vertical-align:1px}
+em.tp{background:var(--rose)}em.tc{background:var(--hot)}
+figure.mkf{position:absolute;top:310px;width:450px;margin:0}
+.mkf img{display:block;width:450px;height:250px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.mkf figcaption{margin-top:8px;font-size:16px;line-height:1.35;color:var(--muted)}
+.mkp{left:150px}.mkc{left:680px}
+table.pcmp{position:absolute;left:56px;top:126px;width:1168px;table-layout:fixed;border-collapse:collapse;font-size:20px}
+.pcmp th,.pcmp td{text-align:left;padding:9px 14px;border-top:1px solid var(--line);vertical-align:top}
+.pcmp th{border-top:0;font-size:15px;letter-spacing:.12em;text-transform:uppercase}
+.pcmp th.hpx{color:var(--rose)}.pcmp th.hcd{color:var(--hot)}
+.pcmp td:first-child{font-weight:700}.pcmp th:first-child{width:200px}
+ul.pxl li{padding:6px 0;font-size:20px}
+figure.skf{position:absolute;left:56px;top:190px;width:360px;margin:0}
+svg.sku{display:block;width:360px;height:250px;border:1px solid var(--line);border-radius:8px}
+.sku *{stroke:#222;stroke-width:1.4}
+.skf figcaption{font-size:16px;color:var(--muted);margin-top:8px;text-align:center}
+.mwall{position:absolute;left:510px;right:56px;top:120px;height:460px;border:1px solid var(--line);border-radius:12px;background:var(--soft);overflow:hidden}
+.mwtag{position:absolute;right:12px;top:10px;z-index:2;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:var(--rose);color:#fff;padding:3px 10px;border-radius:4px}
+.mwt{padding:14px 18px;columns:2;column-gap:22px;font-size:11.5px;line-height:1.35;color:var(--ink);-webkit-mask-image:linear-gradient(#000 80%,transparent);mask-image:linear-gradient(#000 80%,transparent)}
+.mwt p{margin:0 0 6px}
+.mstamp{left:600px;top:300px}
+.bub i.att{display:block;font-style:normal;font-size:14px;color:var(--muted);margin-bottom:4px}
+.bub i.att::before{content:"";display:inline-block;width:14px;height:11px;margin-right:6px;border:1.5px solid var(--muted);border-radius:2px;vertical-align:-1px}
+.pj{position:absolute;left:56px;top:130px;width:640px;height:440px}
+.pjbox{position:absolute;left:0;top:0;width:330px;border:2px solid var(--hot);border-radius:14px;background:var(--soft);padding:14px 18px 16px}
+.pjbox h4{margin:0 0 10px;font-size:20px;color:var(--hot)}
+.pjf{display:block;font-size:17px;padding:7px 12px;margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+.pjf::before{content:"";display:inline-block;width:10px;height:13px;margin-right:9px;border:1.5px solid var(--muted);border-radius:2px;vertical-align:-1px}
+.pji{display:block;margin-top:12px;font-size:17px;line-height:1.35;padding:8px 12px;border-radius:8px;background:var(--shade);color:var(--ink)}
+.pjarr{position:absolute;left:340px;top:40px;width:110px;height:260px}
+.pjarr i{position:absolute;left:0;width:96px;height:3px;background:var(--bar);transform-origin:0 50%}
+.pjarr i::after{content:"";position:absolute;right:-4px;top:-6px;border:7px solid transparent;border-left:11px solid var(--bar);border-right:0}
+.pjarr i:nth-child(1){top:130px;width:132px;transform:rotate(-41deg)}.pjarr i:nth-child(2){top:130px;width:100px}.pjarr i:nth-child(3){top:130px;width:132px;transform:rotate(41deg)}
+.pjchats{position:absolute;left:462px;top:55px;display:flex;flex-direction:column;gap:46px}
+.pjchats span{display:block;padding:12px 18px;border-radius:16px 16px 16px 4px;background:var(--card);border:1px solid var(--line);font-size:18px}
+.pjcap{position:absolute;left:0;top:292px;margin:0;font-family:Caveat,"Segoe Print",cursive;font-weight:700;font-size:28px;color:var(--rose)}
+ol.pjst{left:740px;right:56px;top:130px}
+p.pjapps{top:596px;text-align:center}
+.wk circle{fill:var(--card);stroke:var(--ink);stroke-width:2.5}.wk text{font:700 34px Georgia,"Times New Roman",serif;text-anchor:middle;fill:var(--ink)}
+ul.rmd{position:absolute;left:56px;right:400px;top:140px;margin:0;padding:0 0 0 28px;font-size:27px;line-height:1.4}
 .rmd li{padding:10px 0}
+img.owl{position:absolute;right:50px;bottom:50px;width:340px;height:auto;image-rendering:pixelated}
 .dykt{position:absolute;left:56px;top:14px;font-family:Caveat,"Segoe Print",cursive;font-weight:700;font-size:34px;color:var(--amber);transform:rotate(-2deg);z-index:4}
 .lc .who{transition:opacity .5s}.lc .lcw1{opacity:0}.lc.st-1 .lcw0{opacity:0}.lc.st-1 .lcw1{opacity:1}
 svg.lcs{position:absolute;left:0;top:0;width:1280px;height:720px;transition:opacity .5s}
 .lcs path{fill:none;stroke:var(--bar);stroke-width:3;marker-end:url(#lch)}.lcs marker path{fill:var(--bar);stroke:none}
 .lcback{position:absolute;left:470px;top:476px;margin:0;font-family:Caveat,"Segoe Print",cursive;font-weight:700;font-size:26px;color:var(--rose);transform:rotate(-2deg);transition:opacity .5s}
 .lcback.lcb2{left:330px;top:392px;font-size:21px;color:var(--muted)}
-.lcn{position:absolute;width:172px;height:104px;text-align:center;padding:0 6px;border-radius:18px;border:2px dashed var(--bar);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s,transform .6s}
+.lcn{position:absolute;width:172px;height:104px;text-align:center;padding:0 6px;border-radius:18px;border:2px solid var(--bar);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s,transform .6s}
 .lcn b{font-size:25px;font-weight:900}.lcn span,.lcb span{font-size:15px;color:var(--muted);font-weight:400}
 .blk.lcb{position:absolute;left:var(--x);top:var(--y);width:172px;height:104px;text-align:center;font-size:26px;color:var(--ink);border-color:var(--hot);display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:18px}
 .lc.st-1 .lcn{opacity:0;transform:scale(.85)}.lc.st-1 svg.lcs,.lc.st-1 .lcback,.lc.st-1 .lcr{opacity:0}
 .lcr{position:absolute;top:260px;width:10px;height:4px;background:var(--bar);border-radius:2px;transition:opacity .4s}
 .lcr::after{content:"";position:absolute;right:-9px;top:-6px;border:8px solid transparent;border-left:10px solid var(--bar);border-right:0}
-.lcs path.lcs2{stroke-dasharray:6 6}
+.lcs path.lcs2{stroke-dasharray:none}
 .lc.st-1 .blk.lcb{top:140px;width:270px;height:160px;font-size:42px;border-radius:22px;border-color:var(--bar);color:var(--bar)}
 .lc.st-1 .blk.lcb span{font-size:0}
 .blk.lcb i{font-style:normal;font-size:30px}.blk.lcb span b{color:var(--ink)}
-.lc:not(.st-1) .blk.lcb{background:var(--shade);border-width:3px}
-.lc:not(.st-1) .blk.lcb i{color:var(--hot)}
+.lc:not(.st-1) .blk.lcb{background:var(--card);border:2px solid var(--bar)}
+.lc:not(.st-1) .blk.lcb i{color:var(--ink);font-size:21px;line-height:1.15}
 .lcn b{font-size:21px!important;line-height:1.15}.lcn span{line-height:1.25}
 .lcsrc{transition:opacity .5s}.lc.st-1 .lcsrc{opacity:0}
 .lc.st-1 .lc0{left:127px}.lc.st-1 .lc1{left:505px}.lc.st-1 .lc2{left:883px}
@@ -884,6 +964,7 @@ svg.dyks{position:absolute;left:58px;top:92px;width:300px;height:30px}
 .twfr svg{width:118px;height:88px;border-radius:6px;border:1px solid var(--line)}
 .twfr .cbg{fill:#fff}.twfr .cax{stroke:#9aa;stroke-width:1.5}.twfr .cb{fill:#9fc2c4}.twfr .cb2{fill:var(--hot)}
 .twc{margin:0;font-size:19px;line-height:1.4}
+.twc b{font-weight:700}
 .twc code{font:16px ui-monospace,Consolas,monospace;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
 .twe{position:absolute;left:24px;bottom:18px;margin:0;font-size:16px;color:var(--muted)}
 .nx{position:absolute;top:150px;width:548px;height:340px;box-sizing:border-box;padding:26px 30px;border-radius:14px;border:2px solid var(--line)}
@@ -906,7 +987,7 @@ ul.dsee{position:absolute;left:720px;right:56px;top:290px;margin:0;padding:0;lis
 .dsee li{font-size:20px;line-height:1.4;padding:9px 0;border-top:1px solid var(--line)}
 .dsee li:first-child{border-top:0;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding-top:0}
 .dchat{position:absolute;left:56px;top:122px;width:700px;display:flex;flex-direction:column;gap:12px}
-.dchat .bub{position:static;font-size:20px;max-width:580px}
+.dchat .bub{position:static;font-size:19px;max-width:590px}
 .dchat .bub.q{align-self:flex-end}
 .dchat .bub.a i{color:var(--ink)}
 ul.dtake{position:absolute;left:800px;right:56px;top:150px;margin:0;padding:0;list-style:none}
@@ -941,6 +1022,10 @@ svg.loop path.lp{fill:none;stroke:var(--hot);stroke-width:4;stroke-dasharray:10 
 /* nav, notes, print */
 nav{position:fixed;left:0;right:0;bottom:0;height:56px;display:flex;gap:10px;justify-content:center;align-items:center;padding:0 12px;background:var(--card);border-top:1px solid var(--line);z-index:20}
 nav button,nav select{font:inherit;font-size:15px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer}
+:root:fullscreen nav{display:none}
+:root:fullscreen #stage{bottom:0}
+:root:fullscreen body.with-notes #stage{bottom:220px}
+:root:fullscreen #notes{bottom:0}
 nav button[aria-pressed="true"]{border-color:var(--hot);color:var(--hot)}
 nav select{max-width:380px;min-width:0;flex:1}
 #count{color:var(--muted);font-size:14px;min-width:96px;text-align:center}
@@ -995,16 +1080,17 @@ body.with-notes #notes{display:block}
     <li><i>1</i><b>What is AI, anyway?</b><span>all those names, and where they fit</span></li>
     <li><i>2</i><b>How AI reads the world<em>Input</em></b><span>pictures, voice and words all become numbers</span></li>
     <li><i>3</i><b>What's inside the box<em>Model</em></b><span>how it works, and just how big it is</span></li>
-    <li class="ho"><i>D1</i><b>Demo 1</b><span>teach a chatbot your paper</span></li>
+    <li class="ho"><i>D1</i><b>Context engineering<em>Demo 1</em></b><span>an AI that knows my paper</span></li>
     <li><i>4</i><b>From numbers back to media<em>Output</em></b><span>text, images, voice and video</span></li>
-    <li class="ho"><i>D2</i><b>Demo 2</b><span>diagrams you can edit</span></li>
+    <li class="ho"><i>D2</i><b>Prompt engineering<em>Demo 2</em></b><span>a hero image for my poster, from a SketchUp model</span></li>
+    <li class="ho"><i>D3</i><b>Diagrams as text<em>Demo 3</em></b><span>a method diagram for my poster, one I can edit</span></li>
     <li><i>5</i><b>AI that does things<em>Agents</em></b><span>give it tools, and it acts</span></li>
     <li><i>6</i><b>Pixels or code?<em>Video</em></b><span>two ways AI makes video, and why we use code</span></li>
-    <li class="ho"><i>D3</i><b>Demo 3</b><span>a video of a paper, step by step</span></li>
-    <li><i>+</i><b>Bonus and tips</b><span>a simulation for your class, and how to prompt better</span></li>
+    <li class="ho"><i>D4</i><b>Motion design<em>Demo 4</em></b><span>a short video for my talk, step by step</span></li>
+    <li><i>+</i><b>Bonus</b><span>a simulation for your class</span></li>
   </ol>
   <aside class="notes">
-    <p data-n="0">Here's the plan for today. First, a quick look at what AI actually is. Then three parts: the input, the model, and the output. In between, I'll show you some live demos: first, teaching a chatbot about your own paper; then, getting it to draw diagrams you can edit. Then agents, AI that actually does things, and then the main event: video. There are two very different ways AI can make a video, pixels or code, and today is about code. I'll make a code video of a paper, step by step. Every step is on the slides, so you can do it again at home. And if we have time, a bonus.</p>
+    <p data-n="0">Here's the plan for today. First, a quick look at what AI actually is. Then three parts: the input, the model, and the output. In between, there are four live demos, and they tell one story. I'll pretend I'm a lecturer from KAED, with a paper, getting ready for a conference. Demo one, context engineering: an AI that knows my paper. Demo two, prompt engineering: a photo-like image for my poster, from a SketchUp model. Demo three: a diagram of my method for the poster, one I can still edit. Then agents, AI that actually does things, and then the main event: video. There are two very different ways AI can make a video, pixels or code, and today is about code. And demo four, motion design: a short video for my talk, made with code, step by step. Every step is on the slides, so you can do it again at home. And if we have time, a bonus.</p>
   </aside>
 </section>
 
@@ -1147,6 +1233,20 @@ body.with-notes #notes{display:block}
   </aside>
 </section>
 
+<section class="slide" data-title="A video is just pictures" data-hook="flip" data-steps="2">
+  <div class="kick">2 · Input · video</div>
+  <div class="who">A video is just pictures, shown fast</div>
+  <canvas class="fstrip" width="2208" height="196"></canvas>
+  <canvas class="fplay" width="960" height="680"></canvas>
+  <div class="fps"><div class="fpsn"><b>4</b> pictures a second</div><p class="fpsm slow" data-at="1" data-fx="fade">Slow: you see each picture.</p><p class="fpsm" data-at="2" data-fx="fade"><b>24 a second:</b> your eye sees movement.</p></div>
+  <div class="src">Each picture is a <b>frame</b>. Films use 24 frames a second; phones and YouTube often 30 or 60.</div>
+  <aside class="notes">
+    <p data-n="0">And video? A video is just pictures. Here are twelve of them, a ball bouncing.</p>
+    <p data-n="1">If I show them slowly, four a second, you see each picture. A flipbook.</p>
+    <p data-n="2">Now twenty-four a second. Same twelve pictures. And now your eye sees a ball bouncing. Each picture is called a frame. Films are 24 frames a second; your phone usually records 30 or 60. So for a model, a video is just a stack of pictures, and each one becomes numbers, like the cat. Most models don't even look at every frame: Gemini, for example, takes about one frame a second, plus the sound.</p>
+  </aside>
+</section>
+
 <section class="slide" data-title="Voice → numbers" data-hook="voice" data-steps="3">
   <div class="kick">2 · Input · voice</div>
   <canvas class="wave" width="1800" height="800"></canvas>
@@ -1176,21 +1276,7 @@ body.with-notes #notes{display:block}
     <p data-n="2">And every token is just a number in a big dictionary.</p>
     <p data-n="3">And look what happens in Malay. "Saya sayang kucing saya." Same meaning, but more tokens. "Sayang" and "kucing" get chopped into pieces, because these models learned mostly from English.</p>
     <p data-n="4">And those numbers are what go into the model. So whether it's a picture, a voice, or a sentence, by the time it reaches the model, it's all numbers.</p>
-  </aside>
-</section>
-
-<section class="slide" data-title="A reminder before you paste">
-  <div class="kick">2 · Input · a reminder</div>
-  <div class="who">A reminder before you paste</div>
-  <ul class="rmd">
-    <li>What you type or upload goes to their servers, often outside Malaysia.</li>
-    <li>Leave out personal data: names, IC and matric numbers, grades, health records.</li>
-    <li>Leave out confidential work: unpublished results, exam papers, manuscripts you're reviewing.</li>
-    <li>Remove names and IDs first, and check if your chats are used for training.</li>
-    <li>Not sure? Leave it out.</li>
-  </ul>
-  <aside class="notes">
-    <p data-n="0">A quick reminder before we move on. Everything you type or upload goes to someone else's servers, often outside Malaysia. So leave out personal data: student names, IC and matric numbers, grades, health records. Leave out confidential work: unpublished results, exam papers, and manuscripts or grants you're reviewing. Elsevier, for example, tells reviewers not to upload a manuscript into an AI tool at all. Remove names and IDs before you paste, and check the setting that lets them train on your chats. And if you're not sure, leave it out.</p>
+    <p>(Say it, no slide.) A quick reminder before we move on. Everything you type or upload goes to someone else's servers, often outside Malaysia. So leave out personal data: student names, IC and matric numbers, grades, health records. Leave out confidential work: unpublished results, exam papers, and manuscripts or grants you're reviewing. Elsevier, for example, tells reviewers not to upload a manuscript into an AI tool at all. Remove names and IDs before you paste, and check the setting that lets them train on your chats. And if you're not sure, leave it out.</p>
   </aside>
 </section>
 
@@ -1205,11 +1291,16 @@ body.with-notes #notes{display:block}
 <section class="slide" data-title="What's inside a model" data-hook="transformer" data-steps="2">
   <div class="kick">3 · Model</div>
   <div class="who">What's inside a model</div>
-  <svg class="tnet" data-at="1" data-fx="fade" viewBox="0 0 1280 720" style="left:65px;transition-delay:0s"></svg>
-  <div class="cap" style="top:600px;left:330px" data-at="2" data-fx="fade">every line is a <b>parameter</b>, a knob the model learned</div>
+  <div class="mx mx1"><h4>Remember the rent?</h4><div class="mxr"><span>a <b>1,100 sq ft</b> house</span><i>→</i><code>1100</code></div></div>
+  <div class="mx mx2"><h4>And the photo?</h4><div class="mxr"><div class="mxcat"><svg viewBox="0 0 200 200"><rect width="200" height="200" fill="#bcd8e8"/><rect y="150" width="200" height="50" fill="#9cc0d6"/><ellipse cx="100" cy="212" rx="84" ry="50" fill="#df9446"/><path d="M40 84 L50 18 L92 56 Z" fill="#df9446"/><path d="M160 84 L150 18 L108 56 Z" fill="#df9446"/><ellipse cx="100" cy="112" rx="66" ry="58" fill="#df9446"/><ellipse cx="86" cy="138" rx="21" ry="16" fill="#fbe8d2"/><ellipse cx="114" cy="138" rx="21" ry="16" fill="#fbe8d2"/><ellipse cx="74" cy="106" rx="13" ry="14" fill="#86c45a"/><ellipse cx="126" cy="106" rx="13" ry="14" fill="#86c45a"/><ellipse cx="74" cy="107" rx="4.5" ry="12" fill="#1b1b1b"/><ellipse cx="126" cy="107" rx="4.5" ry="12" fill="#1b1b1b"/><path d="M92 126 L108 126 L100 135 Z" fill="#df6f8a"/></svg></div><i>→</i><code>212<br>187<br>64<br>…</code></div></div>
+  <svg class="mxa" data-at="1" data-fx="fade" viewBox="0 0 1280 720"><defs><marker id="mxh" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z"/></marker></defs>
+    <path d="M478 228 C540 228 560 290 604 300" marker-end="url(#mxh)"/><path d="M478 440 C540 440 560 425 604 418" marker-end="url(#mxh)"/>
+    <text x="548" y="362">the input</text></svg>
+  <svg class="tnet" data-at="1" data-fx="fade" viewBox="0 0 1280 720" style="left:295px;transition-delay:0s"></svg>
+  <div class="cap" style="top:600px;left:560px" data-at="2" data-fx="fade">every line is a <b>parameter</b>, a knob the model learned</div>
   <aside class="notes">
-    <p data-n="0">So what's actually inside a model? Let's open one up.</p>
-    <p data-n="1">It's layers. Numbers come in on the left, from the input we just talked about. Each layer passes numbers on to the next, layer after layer, and the answer comes out on the right. A big model like Llama has 126 of these layers.</p>
+    <p data-n="0">So what's actually inside a model? Remember our inputs: the rent, and the photo of the cat. Both became numbers. So where do those numbers go? Let's open a model up.</p>
+    <p data-n="1">Here. It's layers. Those numbers come in on the left: that's the input. Each layer passes numbers on to the next, layer after layer, and the answer comes out on the right. A big model like Llama has 126 of these layers.</p>
     <p data-n="2">And every one of these lines is a knob, which we call a parameter. Training is just adjusting those knobs, again and again, until the output comes out right. So when people say a "7 billion" model, they mean 7 billion knobs.</p>
   </aside>
 </section>
@@ -1237,14 +1328,14 @@ body.with-notes #notes{display:block}
 </section>
 
 <section class="slide dyk" data-title="What it took to build Llama 405B" data-hook="build" data-steps="7">
-  <div class="dykt">Did you know?</div>
+  <div class="dykt">Did you know?<img class="dyko" src="media/owl.png" alt=""></div>
   <div class="who">Llama 3.1 405B <span>Meta, 2024: published its figures</span></div>
   <div class="bgrid">
-    <div class="bp" data-at="1"><div class="bt"><div class="big">15 trillion+</div><div class="unit">tokens of training text</div><div class="eq">≈ <b>1.3 billion</b> of your papers</div></div><svg class="art" viewBox="0 0 170 196">
+    <div class="bp" data-at="1"><div class="bt"><div class="big">15 trillion+</div><div class="unit">tokens of training text</div><div class="eq">≈ all of English Wikipedia, <b>2,000 times</b> over</div></div><svg class="art" viewBox="0 0 170 196">
 <rect class="pp" x="20" y="70" width="100" height="100"/><line class="pg" x1="20" y1="77" x2="120" y2="77"/><line class="pg" x1="20" y1="83" x2="120" y2="83"/><line class="pg" x1="20" y1="89" x2="120" y2="89"/><line class="pg" x1="20" y1="95" x2="120" y2="95"/><line class="pg" x1="20" y1="101" x2="120" y2="101"/><line class="pg" x1="20" y1="107" x2="120" y2="107"/><line class="pg" x1="20" y1="113" x2="120" y2="113"/><line class="pg" x1="20" y1="119" x2="120" y2="119"/><line class="pg" x1="20" y1="125" x2="120" y2="125"/><line class="pg" x1="20" y1="131" x2="120" y2="131"/><line class="pg" x1="20" y1="137" x2="120" y2="137"/><line class="pg" x1="20" y1="143" x2="120" y2="143"/><line class="pg" x1="20" y1="149" x2="120" y2="149"/><line class="pg" x1="20" y1="155" x2="120" y2="155"/><line class="pg" x1="20" y1="161" x2="120" y2="161"/><line class="pg" x1="20" y1="167" x2="120" y2="167"/>
 <polygon class="pp" points="20,70 50,46 150,46 120,70"/><polygon class="pp sf" points="120,70 150,46 150,146 120,170"/>
-<g transform="rotate(-8 40 150)"><rect class="pp" x="6" y="104" width="62" height="82" rx="2"/><line class="ttl" x1="14" y1="118" x2="50" y2="118"/><line class="pg" x1="14" y1="130" x2="60" y2="130"/><line class="pg" x1="14" y1="138" x2="60" y2="138"/><line class="pg" x1="14" y1="146" x2="60" y2="146"/><line class="pg" x1="14" y1="154" x2="60" y2="154"/><line class="pg" x1="14" y1="162" x2="60" y2="162"/><line class="pg" x1="14" y1="170" x2="60" y2="170"/></g>
-<text x="130" y="190">your paper</text></svg></div>
+<g class="wk"><circle cx="40" cy="150" r="32"/><text x="40" y="162">W</text></g>
+<text x="130" y="190">Wikipedia</text></svg></div>
     <div class="bp" data-at="2"><div class="bt"><div class="big">16,000+</div><div class="unit">H100 GPUs, running for months</div><canvas class="gpus" width="680" height="220"></canvas><div class="eq small">one dot = one GPU</div></div><svg class="art" viewBox="0 0 190 196">
 <rect class="pp sf" x="4" y="38" width="10" height="80" rx="2"/><rect class="pp" x="14" y="40" width="170" height="70" rx="8"/>
 <circle class="pp sf" cx="62" cy="75" r="27"/><circle class="pp sf" cx="136" cy="75" r="27"/>
@@ -1265,7 +1356,7 @@ body.with-notes #notes{display:block}
   <div class="src">Meta Llama 3.1 model card · Epoch AI · xAI (Colossus 2 shown as if run flat out all year) · Ember via OWID (2024) · IEA, Energy and AI · US EPA · Wired/WSJ</div>
   <aside class="notes">
     <p data-n="0">So what does it take to build one of these? Here's a model where the company actually published the numbers. Meta's Llama, 405 billion parameters.</p>
-    <p data-n="1">They trained it on over 15 trillion tokens. Remember, one of your papers is about 11,000 tokens. So that's like reading over a billion of your papers.</p>
+    <p data-n="1">They trained it on over 15 trillion tokens. To give you a sense of that: all of English Wikipedia, every article, is about 5 billion words. So that's like reading the whole of Wikipedia about two thousand times.</p>
     <p data-n="2">On more than 16,000 top-end GPUs, running for months. Every one of these dots is a GPU.</p>
     <p data-n="3">All together, that's about 22 gigawatt-hours of electricity. That square on the left. And the one next to it is what the whole of Malaysia uses in one hour. About the same. One model, one training run.</p>
     <p data-n="4">And it produced almost nine thousand tonnes of CO₂. About the same as 1,900 cars driving for a whole year.</p>
@@ -1276,7 +1367,7 @@ body.with-notes #notes{display:block}
 </section>
 
 <section class="slide dyk" data-title="The DeepSeek moment" data-hook="deepseek" data-steps="3">
-  <div class="dykt">Did you know?</div>
+  <div class="dykt">Did you know?<img class="dyko" src="media/owl.png" alt=""></div>
   <div class="half" style="left:60px"><h3>GPT-4</h3><div class="v">&gt; $100M</div><div class="sub">whole training cost</div></div>
   <div class="half" style="left:660px"><h3>DeepSeek-V3</h3><div class="v" data-at="1" data-fx="pop" style="color:var(--hot)">$5.6M</div><div class="sub" data-at="1" data-fx="fade">2,048 × H800, the export-limited chip</div></div>
   <div class="divider"></div>
@@ -1308,12 +1399,13 @@ body.with-notes #notes{display:block}
 
 <!-- ============ PRACTICAL · CONTEXT ============ -->
 
-<section class="slide" data-title="Demo 1: teach it your paper" data-steps="0">
-  <div class="part">Demo 1</div>
-  <div class="brk">Teach a chatbot your paper</div>
-  <div class="brk2">a chatbot, a question, and your own paper</div>
+<section class="slide" data-title="Demo 1: context engineering" data-steps="0">
+  <div class="part">Demo 1 · Context engineering</div>
+  <div class="brk">An AI that knows my paper</div>
+  <div class="brk2">a chatbot, a question, and my courtyard paper</div>
+  <ol class="storyl"><li class="now"><i>D1</i>an AI that knows my paper</li><li><i>D2</i>a hero image for my poster</li><li><i>D3</i>a method diagram for my poster</li><li><i>D4</i>a short video for my talk</li></ol>
   <aside class="notes">
-    <p data-n="0">Okay, enough theory for a moment. Let me show you something live.</p>
+    <p data-n="0">Okay, enough theory for a moment. First thing I need: an AI that knows my paper. Let me show you live.</p>
   </aside>
 </section>
 
@@ -1345,7 +1437,7 @@ body.with-notes #notes{display:block}
   <ol class="psteps">
     <li data-at="1"><b>Open a chatbot</b><span><img class="ilogo mono" src="media/logos/lobe-openai.svg" alt="">ChatGPT, <img class="ilogo" src="media/logos/lobe-claude-color.svg" alt="">Claude or <img class="ilogo" src="media/logos/lobe-gemini-color.svg" alt="">Gemini</span></li>
     <li data-at="2"><b>Ask it a general question</b><span>can it answer? <em class="ok">yes</em></span></li>
-    <li data-at="3"><b>Ask it something only you know</b><span>e.g. what your latest paper found <em class="no">it can't, or it guesses</em></span></li>
+    <li data-at="3"><b>Ask it something only you know</b><span>e.g. "What did my courtyard paper find?" <em class="no">it can't, or it guesses</em></span></li>
     <li data-at="4"><b>Drag and drop your PDF into the chat</b><span>your own data</span></li>
     <li data-at="5"><b>Ask the same question again</b><span><em class="ok">now it knows</em></span></li>
   </ol>
@@ -1353,44 +1445,68 @@ body.with-notes #notes{display:block}
     <p data-n="0">Here's what I'll do. Just watch for now; every step is on this slide, so you can do it yourself later.</p>
     <p data-n="1">Open any chatbot. ChatGPT, Claude or Gemini, whichever you have.</p>
     <p data-n="2">Ask it a general question. Anything. It answers, no problem.</p>
-    <p data-n="3">Now ask it something only you know. What did my latest paper find? It can't answer. Or worse, it makes something up.</p>
-    <p data-n="4">Now drag and drop your paper, the PDF, into the chat.</p>
+    <p data-n="3">Now ask it something only I know. What did my courtyard paper find? It can't answer. Or worse, it makes something up.</p>
+    <p data-n="4">Now drag and drop the paper, the PDF, into the chat. (Have the courtyard PDF ready on the desktop.)</p>
     <p data-n="5">And ask the same question again. Now it knows.</p>
   </aside>
 </section>
 
-<section class="slide" data-title="What we just did: context engineering" data-hook="ctxB" data-steps="3">
-  <div class="kick">Context engineering</div>
-  <div class="who">What we just did</div>
-  <div class="cxpdf" data-at="2" data-fx="fade" style="left:90px;top:336px"><svg class="pdf " viewBox="0 0 104 170"><path class="pg" d="M6 4 H74 L98 28 V140 H6 Z"/><path class="fold" d="M74 4 V28 H98"/><line class="tt" x1="18" y1="40" x2="70" y2="40"/><g class="tl"><line x1="18" y1="58" x2="86" y2="58"/><line x1="18" y1="68" x2="86" y2="68"/><line x1="18" y1="78" x2="72" y2="78"/><line x1="18" y1="88" x2="86" y2="88"/><line x1="18" y1="98" x2="86" y2="98"/><line x1="18" y1="108" x2="72" y2="108"/><line x1="18" y1="118" x2="86" y2="118"/></g><rect class="pftag" x="0" y="96" width="46" height="22" rx="3"/><text class="pftagt" x="23" y="112">PDF</text><text x="52" y="160">my-research.pdf</text></svg></div>
-  <div class="bub q cxqb" data-at="1" data-fx="fade">How many students did we survey?</div>
+<section class="slide" data-title="Context engineering" data-hook="ctxB" data-steps="3">
+  <div class="kick">Demo 1 · what we just did</div>
+  <div class="who">Context engineering</div>
+  <div class="cxpdf" data-at="2" data-fx="fade" style="left:90px;top:336px"><svg class="pdf " viewBox="0 0 104 170"><path class="pg" d="M6 4 H74 L98 28 V140 H6 Z"/><path class="fold" d="M74 4 V28 H98"/><line class="tt" x1="18" y1="40" x2="70" y2="40"/><g class="tl"><line x1="18" y1="58" x2="86" y2="58"/><line x1="18" y1="68" x2="86" y2="68"/><line x1="18" y1="78" x2="72" y2="78"/><line x1="18" y1="88" x2="86" y2="88"/><line x1="18" y1="98" x2="86" y2="98"/><line x1="18" y1="108" x2="72" y2="108"/><line x1="18" y1="118" x2="86" y2="118"/></g><rect class="pftag" x="0" y="96" width="46" height="22" rx="3"/><text class="pftagt" x="23" y="112">PDF</text><text x="52" y="160">courtyard-paper.pdf</text></svg></div>
+  <div class="bub q cxqb" data-at="1" data-fx="fade">How did we collect our data?</div>
   <svg class="cxs" viewBox="0 0 1280 720"></svg>
   <div class="model cxm" style="left:762px;top:290px">Model</div>
-  <div class="bub a cxans"><span class="a0">Sorry, I don't know that paper.</span><span class="a1">312 students, across four kulliyyahs.<small>from your paper, section 3.1</small></span></div>
+  <div class="bub a cxans"><span class="a0">Sorry, I don't know that paper.</span><span class="a1">You observed one campus courtyard, and surveyed students with a questionnaire.<small>from your paper, the method section</small></span></div>
   <div class="cxleg"><span><i class="g"></i>the app's instructions</span><span><i class="r"></i>your paper</span><span><i class="k"></i>your question</span></div>
   <div class="eqn" data-at="3" data-fx="fade"><span class="k">question</span> + <span class="r">context</span> = <span class="h">answer</span></div>
-  <div class="src">Illustrative paper and answer.</div>
+  <div class="src">Simplified. The answer comes from the paper's abstract.</div>
   <aside class="notes">
     <p data-n="0">So what did we just do? This has a name now: context engineering. Here's the model's context, everything it sees when it answers. The app has already put some instructions in.</p>
     <p data-n="1">First, we asked our question. It goes into the context, the model reads it, and... it doesn't know my paper.</p>
     <p data-n="2">Then I dragged and dropped the PDF. The text of my paper gets put right into the context, before my question.</p>
-    <p data-n="3">Now the model reads all of it, and it can answer: 312 students, section 3.1. Question plus context equals answer. Notice the model didn't learn anything. Nothing was trained. We just changed what's in front of it. That's context engineering: choosing what goes into the context. Close the chat, and it's gone.</p>
+    <p data-n="3">Now the model reads all of it, and it can answer: we observed one courtyard, and surveyed the students. Straight from the paper. Question plus context equals answer. Notice the model didn't learn anything. Nothing was trained. We just changed what's in front of it. That's context engineering: choosing what goes into the context. Close the chat, and it's gone.</p>
   </aside>
 </section>
 
-<section class="slide dyk" data-title="Side notes" data-steps="3">
-  <div class="dykh">Did you know?</div>
+<section class="slide" data-title="Projects: context that stays" data-steps="3">
+  <div class="kick">Demo 1 · projects</div>
+  <div class="who">Projects: context that stays</div>
+  <div class="pj" data-at="1" data-fx="fade">
+    <div class="pjbox"><h4>Project: courtyard paper</h4>
+      <span class="pjf">courtyard-paper.pdf</span><span class="pjf">survey-data.xlsx</span><span class="pjf">conference-call.pdf</span>
+      <span class="pji">Instructions: "Answer in plain English. Cite the page."</span></div>
+    <div class="pjarr"><i></i><i></i><i></i></div>
+    <div class="pjchats"><span>new chat</span><span>new chat</span><span>new chat</span></div>
+    <p class="pjcap">every chat inside already knows all of it</p>
+  </div>
+  <ol class="psteps pts2 pjst" data-at="2" data-fx="fade">
+    <li><b>Create a project</b></li>
+    <li><b>Add your files once</b><span>papers, data, notes</span></li>
+    <li><b>Write instructions</b><span>who it's for, how to answer</span></li>
+    <li><b>Chat inside it</b><span>no more uploading every time</span></li>
+  </ol>
+  <p class="subnote pjapps" data-at="3" data-fx="fade"><img class="ilogo" src="media/logos/lobe-claude-color.svg" alt=""><b>Claude</b> and <img class="ilogo mono" src="media/logos/lobe-openai.svg" alt=""><b>ChatGPT</b> call it a <b>Project</b>; <img class="ilogo" src="media/logos/lobe-gemini-color.svg" alt=""><b>Gemini</b> calls it a <b>Notebook</b>.</p>
+  <aside class="notes">
+    <p data-n="0">One problem with what we just did: close the chat, and it's gone. Next time, you upload the paper again. So all three big apps now have a place for this: Projects in Claude and ChatGPT, Notebooks in Gemini.</p>
+    <p data-n="1">A project is a shared context. You put your files in once: my courtyard paper, my survey data, the conference's call for papers, and you write instructions once. Then every new chat you start inside that project already knows all of it.</p>
+    <p data-n="2">Setting one up is simple. Create a project. Add your files. Write some instructions: who it's for, how to answer. And then just chat inside it. Let me show you. (Demo: set up the courtyard project in Claude, then ChatGPT, then a notebook in Gemini.) And every demo after this starts inside this project, so it already knows my paper.</p>
+    <p data-n="3">Claude and ChatGPT call it a Project; the new Gemini calls it a Notebook. Different names, same idea. And the same reminder applies: whatever you put in there goes to their servers.</p>
+  </aside>
+</section>
+
+<section class="slide dyk" data-title="Side notes" data-steps="2">
+  <div class="dykh">Did you know?<img class="dyko" src="media/owl.png" alt=""></div>
   <svg class="dyks" viewBox="0 0 300 30"><path d="M4 18 C60 8 120 26 180 14 S270 10 296 16"/><path d="M14 24 C80 16 150 28 230 20"/></svg>
   <ol class="psteps pts2" style="top:120px">
     <li data-at="1"><b>You don't always need a giant model</b><span>big models try to know everything, so they're massive and take months to train. If the job is just finding information in your documents, a smaller model can do it.</span></li>
-    <li data-at="2"><b>Cost</b><span>about US$20 a month for the app. On the API, the whole document is read again with every question.</span></li>
-    <li data-at="3"><b>Sovereign AI</b><span>whose servers, whose rules? Malaysia is building its own: ILMU, and a sovereign AI cloud.</span></li>
+    <li data-at="2"><b>Sovereign AI</b><span>whose servers, whose rules? Malaysia is building its own: ILMU, and a sovereign AI cloud.</span></li>
   </ol>
   <aside class="notes">
     <p data-n="0">Before you go home and drag and drop everything, a few things you might not know.</p>
     <p data-n="1">A few side notes. First: why are the big models so big? Because they try to know everything, and all of it has to be stored inside those billions of parameters. That's why they're massive, and why they take months to train. But if your job is just finding information, in your papers, your policies, your notes, the model doesn't need to memorise it. It just needs to read what we give it. So a smaller, cheaper model, even one on your own machine, can do the job. And if there are too many documents to fit, we search first and give it only the relevant pieces.</p>
-    <p data-n="2">Cost. The app is about 20 US dollars a month. If you build on the API, you pay per token, and the whole document is read again every time you ask.</p>
-    <p data-n="3">And control. Remember: these run on someone else's servers, under someone else's rules. That's why countries talk about sovereign AI. Malaysia has started with ILMU, a Malaysian language model, and a sovereign AI cloud. And the open models we saw make this possible.</p>
+    <p data-n="2">And control. Remember: these run on someone else's servers, under someone else's rules. That's why countries talk about sovereign AI. Malaysia has started with ILMU, a Malaysian language model, and a sovereign AI cloud. And the open models we saw make this possible.</p>
   </aside>
 </section>
 
@@ -1498,19 +1614,140 @@ body.with-notes #notes{display:block}
 
 <!-- ============ PRACTICAL 2 · DIAGRAMS ============ -->
 
-<section class="slide" data-title="Demo 2: diagrams">
-  <div class="part">Demo 2</div>
-  <div class="brk">Ask it for a diagram</div>
-  <div class="brk2">one you can still edit yourself</div>
+<section class="slide" data-title="Demo 2: prompt engineering">
+  <div class="part">Demo 2 · Prompt engineering</div>
+  <div class="brk">A hero image for my poster</div>
+  <div class="brk2">from a SketchUp model to a photo-like render</div>
+  <ol class="storyl"><li class="ok"><i>D1</i>an AI that knows my paper</li><li class="now"><i>D2</i>a hero image for my poster</li><li><i>D3</i>a method diagram for my poster</li><li><i>D4</i>a short video for my talk</li></ol>
   <aside class="notes">
-    <p data-n="0">Okay, second demo. Let's get it to make us a diagram.</p>
+    <p data-n="0">Okay, second demo: prompt engineering. My AI knows my paper. Next, my poster needs a big image: what a better courtyard could look like.</p>
+  </aside>
+</section>
+
+<section class="slide" data-title="The mega-prompt" data-steps="2">
+  <div class="kick">Demo 2 · images</div>
+  <div class="who">The mega-prompt</div>
+  <figure class="skf"><svg class="sku" viewBox="0 0 360 250">
+  <polygon points="0,0 360,0 290,60 70,60" fill="#e9e6df"/>
+  <polygon points="70,60 290,60 290,185 70,185" fill="#f2efe8"/>
+  <polygon points="0,0 70,60 70,185 0,250" fill="#dcd7cc"/>
+  <polygon points="360,0 290,60 290,185 360,250" fill="#e2ddd2"/>
+  <polygon points="0,250 70,185 290,185 360,250" fill="#b98b5e"/>
+  <rect x="105" y="78" width="80" height="62" fill="#bfe0ee"/><line x1="145" y1="78" x2="145" y2="140"/>
+  <rect x="215" y="98" width="56" height="34" fill="#2b2b2b"/>
+  <polygon points="12,40 52,62 52,150 12,150" fill="#a8774a"/>
+  <circle cx="232" cy="80" r="9" fill="#fff"/>
+  <polygon points="110,198 250,198 270,222 92,222" fill="#8a5a33"/>
+  <rect x="100" y="182" width="22" height="20" fill="#5f7d8c"/><rect x="238" y="182" width="22" height="20" fill="#5f7d8c"/>
+  <rect x="300" y="160" width="20" height="26" fill="#9a6a3a"/><circle cx="310" cy="146" r="18" fill="#5f8f4e"/>
+</svg><figcaption>a SketchUp screenshot</figcaption></figure>
+  <div class="xarr" style="left:440px;top:300px;width:44px"></div>
+  <div class="mwall"><span class="mwtag">the prompt · 357 words</span><div class="mwt"><p>Transform this SketchUp interior screenshot into a photorealistic interior architectural photograph. The final result must look like a real, built interior space captured with a professional camera.</p><p>Maintain the original camera position, angle, framing, and perspective — no extreme camera changes are allowed. Camera must remain consistent with the original view, only minimal natural lens correction is acceptable (no repositioning, no wide distortion).</p><p>Strictly preserve the original interior design without any modification:</p><p>Do not change layout, furniture placement, proportions, or spatial composition<br>Do not alter materials, colors, textures, or finishes<br>All elements (dining table, chairs, wall panels, TV, kitchen set, plants, wall decor, etc.) must remain exactly as shown</p><p>The environment and interior elements must be faithfully recreated:</p><p>Maintain all furniture positions exactly (dining table, chairs alignment, sofa, TV placement)<br>Keep wall decorations (including wall clock and map art) exactly the same<br>Preserve window and door design, including frame details and proportions<br>Indoor plants must remain in the same position and type (only enhanced to realistic quality, not replaced)</p><p>Apply realistic interior lighting:</p><p>Natural daylight coming from the windows (soft, diffused tropical light)<br>Balanced exposure between interior and exterior view<br>Soft shadows and realistic light bounce (global illumination)</p><p>Enhance all materials into true photorealistic quality:</p><p>Natural wood grain on flooring, table, and panels<br>Realistic fabric texture on chairs and sofa<br>Accurate reflections on glass surfaces and TV screen<br>Subtle imperfections (fingerprints, slight roughness, micro-texture) for realism<br>Clean but not overly perfect surfaces</p><p>Rendering quality must include:</p><p>Global illumination<br>Ambient occlusion<br>Physically accurate lighting (PBR workflow)<br>Realistic reflections and refractions<br>Depth of field (very subtle, like DSLR)</p><p>Atmosphere:</p><p>Warm, natural Indonesian residential interior feeling<br>Clean, cozy, lived-in but not cluttered<br>Neutral, realistic color grading (no dramatic filters)</p><p>Keep everything exactly as is:</p><p>No adding new objects<br>No removing elements<br>No redesign<br>No style change</p><p>Final output:</p><p>Photorealistic interior architectural photography<br>DSLR quality<br>Ultra-realistic<br>Sharp, clean image<br>Natural lighting<br>4K resolution</p><p>IMPORTANT NEGATIVE PROMPT:<br>no camera shift, no extreme angle change, no redesign, no new furniture, no removed objects, no material change, no color change, no style alteration, no overexposed lighting, no unrealistic shadows, no distortion, no wide-angle exaggeration</p></div></div>
+  <p class="subnote" data-at="1" data-fx="fade" style="top:604px">A real prompt from an architect, to turn a 3D model into a photo-like render.</p>
+  <div class="slopstamp mstamp" data-at="2" data-fx="pop">do you need to write this?</div>
+  <aside class="notes">
+    <p data-n="0">So how do architects do this today? My cousin is an architect. She designs in SketchUp, takes a screenshot like this, and asks an image generator to make it look like a real photo of the finished room.</p>
+    <p data-n="1">And this is her prompt. Three hundred and fifty-seven words. Keep the camera, keep the layout, keep the materials, the lighting, global illumination, ambient occlusion, a negative prompt at the end. And it works. This is what people think prompt engineering is: a long, special prompt full of the right words.</p>
+    <p data-n="2">But do you need to write this yourself? Not anymore.</p>
+  </aside>
+</section>
+
+<section class="slide dstep" data-title="Prompt engineering: images" data-steps="4">
+  <div class="kick">Demo 2 · the new way</div>
+  <div class="who">Prompt engineering: just talk</div>
+  <div class="dchat">
+    <div class="bub q"><i class="att">sketchup.png</i>I'd like to turn this SketchUp model of a campus courtyard into a realistic photo for my conference poster. Help me build the prompt. Let's talk it through first: what do you need to know to write a complete prompt?</div>
+    <div class="bub a" data-at="1" data-fx="fade">Should the camera, layout, trees and seating stay exactly the same? What time of day, and what light? Should there be people in it?</div>
+    <div class="bub q" data-at="2" data-fx="fade">Keep the design exactly as it is. Late afternoon, soft tropical light. A few students sitting and talking in the shade.</div>
+    <div class="bub a" data-at="3" data-fx="fade">Here's your prompt: <i>"Transform this SketchUp model of a campus courtyard into a photorealistic architectural photograph. Keep the camera angle, layout, trees and seating exactly…"</i><small>the same kind of prompt, written for you. Then it makes the image.</small></div>
+  </div>
+  <ul class="dtake" data-at="4" data-fx="fade">
+    <li><b>Same result, by talking.</b> You bring the taste; it brings the words.</li>
+    <li><b>Then fix it in words:</b> "warmer light", "keep the benches".</li>
+    <li><b>Check it:</b> image tools still change small details.</li>
+  </ul>
+  <aside class="notes">
+    <p data-n="0">Here's the new way, for my poster. I've got a SketchUp model of a courtyard. (Grab a courtyard SketchUp screenshot from Google.) I just say what I want, in plain words: I'd like to turn this into a realistic photo for my conference poster, help me build the prompt. And then the important part: let's talk it through first. What do you need to know to write a complete prompt?</p>
+    <p data-n="1">And it asks. Should the camera and the layout stay the same? What time of day? Any people? These are exactly the things in her long prompt.</p>
+    <p data-n="2">I answer like I'm talking to a colleague. Keep the design. Late afternoon light. And a few students sitting and talking in the shade, because that's what my paper is about.</p>
+    <p data-n="3">And it writes the long prompt for me. Camera, layout, materials, lighting, all of it. Then it makes the image.</p>
+    <p data-n="4">So you get to the same place, just by talking. You bring the taste, it brings the words. If something's off, say so: warmer light, keep the benches. And check it: image generators still like to change small details, like moving a bench or adding a tree that isn't in the design. That's prompt engineering now: a conversation, not a magic paragraph.</p>
+  </aside>
+</section>
+
+<section class="slide" data-title="What a good prompt covers" data-steps="2">
+  <div class="kick">Demo 2 · prompt engineering</div>
+  <div class="who">What a good prompt covers</div>
+  <ol class="psteps pts2 gpc">
+    <li><b>What it's for, and who sees it</b><span>"a hero image for my conference poster"</span></li>
+    <li><b>What it shows</b><span>"this courtyard, from this exact angle"</span></li>
+    <li><b>What must stay exact</b><span>"the layout, the trees, the seating"</span></li>
+    <li><b>The look</b><span>"late-afternoon tropical light, like a real photo"</span></li>
+    <li><b>The format</b><span>"portrait, high resolution, for an A1 poster" (for a video: how long)</span></li>
+    <li><b>What to avoid</b><span>"no new buildings, no distortion"</span></li>
+  </ol>
+  <p class="subnote" data-at="1" data-fx="fade" style="top:470px">You don't need to remember this list. <b>Ask the AI to interview you</b>, and it asks for all of it.</p>
+  <p class="subnote" data-at="2" data-fx="fade" style="top:530px;font-size:21px;color:var(--muted)">Works for any task, not just pictures: a grant summary, an exam question, a lesson plan.</p>
+  <aside class="notes">
+    <p data-n="0">So what's actually in a good prompt? Look at what it asked me, and what was in her long prompt. It comes down to six things. What it's for, and who sees it. What it shows. What must stay exactly the same. The look. The format: the size, or for a video, how long. And what to avoid.</p>
+    <p data-n="1">But you don't need to remember this list. Ask the AI to interview you, and it will ask you for all six. That's prompt engineering now.</p>
+    <p data-n="2">And this works for anything, not just pictures. A grant summary, an exam question, a lesson plan. Same trick.</p>
+  </aside>
+</section>
+
+<section class="slide" data-title="Tip: name a visual style" data-steps="4">
+  <div class="kick">Demo 2 · tip</div>
+  <div class="who">Tip: name a visual style</div>
+  <div class="stg">
+    <figure data-at="1"><img src="media/style-blueprint.jpg" alt=""><figcaption><b>Engineering blueprint</b><span>"dark navy, thin cyan lines, labelled dimensions"</span></figcaption></figure>
+    <figure data-at="2"><img src="media/style-print.jpg" alt=""><figcaption><b>Old newspaper print</b><span>"cream paper, bold woodcut type, ink textures"</span></figcaption></figure>
+    <figure data-at="3"><img src="media/style-map.jpg" alt=""><figcaption><b>Soft 3D data map</b><span>"pastel background, bars rising from each region"</span></figcaption></figure>
+    <figure data-at="4"><img src="media/style-medical.jpg" alt=""><figcaption><b>Medical illustration</b><span>"light background, translucent organs, soft colours"</span></figcaption></figure>
+  </div>
+  <div class="src">All four are frames from this workshop's demo clips, made with AI from IIUM papers (Engineering, Law, Economics, Nursing).</div>
+  <aside class="notes">
+    <p data-n="0">One tip on point four, the look: name a visual style. If you don't, you get the same default look every time.</p>
+    <p data-n="1">Engineering blueprint. Dark navy, thin cyan lines, labelled dimensions. This was for a paper from Engineering.</p>
+    <p data-n="2">Old newspaper print. Cream paper, bold type. This one was for a law paper.</p>
+    <p data-n="3">A soft 3D data map, for an economics paper.</p>
+    <p data-n="4">And a medical illustration style, for nursing. All of these came from the same kind of prompt; the only difference is a few words describing the style. So pick a style that fits your field and your audience, and say it in the prompt.</p>
+  </aside>
+</section>
+
+<section class="slide" data-title="Demo 2: step by step" data-steps="5">
+  <div class="kick">Demo 2 · try it later</div>
+  <div class="who">Step by step</div>
+  <ol class="psteps pts2">
+    <li data-at="1"><b>Find a picture to start from</b><span>a SketchUp or 3D screenshot, a sketch, a floor plan, a photo</span></li>
+    <li data-at="2"><b>Open <img class="ilogo mono" src="media/logos/lobe-openai.svg" alt="">ChatGPT or <img class="ilogo" src="media/logos/lobe-gemini-color.svg" alt="">Gemini</b><span>both can make and edit images</span></li>
+    <li data-at="3"><b>Attach it, and ask it to interview you</b><span>"Help me build the prompt. What do you need to know?"</span></li>
+    <li data-at="4"><b>Answer in plain words</b><span>it writes the prompt, then makes the image</span></li>
+    <li data-at="5"><b>Fix it in words, then check every detail</b><span>did it keep the layout? the furniture? the text?</span></li>
+  </ol>
+  <aside class="notes">
+    <p data-n="0">Here's what I just did, so you can do it later.</p>
+    <p data-n="1">Find a picture to start from. A 3D screenshot, a sketch, a floor plan, even a photo from your phone.</p>
+    <p data-n="2">Open ChatGPT or Gemini. Both can make and edit images.</p>
+    <p data-n="3">Attach the picture, and ask it to interview you before it makes anything.</p>
+    <p data-n="4">Answer in plain words. It writes the prompt and makes the image.</p>
+    <p data-n="5">Then fix it by talking, and check every detail. So my poster has its image. But a poster also needs things that must be exact.</p>
+  </aside>
+</section>
+
+<section class="slide" data-title="Demo 3: diagrams as text">
+  <div class="part">Demo 3 · Diagrams as text</div>
+  <div class="brk">A method diagram for my poster</div>
+  <div class="brk2">one I can still edit myself</div>
+  <ol class="storyl"><li class="ok"><i>D1</i>an AI that knows my paper</li><li class="ok"><i>D2</i>a hero image for my poster</li><li class="now"><i>D3</i>a method diagram for my poster</li><li><i>D4</i>a short video for my talk</li></ol>
+  <aside class="notes">
+    <p data-n="0">Third demo. My poster also needs a diagram of my method. Pictures are great for how things look. But in a diagram, every box and every word has to be right.</p>
   </aside>
 </section>
 
 <section class="slide" data-title="First try: an image generator" data-steps="2">
-  <div class="kick">Demo 2</div>
+  <div class="kick">Demo 3</div>
   <div class="who">First try: an image generator</div>
-  <div class="bub q" style="left:56px;top:130px;width:420px;font-size:18px;box-sizing:border-box">Draw a flowchart of my research method: we surveyed 312 first-year students across four kulliyyahs about how they use AI tools for coursework, cleaned the data, ran a statistical analysis, and reported the results and insights.</div>
+  <div class="bub q" style="left:56px;top:130px;width:420px;font-size:18px;box-sizing:border-box">Draw a flowchart of my research method: we observed one campus courtyard as a case study, surveyed students with a questionnaire about the courtyard design, analysed which design factors support social interaction, and recommended courtyard attributes for future campus planning.</div>
   <div class="xarr" style="left:492px;top:330px;width:44px"></div>
   <div class="slopf">
     <svg viewBox="0 0 560 400">
@@ -1526,20 +1763,20 @@ body.with-notes #notes{display:block}
       <path d="M150 116 C120 170 60 190 40 240" class="sa"/>
       <text x="420" y="300" class="st2">Reslts &amp; Insigths</text>
     </svg>
-    <img class="slopimg" src="media/slop.jpg" alt="" onerror="this.remove()">
+    <img class="slopimg" src="media/slop-courtyard.jpg" alt="" onerror="this.remove()">
     <span>real image-generator output, unedited</span>
   </div>
   <div class="slopstamp" data-at="2" data-fx="pop">but it's just a picture</div>
-  <ul class="slopl" data-at="2" data-fx="fade"><li>details you never gave it ("removed duplicates")</li><li>generic filler ("appropriate methods")</li><li>to fix one word, you re-roll it all</li></ul>
+  <ul class="slopl" data-at="2" data-fx="fade"><li>you can't move a box or fix one word</li><li>add a step? make it all again, and hope</li><li>check every word: next time it may slip</li></ul>
   <aside class="notes">
-    <p data-n="0">So, your first instinct might be: just ask an image generator. Draw a flowchart of my research method.</p>
-    <p data-n="1">And you get this. Honestly, it looks pretty good. These image models have got much better at text.</p>
-    <p data-n="2">But look closer. "Removed invalid or duplicate entries"? I never said that. It made it up. "Appropriate statistical methods" is filler. And it's just a picture: if one word is wrong, you can't fix that word. You generate the whole thing again and hope. So let's do it properly.</p>
+    <p data-n="0">So that's great for how a room looks. But what about something that has to be exact? Like a flowchart of my method for the poster. Your first instinct might be: just ask an image generator.</p>
+    <p data-n="1">And you get this. Honestly, it's good. I made this one this week, and every word is right. These image models have got much better at text.</p>
+    <p data-n="2">But it's just a picture. If I want to move a box, change one word, or add a fifth step, I can't. I make the whole thing again, and hope it comes out right again. And it won't always: sometimes it slips in a typo, or a step I never gave it. So for a diagram that has to be exact and that I'll keep editing, let's do it properly.</p>
   </aside>
 </section>
 
 <section class="slide" data-title="Diagrams you can edit" data-steps="5">
-  <div class="kick">Demo 2</div>
+  <div class="kick">Demo 3</div>
   <div class="who">Instead: ask for draw.io</div>
   <ol class="psteps pts2" style="right:520px">
     <li data-at="1"><b>Ask for a diagram</b><span>your method as a flowchart, a timeline, a concept map</span></li>
@@ -1552,7 +1789,7 @@ body.with-notes #notes{display:block}
   <div class="src"><a href="https://app.diagrams.net" target="_blank" rel="noopener">app.diagrams.net</a> · <a href="https://excalidraw.com" target="_blank" rel="noopener">excalidraw.com</a> · <a href="https://mermaid.live" target="_blank" rel="noopener">mermaid.live</a></div>
   <aside class="notes">
     <p data-n="0">Here's what I'll do. Again, every step is on the slide.</p>
-    <p data-n="1">Ask your chatbot for a diagram. Your research method as a flowchart, or a timeline, or a concept map. With the paper still in the chat, it already knows your method.</p>
+    <p data-n="1">Ask your chatbot for a diagram. Your research method as a flowchart, or a timeline, or a concept map. I'm still in my courtyard project, so it already knows my method.</p>
     <p data-n="2">But here's the trick: ask for it in draw.io format. Something like this prompt.</p>
     <p data-n="3">Open what it gives you in draw.io, at diagrams.net. It's free, it runs in the browser.</p>
     <p data-n="4">And now it's not a picture, it's a real diagram. You can move the boxes, fix the labels, and export it for your slides or your paper.</p>
@@ -1561,18 +1798,18 @@ body.with-notes #notes{display:block}
 </section>
 
 <section class="slide" data-title="Why this works: a diagram is text" data-steps="2">
-  <div class="kick">Demo 2</div>
+  <div class="kick">Demo 3</div>
   <div class="who">Why this works: a diagram is text</div>
   <pre class="xml" data-at="1" data-fx="fade" style="top:230px;font-size:21px;line-height:1.8;padding:24px 28px">flowchart TD
-  A[Survey 312 students] --&gt; B[Clean the data]
-  B --&gt; C[Analyse]</pre>
+  A[Observe the courtyard] --&gt; B[Survey the students]
+  B --&gt; C[Find the key factors]</pre>
   <div class="xarr" data-at="2" data-fx="fade"></div>
   <svg class="flowd" data-at="2" data-fx="fade" viewBox="0 0 300 420">
-    <rect x="30" y="20" width="240" height="70" rx="14"/><text x="150" y="62">Survey 312 students</text>
+    <rect x="30" y="20" width="240" height="70" rx="14"/><text x="150" y="62">Observe the courtyard</text>
     <path d="M150 90 V150"/><path class="hd" d="M142 140 L150 154 L158 140 Z"/>
-    <rect x="30" y="156" width="240" height="70" rx="14"/><text x="150" y="198">Clean the data</text>
+    <rect x="30" y="156" width="240" height="70" rx="14"/><text x="150" y="198">Survey the students</text>
     <path d="M150 226 V286"/><path class="hd" d="M142 276 L150 290 L158 276 Z"/>
-    <rect x="30" y="292" width="240" height="70" rx="14"/><text x="150" y="334">Analyse</text>
+    <rect x="30" y="292" width="240" height="70" rx="14"/><text x="150" y="334">Find the key factors</text>
   </svg>
   <div class="src">Shown: a Mermaid diagram. A draw.io file works the same way, just longer. · <a href="https://mermaid.live" target="_blank" rel="noopener">mermaid.live</a></div>
   <aside class="notes">
@@ -1583,7 +1820,7 @@ body.with-notes #notes{display:block}
 </section>
 
 <section class="slide" data-title="Tip: from a sketch to a diagram" data-steps="2">
-  <div class="kick">Demo 2 · tip</div>
+  <div class="kick">Demo 3 · tip</div>
   <div class="who">Tip: from a sketch to a diagram</div>
   <div class="phone">
     <svg viewBox="0 0 260 470">
@@ -1596,7 +1833,7 @@ body.with-notes #notes{display:block}
         <path d="M130 236 C133 252 128 262 131 278 M122 268 L131 280 L140 269"/>
         <path d="M60 284 C110 288 150 280 200 286 L198 334 C150 330 100 338 62 332 Z"/>
       </g>
-      <g class="hw"><text x="130" y="114">survey 312</text><text x="130" y="214">clean data</text><text x="130" y="316">analyse</text></g>
+      <g class="hw"><text x="130" y="114">observe</text><text x="130" y="214">survey</text><text x="130" y="316">key factors</text></g>
       <rect x="100" y="446" width="60" height="6" rx="3" fill="#888"/>
     </svg>
     <span>a photo from your phone</span>
@@ -1604,11 +1841,11 @@ body.with-notes #notes{display:block}
   <div class="bub q" data-at="1" data-fx="fade" style="left:400px;top:250px;width:330px;font-size:21px;box-sizing:border-box">Turn this sketch into a draw.io diagram.</div>
   <div class="xarr" data-at="1" data-fx="fade" style="left:420px;top:350px;width:300px"></div>
   <svg class="flowd" data-at="2" data-fx="fade" viewBox="0 0 300 420" style="left:820px">
-    <rect x="30" y="20" width="240" height="70" rx="14"/><text x="150" y="62">Survey 312 students</text>
+    <rect x="30" y="20" width="240" height="70" rx="14"/><text x="150" y="62">Observe the courtyard</text>
     <path d="M150 90 V150"/><path class="hd" d="M142 140 L150 154 L158 140 Z"/>
-    <rect x="30" y="156" width="240" height="70" rx="14"/><text x="150" y="198">Clean the data</text>
+    <rect x="30" y="156" width="240" height="70" rx="14"/><text x="150" y="198">Survey the students</text>
     <path d="M150 226 V286"/><path class="hd" d="M142 276 L150 290 L158 276 Z"/>
-    <rect x="30" y="292" width="240" height="70" rx="14"/><text x="150" y="334">Analyse</text>
+    <rect x="30" y="292" width="240" height="70" rx="14"/><text x="150" y="334">Find the key factors</text>
   </svg>
   <aside class="notes">
     <p data-n="0">One more tip. You've probably got sketches like this: on paper, on a whiteboard, on the back of a meeting agenda. Take a photo with your phone.</p>
@@ -1695,19 +1932,13 @@ body.with-notes #notes{display:block}
   </aside>
 </section>
 
-<section class="slide" data-title="The core: AI writes code to act" data-steps="6">
+<section class="slide" data-title="The core: AI writes code to act" data-steps="0">
   <div class="kick">5 · Agents</div>
   <div class="who">The core: the AI writes code to act</div>
-  <table class="hva"><thead><tr><th>You would…</th><th></th><th>The agent writes…</th><th>In plain words</th></tr></thead><tbody><tr data-at="1"><td>Look inside a folder</td><td class="to">→</td><td><code>ls papers/</code></td><td class="pw">list the files in "papers"</td></tr><tr data-at="2"><td>Find every PDF from 2025</td><td class="to">→</td><td><code>find . -name &quot;*2025*.pdf&quot;</code></td><td class="pw">search by file name</td></tr><tr data-at="3"><td>Rename 100 files</td><td class="to">→</td><td><code>for f in files: f.rename(...)</code></td><td class="pw">do it for every file</td></tr><tr data-at="4"><td>Make a chart from an Excel sheet</td><td class="to">→</td><td><code>pd.read_excel(&quot;data.xlsx&quot;).plot()</code></td><td class="pw">read the sheet, draw the chart</td></tr><tr data-at="5"><td>Send an email</td><td class="to">→</td><td><code>gmail.send(to=..., subject=...)</code></td><td class="pw">use the email tool</td></tr></tbody></table>
-  <div class="hvnote" data-at="6" data-fx="fade">Give it the tools, and it can do a lot. <b>Even this slide deck was made as code, in HTML.</b></div>
+  <table class="hva"><thead><tr><th>You would…</th><th></th><th>The agent writes…</th><th>In plain words</th></tr></thead><tbody><tr><td>Look inside a folder</td><td class="to">→</td><td><code>ls papers/</code></td><td class="pw">list the files in "papers"</td></tr><tr><td>Find every PDF from 2025</td><td class="to">→</td><td><code>find . -name &quot;*2025*.pdf&quot;</code></td><td class="pw">search by file name</td></tr><tr><td>Rename 100 files</td><td class="to">→</td><td><code>for f in files: f.rename(...)</code></td><td class="pw">do it for every file</td></tr><tr><td>Make a chart from an Excel sheet</td><td class="to">→</td><td><code>pd.read_excel(&quot;data.xlsx&quot;).plot()</code></td><td class="pw">read the sheet, draw the chart</td></tr><tr><td>Send an email</td><td class="to">→</td><td><code>gmail.send(to=..., subject=...)</code></td><td class="pw">use the email tool</td></tr></tbody></table>
+  <div class="hvnote">Give it the tools, and it can do a lot. <b>Even this slide deck was made as code, in HTML.</b></div>
   <aside class="notes">
-    <p data-n="0">Here's the core of agentic AI. How does it actually do things? It writes code.</p>
-    <p data-n="1">You would open a folder and look inside. The agent writes one short command, "ls", which just means list the files.</p>
-    <p data-n="2">You'd search for every PDF from 2025. It writes a search command.</p>
-    <p data-n="3">You'd rename a hundred files by hand. It writes a three-line loop.</p>
-    <p data-n="4">You'd open Excel and make a chart. It writes code that reads the sheet and draws the chart.</p>
-    <p data-n="5">You'd write an email. It calls the email tool.</p>
-    <p data-n="6">So, given the tools, it can do a lot. In fact, this whole slide deck you're looking at was made programmatically. It's a web page, written in HTML, by an AI, from my notes.</p>
+    <p data-n="0">Here's the core of agentic AI. How does it actually do things? It writes code. Everything you'd do by hand, it does with a short line of code. You'd open a folder and look inside; it writes "ls", list the files. You'd search for every PDF from 2025; it writes a search command. Rename a hundred files by hand? A three-line loop. A chart from Excel? Code that reads the sheet and draws it. An email? It calls the email tool. So, given the tools, it can do a lot. In fact, this whole slide deck you're looking at was made programmatically. It's a web page, written in HTML, by an AI, from my notes.</p>
   </aside>
 </section>
 
@@ -1735,21 +1966,7 @@ body.with-notes #notes{display:block}
   <div class="brk">Video: pixels or code?</div>
   <div class="brk2">two very different ways to make a video with AI</div>
   <aside class="notes">
-    <p data-n="0">And now, the core of today: video. And there's one idea I want you to leave with. There are two very different ways AI can make a video: by painting pixels, or by writing code. Today is about code.</p>
-  </aside>
-</section>
-
-<section class="slide" data-title="A video is just pictures" data-hook="flip" data-steps="2">
-  <div class="kick">6 · Video · how it works</div>
-  <div class="who">A video is just pictures, shown fast</div>
-  <canvas class="fstrip" width="2208" height="196"></canvas>
-  <canvas class="fplay" width="960" height="680"></canvas>
-  <div class="fps"><div class="fpsn"><b>4</b> pictures a second</div><p class="fpsm slow" data-at="1" data-fx="fade">Slow: you see each picture.</p><p class="fpsm" data-at="2" data-fx="fade"><b>24 a second:</b> your eye sees movement.</p></div>
-  <div class="src">Each picture is a <b>frame</b>. Films use 24 frames a second; phones and YouTube often 30 or 60.</div>
-  <aside class="notes">
-    <p data-n="0">Before we talk about AI video, what is a video? It's just pictures. Here are twelve of them, a ball bouncing.</p>
-    <p data-n="1">If I show them slowly, four a second, you see each picture. A flipbook.</p>
-    <p data-n="2">Now twenty-four a second. Same twelve pictures. And now your eye sees a ball bouncing. Each picture is called a frame. Films are 24 frames a second; your phone usually records 30 or 60. So a one-minute video is over a thousand pictures. And the question is: who makes all those pictures?</p>
+    <p data-n="0">And now, the core of today: video. And there's one idea I want you to leave with. There are two very different ways AI can make a video: by painting pixels, or by writing code.</p>
   </aside>
 </section>
 
@@ -1760,22 +1977,22 @@ body.with-notes #notes{display:block}
     <h3>Pixel video</h3><p class="twd">The AI <b>paints every frame</b>.</p>
     <div class="twf"><span>your prompt</span><i></i><span>video model</span><i></i><span>pictures</span></div>
     <div class="twfr"><svg viewBox="0 0 120 90"><defs><radialGradient id="pg0" cx=".3" cy=".25" r="1"><stop offset="0" stop-color="#f4d7b8"/><stop offset=".6" stop-color="#b9a7c9"/><stop offset="1" stop-color="#6f7fa6"/></radialGradient></defs><rect width="120" height="90" fill="url(#pg0)"/><ellipse cx="32" cy="62" rx="11" ry="11" fill="#d9634f" opacity=".85"/><ellipse cx="52" cy="76" rx="20" ry="6" fill="#fff" opacity=".25"/><path d="M0 78 Q60 70 120 80 V90 H0Z" fill="#4c5b72" opacity=".6"/></svg><svg viewBox="0 0 120 90"><defs><radialGradient id="pg1" cx=".3" cy=".25" r="1"><stop offset="0" stop-color="#f4d7b8"/><stop offset=".6" stop-color="#b9a7c9"/><stop offset="1" stop-color="#6f7fa6"/></radialGradient></defs><rect width="120" height="90" fill="url(#pg1)"/><ellipse cx="54" cy="40" rx="14" ry="11" fill="#d9634f" opacity=".85"/><ellipse cx="74" cy="54" rx="20" ry="6" fill="#fff" opacity=".25"/><path d="M0 78 Q60 73 120 80 V90 H0Z" fill="#4c5b72" opacity=".6"/></svg><svg viewBox="0 0 120 90"><defs><radialGradient id="pg2" cx=".3" cy=".25" r="1"><stop offset="0" stop-color="#f4d7b8"/><stop offset=".6" stop-color="#b9a7c9"/><stop offset="1" stop-color="#6f7fa6"/></radialGradient></defs><rect width="120" height="90" fill="url(#pg2)"/><ellipse cx="76" cy="32" rx="11" ry="11" fill="#d9634f" opacity=".85"/><ellipse cx="96" cy="46" rx="20" ry="6" fill="#fff" opacity=".25"/><path d="M0 78 Q60 76 120 80 V90 H0Z" fill="#4c5b72" opacity=".6"/></svg><svg viewBox="0 0 120 90"><defs><radialGradient id="pg3" cx=".3" cy=".25" r="1"><stop offset="0" stop-color="#f4d7b8"/><stop offset=".6" stop-color="#b9a7c9"/><stop offset="1" stop-color="#6f7fa6"/></radialGradient></defs><rect width="120" height="90" fill="url(#pg3)"/><ellipse cx="98" cy="44" rx="14" ry="11" fill="#d9634f" opacity=".85"/><ellipse cx="118" cy="58" rx="20" ry="6" fill="#fff" opacity=".25"/><path d="M0 78 Q60 79 120 80 V90 H0Z" fill="#4c5b72" opacity=".6"/></svg></div>
-    <p class="twc">It guesses what each picture should look like. Nothing is calculated.</p>
+    <p class="twc">It learned from millions of videos. <b>Great at how real things look</b>: people, places, light.</p>
     <p class="twe">Sora, Veo, Kling, Higgsfield</p>
   </div>
   <div class="tw twcd" data-at="2" data-fx="fade">
     <h3>Code video</h3><p class="twd">The AI <b>writes instructions</b>; the computer draws every frame.</p>
     <div class="twf"><span>your prompt</span><i></i><span>code</span><i></i><span>pictures</span></div>
     <div class="twfr"><svg viewBox="0 0 120 90"><rect width="120" height="90" class="cbg"/><line x1="12" y1="76" x2="108" y2="76" class="cax"/><rect x="20" y="70.6" width="20" height="5.4" rx="2" class="cb"/><rect x="50" y="66.6" width="20" height="9.4" rx="2" class="cb"/><rect x="80" y="62.0" width="20" height="14.0" rx="2" class="cb2"/></svg><svg viewBox="0 0 120 90"><rect width="120" height="90" class="cbg"/><line x1="12" y1="76" x2="108" y2="76" class="cax"/><rect x="20" y="64.2" width="20" height="11.8" rx="2" class="cb"/><rect x="50" y="55.3" width="20" height="20.7" rx="2" class="cb"/><rect x="80" y="45.2" width="20" height="30.8" rx="2" class="cb2"/></svg><svg viewBox="0 0 120 90"><rect width="120" height="90" class="cbg"/><line x1="12" y1="76" x2="108" y2="76" class="cax"/><rect x="20" y="57.7" width="20" height="18.3" rx="2" class="cb"/><rect x="50" y="44.0" width="20" height="32.0" rx="2" class="cb"/><rect x="80" y="28.4" width="20" height="47.6" rx="2" class="cb2"/></svg><svg viewBox="0 0 120 90"><rect width="120" height="90" class="cbg"/><line x1="12" y1="76" x2="108" y2="76" class="cax"/><rect x="20" y="54.5" width="20" height="21.5" rx="2" class="cb"/><rect x="50" y="38.3" width="20" height="37.7" rx="2" class="cb"/><rect x="80" y="20.0" width="20" height="56.0" rx="2" class="cb2"/></svg></div>
-    <p class="twc">Every picture is calculated from the code. <code>bar("2025", 312)</code> is exactly 312.</p>
+    <p class="twc">Every picture is calculated. <b>Great when details must be exact</b>: <code>bar("2025", 312)</code> is exactly 312.</p>
     <p class="twe">Remotion, Claude Motion, HyperFrames</p>
   </div>
-  <p class="subnote" data-at="3" data-fx="fade" style="top:612px;text-align:center">Today is all about <b>code videos</b>.</p>
+  <p class="subnote" data-at="3" data-fx="fade" style="top:612px;text-align:center">Both are useful, for different jobs.</p>
   <aside class="notes">
-    <p data-n="0">So, how does AI make a video? There are two very different ways, and this is the most important distinction today.</p>
-    <p data-n="1">The first: pixel video. You type a prompt, and a video model paints every frame, pixel by pixel. It has seen millions of videos, so it guesses what each picture should look like. That's Sora, Veo, Kling, Higgsfield. Beautiful. But nothing is calculated; it's a very good guess.</p>
+    <p data-n="0">So, how does AI make a video? Remember, a video is just pictures, shown fast. So who makes all those pictures? There are two very different ways, and this is the most important distinction today.</p>
+    <p data-n="1">The first: pixel video. You type a prompt, and a video model paints every frame, pixel by pixel. It has seen millions of videos, so it guesses what each picture should look like. That's Sora, Veo, Kling, Higgsfield. And it's very good at how real things look: people, places, light, camera moves.</p>
     <p data-n="2">The second: code video. The AI doesn't paint anything. It writes instructions, code, and the computer follows them to draw every frame. If the code says this bar is 312, it's exactly 312, in every frame. That's Remotion, which I use today, and Claude Motion, and HyperFrames.</p>
-    <p data-n="3">Pixels or code. Keep that in your head for the rest of today, because today is all about code videos. Let me show you why.</p>
+    <p data-n="3">Pixels or code. Both are useful, for different jobs. Keep that in your head for the rest of today. Let's look at each.</p>
   </aside>
 </section>
 
@@ -1787,42 +2004,34 @@ body.with-notes #notes{display:block}
     <ul><li><img class="ilogo" src="media/logos/lobe-gemini-color.svg" alt="">Google Veo, now Gemini Omni</li><li><img class="ilogo mono" src="media/logos/lobe-sora.svg" alt="">OpenAI Sora</li><li><img class="ilogo mono" src="media/logos/lobe-kling.svg" alt=""><img class="ilogo mono" src="media/logos/lobe-runway.svg" alt="">Kling, Runway, Wan, LTX…</li><li><b>Higgsfield</b>: the advanced one, many video models plus camera moves in one place</li></ul>
   </div>
   <div class="col2" style="left:668px" data-at="1" data-fx="fade">
-    <h3 style="color:var(--rose)">But for research…</h3>
-    <ul><li>numbers, labels and text often come out wrong</li><li>you can't fix one detail; you re-roll the whole clip</li><li>short clips: usually 5–15 seconds each</li><li>you pay per second or per credit, and re-rolls add up</li><li>running it yourself needs a powerful GPU</li></ul>
+    <h3 style="color:var(--hot)">Great at</h3>
+    <ul class="pxl"><li>real-looking footage: people, places, light</li><li>camera moves and cinematic shots</li><li>fast: one prompt, one clip</li></ul>
+
   </div>
-  <p class="subnote" data-at="2" data-fx="fade" style="top:600px">Pixel videos are great for footage. But it's a picture of your research, not your research.</p>
+  <p class="subnote" data-at="2" data-fx="fade" style="top:612px">Good for an intro, a promo, b-roll. Our workshop promo opens with pixel video.</p>
   <aside class="notes">
     <p data-n="0">First, pixel videos. This is the way most people know: you type a prompt, and you get a video clip. Google's Veo, now Gemini Omni. OpenAI's Sora. Kling, Runway, and open ones like Wan and LTX that we saw earlier. And if you want to go further, Higgsfield: it puts many of these video models in one place, with proper camera moves, like a dolly or a crane shot.</p>
-    <p data-n="1">And they're impressive. These tools learned from millions of videos, so they guess what each picture should look like. That's why it looks right, but nobody calculated anything. So for research, there are problems. Numbers, labels and text often come out wrong. You can't fix one detail; you generate the whole clip again and hope. The clips are short, usually five to fifteen seconds. You pay per second, or per credit, and every re-roll costs again. And if you want to run it yourself, you need a powerful GPU.</p>
-    <p data-n="2">So it's beautiful, but it's a picture of your research. Not your research.</p>
+    <p data-n="1">And they're impressive. They learned from millions of videos, so they're great at how real things look: people, places, light, camera moves. And it's fast: one prompt, one clip. We'll compare the two properly in a minute.</p>
+    <p data-n="2">So it's great for an intro, a promo, some b-roll. Actually, the promo for this workshop opens with a few seconds of pixel video: the tired lecturer at his desk. The rest of it was code.</p>
   </aside>
 </section>
 
-<section class="slide" data-title="Code videos: motion engineering" data-steps="4">
+<section class="slide" data-title="Motion design" data-steps="3">
   <div class="kick">6 · Video · <i class="kcd">code</i></div>
-  <div class="who">Code videos: the new meta, motion engineering</div>
-  <p class="mehead">Don't generate the pixels. <b>Write the motion as code</b>, and let the computer draw it.</p>
+  <div class="who">Motion design: the new meta <span>code videos</span></div>
+  <p class="mehead">Instead of painting pixels, <b>write the motion as code</b>, and let the computer draw it.</p>
   <div class="mecards">
     <div class="mec" data-at="1"><h4><img class="ilogo" src="media/logos/claude.svg" alt="">Claude Motion</h4><em>Anthropic · 8 Oct 2026</em><p>Claude writes code that animates your text, charts and images. No video model, no generated footage.</p></div>
     <div class="mec" data-at="2"><h4>Higgsfield Vibe Motion</h4><em>Feb 2026</em><p>Motion graphics made as code you can tweak, not pixels it guessed.</p></div>
     <div class="mec hot" data-at="3"><h4><img class="ilogo" src="media/logos/lobe-claudecode-color.svg" alt="">Claude Code + <img class="ilogo" src="media/logos/remotion.png" alt="">Remotion</h4><em>today's demo</em><p>Free for individuals: you own the code, and you can change anything.</p></div>
   </div>
-  <table class="mecmp" data-at="4" data-fx="fade">
-    <tr><th></th><th>Pixel video</th><th>Code video</th></tr>
-    <tr><td>Numbers</td><td>guessed</td><td>exact</td></tr>
-    <tr><td>Fix one detail</td><td>re-roll it all</td><td>change one line</td></tr>
-    <tr><td>Length</td><td>~5–15 s per clip</td><td>as long as you want</td></tr>
-    <tr><td>Cost</td><td>per second or credit</td><td>free tools</td></tr>
-    <tr><td>Hardware</td><td>cloud or a big GPU</td><td>your laptop</td></tr>
-  </table>
-  <p class="mehf" data-at="4" data-fx="fade">Today we use <b>Remotion</b> (free for individuals and small teams). <b>HyperFrames</b>, from HeyGen, does the same and is fully open source (Apache 2.0).</p>
+  <p class="mehf" data-at="3" data-fx="fade">Today we use <b>Remotion</b> (free for individuals and small teams). <b>HyperFrames</b>, from HeyGen, does the same and is fully open source (Apache 2.0).</p>
   <div class="src"><a href="https://claude.com/resources/articles/dashboards-and-motion" target="_blank" rel="noopener">claude.com: Dashboards and Motion</a> (Motion: beta, Team and Enterprise plans) · <a href="https://higgsfield.ai" target="_blank" rel="noopener">higgsfield.ai</a> · <a href="https://www.remotion.dev" target="_blank" rel="noopener">www.remotion.dev</a> · <a href="https://hyperframes.dev" target="_blank" rel="noopener">hyperframes.dev</a></div>
   <aside class="notes">
-    <p data-n="0">And that's why code videos are the new meta. I call it motion engineering. Don't ask the AI to generate the pixels. Ask it to write the motion, as code, and let the computer draw it. Every number exact, every label right, and you can change anything. And honestly, this is something Claude is very good at.</p>
+    <p data-n="0">Now the other way, and it's the new meta: motion design, with code. Instead of painting pixels, the AI writes the motion as code, and the computer draws it. Every number exact, every label right, and you can change anything. And honestly, this is something Claude is very good at.</p>
     <p data-n="1">Anthropic just launched this, last week, as Claude Motion. Claude writes code that animates your text, your charts, your images. They say it plainly: no video model, no generated footage. Right now it's for Team and Enterprise plans.</p>
     <p data-n="2">Even Higgsfield, the pixel-video platform I mentioned, added a code option this year, Vibe Motion: motion graphics as code you can tweak.</p>
-    <p data-n="3">And what we'll do today: Claude Code with Remotion. The code is yours, and you can change anything.</p>
-    <p data-n="4">So, pixels against code, side by side. A pixel video guesses the numbers; code gets them exact. To fix one detail, you re-roll everything, or you change one line. Clips of five to fifteen seconds, or as long as you want. Paying per second, or free tools. A big GPU in the cloud, or your own laptop. That's why, for research, I think code is the better way. Today I'm using Remotion, which is free for individuals and small teams. There's also HyperFrames, from HeyGen, which does the same thing and is fully open source.</p>
+    <p data-n="3">And what we'll do today: Claude Code with Remotion. The code is yours, and you can change anything. Today I'm using Remotion, which is free for individuals and small teams. There's also HyperFrames, from HeyGen, which does the same thing and is fully open source.</p>
   </aside>
 </section>
 
@@ -1845,11 +2054,11 @@ body.with-notes #notes{display:block}
     <p data-n="0">So what does that look like? On the left, code. On the right, the video it makes.</p>
     <p data-n="1">Line by line. A title. A bar for 2023. 2024. 2025. And make them grow. Every line becomes something on screen, exactly as written. Nothing is guessed.</p>
     <p data-n="2">Now say that number is wrong. It should be 350, not 312. I change one number, and only that bar changes. Nothing else gets re-rolled. Try that with a generated video.</p>
-    <p data-n="3">The tool that turns this code into an MP4 is called Remotion. The AI writes the code; you, the expert, check the science. Actually, the promo video you saw at the start was made this way.</p>
+    <p data-n="3">The tool that turns this code into an MP4 is called Remotion. The AI writes the code; you, the expert, check the science.</p>
   </aside>
 </section>
 
-<section class="slide bleed" data-title="Code video, high effort" data-hook="wow" data-steps="2">
+<section class="slide bleed" data-title="Motion design, high effort" data-hook="wow" data-steps="2">
   <iframe class="wowf" title="Light in a glass bead senses heat: a live 3D animation" tabindex="-1"></iframe>
   <div class="wowh" data-at="1" data-fx="fade">All of this is code.</div>
   <div class="wowcode" data-at="1" data-fx="fade"><div class="wowtab">kos.html <span>· ~570 lines, written by AI</span></div><pre>    float fresnel=.035+.965*pow(1.0-facing,5.0);
@@ -2006,21 +2215,64 @@ for(const width of [.075,.24]){
   <aside class="notes">
     <p data-n="0">Now let me show you what this can look like when you put in a bit more effort. This is one of the clips I made for this workshop, from a Kulliyyah of Science paper: a tiny glass bead that senses heat with light. And this isn't a video. It's running live, right now, in 3D.</p>
     <p data-n="1">And this is what it's made of. Code. One file, about 570 lines. The AI wrote all of it. I described what I wanted, checked it against the paper, and asked for changes. The glass, the light, the heat, every bit of it is written, not generated.</p>
-    <p data-n="2">One IIUM paper, turned into this. It's an illustration, so the colours and the timing are exaggerated to show the idea, but nothing in it is a random guess. That's motion engineering.</p>
+    <p data-n="2">One IIUM paper, turned into this. It's an illustration, so the colours and the timing are exaggerated to show the idea, but nothing in it is a random guess. That's motion design, with code.</p>
   </aside>
 </section>
 
-<section class="slide" data-title="Demo 3: a video of a paper">
-  <div class="part">Demo 3</div>
-  <div class="brk">Make a code video of a paper</div>
-  <div class="brk2">step by step, so you can do it again at home</div>
+<section class="slide" data-title="Pixels or code: which one?" data-steps="2">
+  <div class="kick">6 · Video · <i class="kpx">pixels</i> or <i class="kcd">code</i></div>
+  <div class="who">Pixels or code: which one?</div>
+  <table class="pcmp">
+    <tr><th></th><th class="hpx">Pixel video</th><th class="hcd">Code video</th></tr>
+    <tr><td>Best for</td><td>real-looking footage, people, places</td><td>diagrams, charts, mechanisms, data</td></tr>
+    <tr><td>Look</td><td>photoreal, cinematic</td><td>clean, illustrated, 2D or 3D</td></tr>
+    <tr><td>Numbers and text</td><td>hit or miss</td><td>exact</td></tr>
+    <tr><td>Change one detail</td><td>regenerate, and hope</td><td>change one line</td></tr>
+    <tr><td>Length</td><td>short clips (~5–15 s), joined up</td><td>as long as you need</td></tr>
+    <tr><td>Effort</td><td>a prompt, a few minutes</td><td>a conversation with a coding agent, more setup</td></tr>
+    <tr><td>Cost</td><td>credits per clip; good quality costs more</td><td>an AI subscription; the video tools are free for individuals</td></tr>
+  </table>
+  <p class="subnote" data-at="1" data-fx="fade" style="top:566px;text-align:center"><b>How it looks</b> → pixels. &nbsp; <b>What's exact</b> → code. &nbsp; Many projects use both.</p>
+  <p class="subnote" data-at="2" data-fx="fade" style="top:616px;text-align:center;font-size:20px;color:var(--muted)">For research and teaching, exactness usually matters most. That's why today's demo uses code.</p>
   <aside class="notes">
-    <p data-n="0">Alright, the main demo. I'm going to make a code video of a paper, live. Just watch for now. I'll go one step at a time, and every step, with what I type, is on the slides, so you can do exactly the same at home.</p>
+    <p data-n="0">So now we've seen both. Let's be fair and put them side by side. Pixel video is best for real-looking footage, people, places. Code video is best for diagrams, charts, mechanisms, data. Pixels look photoreal; code looks clean and illustrated, though it can be 3D too. Numbers and text: hit or miss with pixels, exact with code. To change one detail, with pixels you regenerate and hope; with code you change one line. Pixel clips are short, so you join them up; code can be as long as you need. Pixel video is faster to start, just a prompt. Code takes a conversation with a coding agent and a bit more setup. And both cost something: with pixels you pay credits per clip, and the good-quality models cost more; with code you need an AI subscription, though the video tools themselves are free for individuals.</p>
+    <p data-n="1">So a simple rule. If it's about how it looks, pixels. Like my poster image. If it's about what's exact, code. Like the video for my talk. And many projects use both, like our promo.</p>
+    <p data-n="2">For research and teaching, exactness usually matters most. That's why today's demo uses code.</p>
+  </aside>
+</section>
+
+<section class="slide" data-title="How I made the promo" data-steps="4">
+  <div class="kick">6 · Video · <i class="kpx">pixels</i> and <i class="kcd">code</i></div>
+  <div class="who">How I made the promo <span>85 seconds, pixels and code</span></div>
+  <ol class="mk">
+    <li data-at="1"><b>Plan it with <img class="ilogo" src="media/logos/lobe-claudecode-color.svg" alt="">Claude Code</b><span>the idea, the examples, an outline of every shot</span></li>
+    <li data-at="2"><b>Split the shots</b><span>for each one: pixel or code?</span></li>
+    <li data-at="3"><b>Make the parts</b><span><em class="tp">pixel</em> image, then a short AI clip<br><em class="tc">code</em> Remotion scenes</span></li>
+    <li data-at="4"><b>Polish in <img class="ilogo" src="media/logos/lobe-claudecode-color.svg" alt="">Claude Code</b><span>timing, music, voice. Then iterate.</span></li>
+  </ol>
+  <figure class="mkf mkp" data-at="2" data-fx="fade"><img src="media/promo-pixel.jpg" alt=""><figcaption><em class="tp">pixel</em> the tired lecturer at 2 a.m.: an AI image, animated into a 2-second clip</figcaption></figure>
+  <figure class="mkf mkc" data-at="2" data-fx="fade"><img src="media/ref-koe.jpg" alt=""><figcaption><em class="tc">code</em> the research clips, captions and end card: written as code</figcaption></figure>
+  <aside class="notes">
+    <p data-n="0">Like our promo. Here's how I made the promo you saw at the start: pixels and code.</p>
+    <p data-n="1">I started in Claude Code. Not with code: with the idea. What do I want to show, which examples, what's the story. Together we drafted an outline, shot by shot.</p>
+    <p data-n="2">Then for each shot, one question: pixel or code? The tired lecturer at his desk at 2 a.m. has to look real, so that's pixels: an AI image, then animated into a short clip. The research animations, the captions, the end card with the date and venue: those have to be exact, so that's code.</p>
+    <p data-n="3">Then I made the parts. The pixel shots with an image generator and a video model. The code scenes with Claude Code and Remotion.</p>
+    <p data-n="4">And then I put it all together and polished it in Claude Code: the timing, the music, the voice, which were also AI-made. And iterate, iterate. Watch it, say what's wrong, fix, watch again.</p>
+  </aside>
+</section>
+
+<section class="slide" data-title="Demo 4: motion design">
+  <div class="part">Demo 4 · Motion design</div>
+  <div class="brk">A short video for my talk</div>
+  <div class="brk2">a code video of my paper, step by step</div>
+  <ol class="storyl"><li class="ok"><i>D1</i>an AI that knows my paper</li><li class="ok"><i>D2</i>a hero image for my poster</li><li class="ok"><i>D3</i>a method diagram for my poster</li><li class="now"><i>D4</i>a short video for my talk</li></ol>
+  <aside class="notes">
+    <p data-n="0">Alright, the main demo, and the last thing on my list: a short video for my talk. I'm going to make a code video of my courtyard paper, live. Just watch for now. I'll go one step at a time, and every step, with what I type, is on the slides, so you can do exactly the same at home.</p>
   </aside>
 </section>
 
 <section class="slide" data-title="Before you start: setup" data-steps="2">
-  <div class="kick">Demo 3 · do this once, at home</div>
+  <div class="kick">Demo 4 · do this once, at home</div>
   <div class="who">Before you start: set up <img class="ilogo" src="media/logos/lobe-claudecode-color.svg" alt="">Claude Code</div>
   <ol class="psteps pts2" style="right:56px">
     <li data-at="1"><b>Install it</b><span>open PowerShell and paste: <code>irm https://claude.ai/install.ps1 | iex</code><br>Mac: <code>curl -fsSL https://claude.ai/install.sh | bash</code></span></li>
@@ -2034,8 +2286,8 @@ for(const width of [.075,.24]){
   </aside>
 </section>
 
-<section class="slide" data-title="Demo 3: five steps" data-steps="5">
-  <div class="kick">Demo 3</div>
+<section class="slide" data-title="Demo 4: five steps" data-steps="5">
+  <div class="kick">Demo 4</div>
   <div class="who">Five steps</div>
   <ol class="psteps pts2">
     <li data-at="1"><b>Start Claude Code in a new folder</b><span>and give it the workshop files</span></li>
@@ -2047,7 +2299,7 @@ for(const width of [.075,.24]){
   <aside class="notes">
     <p data-n="0">Here's the whole thing, in five steps.</p>
     <p data-n="1">Start Claude Code in a new folder, and give it the workshop files as a reference.</p>
-    <p data-n="2">Then the prompt. And this is the one I really want you to remember, so it gets its own slide.</p>
+    <p data-n="2">Then the prompt. Same as the architect demo: we talk it out.</p>
     <p data-n="3">Give it the paper, and ask for a plan before it builds anything.</p>
     <p data-n="4">Preview the video, and ask for fixes.</p>
     <p data-n="5">And render it, and check the science. Let's go.</p>
@@ -2055,7 +2307,7 @@ for(const width of [.075,.24]){
 </section>
 
 <section class="slide dstep" data-title="Step 1: start" data-steps="3">
-  <div class="kick">Demo 3 · step 1 of 5</div>
+  <div class="kick">Demo 4 · step 1 of 5</div>
   <div class="who">Start Claude Code in a new folder</div>
   <ol class="dact">
     <li data-at="1"><b>Make a new folder</b> and open a terminal in it<span>in File Explorer: right-click inside the folder → <i>Open in Terminal</i></span></li>
@@ -2071,67 +2323,73 @@ for(const width of [.075,.24]){
   </aside>
 </section>
 
-<section class="slide dstep" data-title="Step 2: talk out the prompt" data-steps="4">
-  <div class="kick">Demo 3 · step 2 of 5</div> <span class="dkey">the most important one</span>
-  <div class="who">Don't write the prompt. Talk it out.</div>
-  <div class="dchat">
-    <div class="bub q">I want a short video of my paper for first-year students. Before you make anything, ask me questions until you can write a good prompt for it.</div>
-    <div class="bub a" data-at="1" data-fx="fade">Happy to. What's the one result they should remember? What should move on screen? Which numbers must be exact? How long, and what style?</div>
-    <div class="bub q" data-at="2" data-fx="fade">The bone moves 1 mm a day for 30 days. Numbers from Table 2. About 30 seconds, clean medical look.</div>
-    <div class="bub a" data-at="3" data-fx="fade">Here's your prompt: <i>"Make a 30-second Remotion video explaining Ilizarov bone transport for first-year medical students. Show the frame pulling the bone 1 mm a day…"</i><small>read it, fix anything, then say "go ahead"</small></div>
-  </div>
-  <ul class="dtake" data-at="4" data-fx="fade">
-    <li><b>You don't need to know how to prompt.</b> Ask it to interview you.</li>
-    <li><b>It knows what it needs.</b> Let it ask the questions.</li>
-    <li><b>Works anywhere:</b> any chatbot, any task. Not just video.</li>
-  </ul>
+<section class="slide dstep" data-title="Step 2: talk out the prompt" data-steps="2">
+  <div class="kick">Demo 4 · step 2 of 5</div>
+  <div class="who">Talk out the prompt</div>
+  <div class="dsay" style="top:140px"><span>type this</span><p>I'd like to make a short Remotion video of my courtyard paper for my conference talk. Help me build the prompt. Let's talk it through first: what do you need to know to write a complete prompt?</p></div>
+  <ul class="dsee" data-at="1" data-fx="fade" style="top:140px"><li><b>What you'll see</b></li><li>it asks what it needs: the key result, what moves, which numbers must be exact, how long, the style</li><li>you answer in plain words</li><li>it writes the prompt. Read it, fix anything, then say "go ahead".</li></ul>
+  <p class="subnote" data-at="2" data-fx="fade" style="top:560px">Same as the architect demo: <b>don't write the prompt alone. Talk it out.</b></p>
   <aside class="notes">
-    <p data-n="0">Step two, and this is the one I want you to take home. A lot of people think prompting is hard. That you need to know some magic words, or take a course on prompt engineering. You don't. You can just talk to it. Watch. I don't write the prompt. I say: I want a video of my paper; before you make anything, ask me questions until you can write a good prompt for it.</p>
-    <p data-n="1">And it asks me. What's the one result? What should move? Which numbers must be exact? How long, what style? These are exactly the things a good prompt needs, and it knows that better than most of us.</p>
-    <p data-n="2">So I just answer, in plain words. Like talking to a colleague.</p>
-    <p data-n="3">And it writes the prompt for me. Much better than what I would have written alone. I read it, fix anything that's wrong, and say go ahead.</p>
-    <p data-n="4">So: you don't need to know how to prompt. Ask it to interview you. It knows what it needs. And this works anywhere: any chatbot, any task. A grant proposal, an exam question, a lesson plan. Same trick.</p>
+    <p data-n="0">Step two: the prompt. Same trick as the architect demo. I don't write it myself. I say: I'd like to make a short video of my courtyard paper for my talk, help me build the prompt. What do you need to know?</p>
+    <p data-n="1">And it asks me. What's the key result? What should move? Maybe students as dots, gathering where there's shade and seating? Which numbers must be exact? How long, what style? I answer in plain words, and it writes the prompt. I read it, fix anything that's wrong, and say go ahead.</p>
+    <p data-n="2">Don't write the prompt alone. Talk it out.</p>
+  </aside>
+</section>
+
+<section class="slide" data-title="Tip: show, don't describe" data-steps="3">
+  <div class="kick">Demo 4 · tip</div>
+  <div class="who">Tip: show, don't describe</div>
+  <figure class="refshot"><img src="media/ref-koe.jpg" alt=""><figcaption>a demo you like, screenshotted</figcaption></figure>
+  <div class="xarr" data-at="1" data-fx="fade" style="left:690px;top:300px;width:50px"></div>
+  <div class="bub q" data-at="1" data-fx="fade" style="left:770px;top:220px;width:454px;font-size:22px;box-sizing:border-box">Here's my paper, and a screenshot of a style I like. Make my video look like this.</div>
+  <ul class="rpts" data-at="2" data-fx="fade" style="left:770px;right:56px;top:380px"><li>colours, layout, fonts and mood, all in one picture</li><li>works with any demo, a journal figure, a YouTube frame</li></ul>
+  <p class="subnote" data-at="3" data-fx="fade" style="top:600px;text-align:center">A picture beats a paragraph. <b>Screenshot what you like, and say "like this".</b></p>
+  <aside class="notes">
+    <p data-n="0">A tip for the prompt, my favourite. Describing a style in words is hard. So don't. Show it.</p>
+    <p data-n="1">Find a demo you like, take a screenshot, and attach it with your paper. "Make my video look like this."</p>
+    <p data-n="2">One picture carries the colours, the layout, the fonts, the mood. It works with anything: a demo like this, a figure from a journal you admire, a frame from a YouTube explainer. For my talk, I'd attach the poster image from demo two, so the video matches the poster.</p>
+    <p data-n="3">A picture beats a paragraph. Screenshot what you like and say "like this". You'll see the same trick again in step 4, with a screenshot of a mistake. It saves a lot of back and forth.</p>
   </aside>
 </section>
 
 <section class="slide dstep" data-title="Step 3: give it your paper" data-steps="3">
-  <div class="kick">Demo 3 · step 3 of 5</div>
+  <div class="kick">Demo 4 · step 3 of 5</div>
   <div class="who">Give it your paper, and ask for a plan first</div>
   <ol class="dact">
     <li data-at="1"><b>Copy your PDF</b> into the folder<span>or drag it into the terminal</span></li>
   </ol>
-  <div class="dsay" data-at="2" data-fx="fade"><span>type this</span><p>Read paper.pdf. Then, using the prompt we agreed on, <b>show me a plan of the scenes before you write any code.</b></p></div>
+  <div class="dsay" data-at="2" data-fx="fade"><span>type this</span><p>Read courtyard-paper.pdf. Then, using the prompt we agreed on, <b>show me a plan of the scenes before you write any code.</b></p></div>
   <ul class="dsee" data-at="3" data-fx="fade"><li><b>What you'll see</b></li><li>a list of scenes: what's on screen, for how long, and which numbers</li><li>wrong scene, wrong number? Say so now. Fixing a plan is cheaper than fixing a video.</li><li>happy? Say "go ahead, build it".</li></ul>
   <aside class="notes">
     <p data-n="0">Step three: the paper.</p>
-    <p data-n="1">I copy the PDF into the folder. You can also drag it into the terminal.</p>
+    <p data-n="1">I copy my courtyard PDF into the folder. You can also drag it into the terminal.</p>
     <p data-n="2">And I say: read the paper, use the prompt we agreed on, and show me a plan of the scenes before you write any code.</p>
-    <p data-n="3">Why a plan first? Because this is where I catch mistakes. Is this the right result? Is that the right number from the table? Fixing a plan takes one sentence. Fixing a finished video takes longer. When the plan looks right, I say: go ahead, build it.</p>
+    <p data-n="3">Why a plan first? Because this is where I catch mistakes. Are these the design factors the paper actually found? Is that the right number from the table? Fixing a plan takes one sentence. Fixing a finished video takes longer. When the plan looks right, I say: go ahead, build it.</p>
   </aside>
 </section>
 
 <section class="slide dstep" data-title="Step 4: preview and fix" data-steps="3">
-  <div class="kick">Demo 3 · step 4 of 5</div>
+  <div class="kick">Demo 4 · step 4 of 5</div>
   <div class="who">Preview it, and ask for fixes</div>
   <ol class="dact">
     <li data-at="1"><b>It opens a preview in your browser</b><span>Remotion Studio: play it, pause it, scrub through it</span></li>
   </ol>
   <div class="dsay dfix" data-at="2" data-fx="fade"><span>then just say what's wrong</span>
     <p>The number in scene 2 should be 350, see Table 2.</p>
-    <p>Slow down the last scene.</p>
+    <p>Show the courtyard from above, like a site plan.</p>
     <p>The labels are too small for a projector.</p>
     <p>(with a screenshot) This arrow points the wrong way.</p></div>
   <ul class="dsee" data-at="3" data-fx="fade"><li><b>What you'll see</b></li><li>only the part you mention changes; nothing else gets re-rolled</li><li>one or two fixes at a time works best</li></ul>
   <aside class="notes">
     <p data-n="0">Step four. It's built. Now we look at it.</p>
     <p data-n="1">It opens a preview in the browser, called Remotion Studio. I can play it, pause, scrub back and forth.</p>
-    <p data-n="2">And then I just say what's wrong, in plain words. That number should be 350, see Table 2. Slow down the last scene. Labels too small. And a trick: take a screenshot of the problem and paste it in. This arrow points the wrong way. It sees exactly what you see.</p>
+    <p data-n="2">And then I just say what's wrong, in plain words. That number should be 350, see Table 2. Show the courtyard from above, like a site plan. Labels too small. And a trick: take a screenshot of the problem and paste it in. This arrow points the wrong way. It sees exactly what you see.</p>
     <p data-n="3">And only that part changes. Remember the code slide: change one line, and only that changes. One or two fixes at a time works best.</p>
   </aside>
 </section>
 
 <section class="slide dstep" data-title="Step 5: render and check" data-steps="3">
-  <div class="kick">Demo 3 · step 5 of 5</div>
+  <div class="kick">Demo 4 · step 5 of 5</div>
   <div class="who">Render it, and check the science</div>
   <div class="dsay" data-at="1" data-fx="fade" style="top:140px"><span>type this</span><p>Render it as an MP4.</p></div>
   <ul class="dsee" data-at="1" data-fx="fade" style="left:56px;right:auto;width:600px;top:280px"><li><b>What you'll see</b></li><li>an MP4 file in your folder, ready for slides, YouTube or WhatsApp</li></ul>
@@ -2146,7 +2404,7 @@ for(const width of [.075,.24]){
   <aside class="notes">
     <p data-n="0">And the last step.</p>
     <p data-n="1">Render it as an MP4. A minute or two later, there's a video file in the folder. Put it in your slides, on YouTube, send it on WhatsApp.</p>
-    <p data-n="2">But before you share it: check it. It can look polished and still be wrong. Every number against the paper, every label and unit, does the mechanism move the right way. And ideally, show it to a colleague in your field. You're the expert, not the AI.</p>
+    <p data-n="2">And that's my list done: an AI that knows my paper, a poster image, a diagram, and a video. But before you share any of it: check it. It can look polished and still be wrong. Every number against the paper, every label and unit, does the mechanism move the right way. And ideally, show it to a colleague in your field. You're the expert, not the AI.</p>
     <p data-n="3">And if the terminal isn't for you: Anthropic now has Claude Motion, which makes this kind of video right inside the Claude app. It's in beta, on the Team and Enterprise plans for now.</p>
   </aside>
 </section>
@@ -2197,59 +2455,9 @@ for(const width of [.075,.24]){
   </aside>
 </section>
 
-<section class="slide" data-title="Tip 1: How to prompt better" data-steps="3">
-  <div class="kick">Tips · 1 of 4</div>
-  <div class="who">Tip 1: How to prompt better</div>
-  <div class="pv"><span>vague</span><p>Make a video about my paper.</p></div>
-  <div class="ps" data-at="1" data-fx="fade"><span>specific</span><p>Make a <b>30-second</b> Remotion video explaining Ilizarov bone transport <b>for first-year medical students</b>. Show the frame <b>pulling the bone 1 mm a day for 30 days</b>, with a day counter and a ruler. Use the <b>numbers from Table 2</b> of my paper. <b>Clean medical style</b>: light background, one accent colour, plain-English labels. <b>End on the key result.</b></p></div>
-  <p class="subnote" data-at="3" data-fx="fade" style="top:600px;text-align:center">Or don't write it at all: <b>ask the AI to interview you</b>, like in the demo, or paste your prompt and say <b>"improve this prompt"</b>.</p>
-  <div class="chips" data-at="2" data-fx="fade"><b>who it's for</b><b>what moves</b><b>the real numbers</b><b>how long</b><b>the style</b><b>how it ends</b></div>
-  <aside class="notes">
-    <p data-n="0">Before we finish, four tips for when you do this again, because this is where most of the quality comes from. Here's how most people start: make a video about my paper. And you'll get something. But it'll be generic.</p>
-    <p data-n="1">Compare that with this. It says how long, who it's for, exactly what moves and by how much, which numbers to use from the paper, what it should look like, and how it ends.</p>
-    <p data-n="2">So, a simple checklist. Who's it for, what moves, the real numbers, how long, the style, and how it ends. Get those six into your prompt and the first version is already close.</p>
-    <p data-n="3">And remember the demo: you don't have to write this yourself. Ask the AI to interview you until it can write the prompt. Or paste your vague prompt and ask it to improve it. This helps most with the weaker or cheaper models. To be fair, Claude does pretty well even with vague instructions; but the more specific you are, the less back and forth.</p>
-  </aside>
-</section>
-
-<section class="slide" data-title="Tip 2: Name a visual style" data-steps="4">
-  <div class="kick">Tips · 2 of 4</div>
-  <div class="who">Tip 2: Name a visual style</div>
-  <div class="stg">
-    <figure data-at="1"><img src="media/style-blueprint.jpg" alt=""><figcaption><b>Engineering blueprint</b><span>"dark navy, thin cyan lines, labelled dimensions"</span></figcaption></figure>
-    <figure data-at="2"><img src="media/style-print.jpg" alt=""><figcaption><b>Old newspaper print</b><span>"cream paper, bold woodcut type, ink textures"</span></figcaption></figure>
-    <figure data-at="3"><img src="media/style-map.jpg" alt=""><figcaption><b>Soft 3D data map</b><span>"pastel background, bars rising from each region"</span></figcaption></figure>
-    <figure data-at="4"><img src="media/style-medical.jpg" alt=""><figcaption><b>Medical illustration</b><span>"light background, translucent organs, soft colours"</span></figcaption></figure>
-  </div>
-  <div class="src">All four are frames from this workshop's demo clips, made with AI from IIUM papers (Engineering, Law, Economics, Nursing).</div>
-  <aside class="notes">
-    <p data-n="0">Second tip: name a visual style. If you don't, you get the same default look every time.</p>
-    <p data-n="1">Engineering blueprint. Dark navy, thin cyan lines, labelled dimensions. This was for a paper from Engineering.</p>
-    <p data-n="2">Old newspaper print. Cream paper, bold type. This one was for a law paper.</p>
-    <p data-n="3">A soft 3D data map, for an economics paper.</p>
-    <p data-n="4">And a medical illustration style, for nursing. All of these came from the same kind of prompt; the only difference is a few words describing the style. So pick a style that fits your field and your audience, and say it in the prompt.</p>
-  </aside>
-</section>
-
-<section class="slide" data-title="Tip 3: Show, don't describe" data-steps="3">
-  <div class="kick">Tips · 3 of 4</div>
-  <div class="who">Tip 3: Show, don't describe</div>
-  <figure class="refshot"><img src="media/ref-koe.jpg" alt=""><figcaption>a demo you like, screenshotted</figcaption></figure>
-  <div class="xarr" data-at="1" data-fx="fade" style="left:690px;top:300px;width:50px"></div>
-  <div class="bub q" data-at="1" data-fx="fade" style="left:770px;top:220px;width:454px;font-size:22px;box-sizing:border-box">Here's my paper, and a screenshot of a style I like. Make my video look like this.</div>
-  <ul class="rpts" data-at="2" data-fx="fade" style="left:770px;right:56px;top:380px"><li>colours, layout, fonts and mood, all in one picture</li><li>works with any demo, a journal figure, a YouTube frame</li></ul>
-  <p class="subnote" data-at="3" data-fx="fade" style="top:600px;text-align:center">A picture beats a paragraph. <b>Screenshot what you like, and say "like this".</b></p>
-  <aside class="notes">
-    <p data-n="0">And tip three, my favourite. Describing a style in words is hard. So don't. Show it.</p>
-    <p data-n="1">Find a demo you like, take a screenshot, and attach it with your paper. "Make my video look like this."</p>
-    <p data-n="2">One picture carries the colours, the layout, the fonts, the mood. It works with anything: a demo like this, a figure from a journal you admire, a frame from a YouTube explainer.</p>
-    <p data-n="3">A picture beats a paragraph. Screenshot what you like and say "like this". It saves a lot of back and forth.</p>
-  </aside>
-</section>
-
-<section class="slide" data-title="Tip 4: AI moves fast, keep track of the meta" data-steps="3">
-  <div class="kick">Tips · 4 of 4</div>
-  <div class="who">Tip 4: AI moves fast, keep track of the meta</div>
+<section class="slide" data-title="AI moves fast, keep track of the meta" data-steps="3">
+  <div class="kick">One last thing</div>
+  <div class="who">AI moves fast: keep track of the meta</div>
   <div class="col2" style="left:56px" data-at="1" data-fx="fade">
     <h3>Code is cheap now</h3>
     <p class="mtx">One developer used AI to rebuild free, open-source versions of the Adobe suite:</p>
@@ -2263,7 +2471,7 @@ for(const width of [.075,.24]){
   <p class="subnote" data-at="3" data-fx="fade" style="top:590px;text-align:center">Today's best tool may not be next month's. <b>Check what's current before you commit.</b></p>
   <div class="src">ArtCraft by Brandon Thomas (<a href="https://petapixel.com/2026/10/07/someone-rebuilt-free-open-source-versions-of-photoshop-premiere-and-lightroom-using-ai/" target="_blank" rel="noopener">PetaPixel</a>, Oct 2026) · <a href="https://motioncanvas.io" target="_blank" rel="noopener">motioncanvas.io</a> · <a href="https://github.com/redotvideo/revideo" target="_blank" rel="noopener">github.com/redotvideo/revideo</a> · <a href="https://www.manim.community" target="_blank" rel="noopener">www.manim.community</a></div>
   <aside class="notes">
-    <p data-n="0">And the last tip. AI is moving very fast.</p>
+    <p data-n="0">One last thing before I let you go: AI is moving very fast.</p>
     <p data-n="1">Because writing code is so cheap now, people are rebuilding whole products. Just this month, one developer used AI to build free, open-source versions of Photoshop, Premiere, Illustrator, Lightroom and more. They're early and buggy, but a single person did that, in months.</p>
     <p data-n="2">Same for our tools. I use Remotion, but there are others. Motion Canvas, made for explainer videos. Revideo, built on Motion Canvas for automated rendering. And Manim, the Python library behind the 3Blue1Brown maths videos.</p>
     <p data-n="3">So keep track of the meta. What's best today may not be best next month. Before you commit to a tool, spend five minutes checking what people are using now.</p>
@@ -2297,23 +2505,23 @@ for(const width of [.075,.24]){
 <section class="slide" data-title="Let's talk AI">
   <div class="kick">Thank you</div>
   <div class="bye">
-    <h1>Let's talk AI</h1>
-    <p>Got an idea, a project, or just want to talk about AI? Please do reach out. I love talking about AI.</p>
-    <ul class="mails"><li>hello@fahreza.dev</li><li>a.fahreza@live.iium.edu.my</li><li>m.fahreza.alghifari@gmail.com</li></ul>
-    <p class="byerepo"><img class="ilogo mono" src="media/logos/github.svg" alt="">Today's slides, demos and prompts <i>(public soon)</i>:<br><a href="https://github.com/MFA-X-AI/iium-smart-video-workshop" target="_blank" rel="noopener">github.com/MFA-X-AI/iium-smart-video-workshop</a></p>
+    <h1>Thank you very much!</h1>
+    <p>Got an idea, a project, or just want to talk about AI? Please do reach out!</p>
+    <ul class="mails"><li>a.fahreza@live.iium.edu.my</li><li>hello@fahreza.dev</li></ul>
+    <p class="byerepo"><img class="ilogo mono" src="media/logos/github.svg" alt="">Today's slides, demos and prompts:<br><a href="https://github.com/MFA-X-AI/iium-smart-video-workshop" target="_blank" rel="noopener">github.com/MFA-X-AI/iium-smart-video-workshop</a></p>
   </div>
   <img class="mecut" src="media/me.png" alt="">
   <figure class="snap qrc"><img src="media/qr-fahreza.svg" alt="QR code for fahreza.dev"><figcaption>fahreza.dev</figcaption></figure>
   <p class="hand hq">scan me<br>for my website!</p>
   <svg class="hnd" viewBox="0 0 1280 720"><path d="M600 610 C618 626 640 626 656 610"/><path d="M642 606 L657 609 L654 624"/></svg>
   <aside class="notes">
-    <p data-n="0">That's it from me. Thank you all. If you have any ideas, a project in mind, or you just want to talk about AI, please do reach out. Come and talk to me after this, or get in touch. I honestly love talking about AI. You can scan this to get to my website. Thank you. And everything from today, the slides, the demos and the prompts, will be on GitHub. The link is here; I'll make it public soon.</p>
+    <p data-n="0">That's it from me. Thank you all. If you have any ideas, a project in mind, or you just want to talk about AI, please do reach out. Come and talk to me after this, or get in touch. I honestly love talking about AI. You can scan this to get to my website. Thank you. And everything from today, the slides, the demos and the prompts, is on GitHub. The link is here.</p>
   </aside>
 </section>
 
 </div></div>
 <div id="notes" aria-live="polite"></div>
-<nav><button id="prev" type="button">Previous</button><span id="count"></span><button id="next" type="button">Next</button><select id="jump" aria-label="Jump to slide"></select><button id="notesBtn" type="button" aria-pressed="false" title="Speaker notes (N)">Notes</button><button id="presBtn" type="button" title="Presenter window (P)">Presenter</button><button id="theme" type="button" title="Theme (T)">Theme</button></nav>
+<nav><button id="prev" type="button">Previous</button><span id="count"></span><button id="next" type="button">Next</button><select id="jump" aria-label="Jump to slide"></select><button id="notesBtn" type="button" aria-pressed="false" title="Speaker notes (N)">Notes</button><button id="presBtn" type="button" title="Presenter window (P)">Presenter</button><button id="theme" type="button" title="Theme (T)">Theme</button><button id="fsBtn" type="button" title="Fullscreen (F)">Fullscreen</button></nav>
 
 <script>
 const EMBED = /*EMBED*/null;
@@ -2932,7 +3140,7 @@ const HOOKS = {
   openclosed: {
     init(s) {
       s._c = makeCloud(s);
-      const CLOSED = ['ChatGPT', 'Claude', 'Gemini', 'Grok', 'Opus', 'Fable', 'Sonnet', 'Haiku', 'Astra', 'Sol', 'Luna', 'Terra', 'GPT-5.4', 'GPT-5.5', 'Muse'];
+      const CLOSED = ['ChatGPT', 'Claude', 'Gemini', 'Grok', 'Opus', 'Argon', 'Fable', 'Sonnet', 'Haiku', 'Astra', 'Sol', 'Luna', 'Terra', 'GPT-5.4', 'GPT-5.5', 'Muse'];
       const OPEN = ['DeepSeek', 'Qwen', 'GLM', 'MiniMax', 'Kimi', 'Mistral', 'Gemma', 'Phi', 'Llama', 'Whisper', 'Kokoro', 'YOLO', 'LTX', 'Wan', 'Z-Image', 'Stable Audio'];
       s._cols = Object.assign(flow(CLOSED, 80, 600, 230, 32), flow(OPEN, 690, 1210, 230, 32));
     },
@@ -3298,7 +3506,7 @@ function onKey(key, e) {
   else if (key === 'n' || key === 'N') toggleNotes();
   else if (key === 'p' || key === 'P') openPresenter();
   else if (key === 't' || key === 'T') toggleTheme();
-  else if (key === 'f' || key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); }
+  else if (key === 'f' || key === 'F') toggleFullscreen();
 }
 function toggleNotes() { const on = document.body.classList.toggle('with-notes'); document.getElementById('notesBtn').setAttribute('aria-pressed', on); fit(); renderNotes(); }
 function toggleTheme() {
@@ -3311,10 +3519,24 @@ function fit() { const st = document.getElementById('stage'); deck.style.transfo
 document.addEventListener('keydown', e => { if (['SELECT', 'INPUT'].includes(e.target.tagName) || e.ctrlKey || e.metaKey || e.altKey) return; onKey(e.key, e); });
 window.addEventListener('message', e => { const m = e.data || {}; if (m.deck === 'next') next(); else if (m.deck === 'prev') prev(); else if (m.deck === 'key') onKey(m.key); });
 document.getElementById('prev').onclick = prev; document.getElementById('next').onclick = next;
+function toggleFullscreen() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); }
+document.getElementById('fsBtn').onclick = e => { toggleFullscreen(); e.currentTarget.blur(); };
+document.addEventListener('fullscreenchange', () => { const b = document.getElementById('fsBtn'); b.textContent = document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen'; window.dispatchEvent(new Event('resize')); });
 document.getElementById('notesBtn').onclick = toggleNotes; document.getElementById('presBtn').onclick = openPresenter; document.getElementById('theme').onclick = toggleTheme;
 select.onchange = () => { go(+select.value, 0); select.blur(); };
 window.addEventListener('hashchange', () => { const [i, k] = fromHash(); if (i !== cur || k !== step) go(i, k); });
 window.addEventListener('resize', fit);
+// Mouse: left click = next, right click = back, scroll = next/back. Clicks on links, buttons and sliders still work.
+const stage = document.getElementById('stage'), OWN = 'a, button, input, select, textarea, label, video, iframe, .ictl';
+stage.addEventListener('click', e => { if (e.button !== 0 || e.target.closest(OWN) || String(getSelection())) return; next(); });
+stage.addEventListener('contextmenu', e => { if (e.target.closest(OWN)) return; e.preventDefault(); prev(); });
+let wheelAt = 0;
+stage.addEventListener('wheel', e => {
+  if (e.ctrlKey || Math.abs(e.deltaY) < 4) return;   // ctrl+wheel is zoom; ignore tiny trackpad jitter
+  e.preventDefault();
+  const now = performance.now(); if (now - wheelAt < 450) { wheelAt = now; return; }   // one step per scroll gesture
+  wheelAt = now; e.deltaY > 0 ? next() : prev();
+}, { passive: false });
 window.addEventListener('beforeprint', () => slides.forEach(s => { s.hidden = false; apply(s, steps(s)); }));
 window.addEventListener('afterprint', () => { slides.forEach((s, j) => s.hidden = j !== cur); apply(slides[cur], step); });
 
